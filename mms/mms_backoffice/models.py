@@ -168,6 +168,7 @@ class ActivityEventMemberParticipation(models.Model):
 	member = models.ForeignKey(Member)
 	event = models.ForeignKey(ActivityEvent)
 	published = models.BooleanField(default=False)
+	details = models.CharField(max_length=2048)
 
 	class Meta:
 		unique_together = ('member', 'event')

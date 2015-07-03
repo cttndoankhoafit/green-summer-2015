@@ -1,0 +1,13 @@
+class ActivityEventListView
+	- Show all events of the activity
+	- The list view include columns: event name, start time, end time
+
+class ActivityEventMemberListView
+	- Show all members that participate the event
+	- The list view include columns: member identify, member name
+
+class ActivityEventCreateRegisterFormView
+	- User can create a event that members can register to participate
+
+class ActivityEventRegisterFormView
+	- Members can register for a activity event by this form
