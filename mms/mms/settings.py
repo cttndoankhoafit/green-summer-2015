@@ -37,6 +37,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'mms_backoffice',
+    'mms_webapp_v1',
+    'import_export',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -100,3 +103,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+AUTH_USER_MODEL = 'mms_backoffice.User'

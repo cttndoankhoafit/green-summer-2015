@@ -1,0 +1,21 @@
+{% extends 'temporary/base.html' %}
+
+{% block content %}
+
+</body>
+<form method="post" id="login-form">
+	{% csrf_token %}
+	<div>
+		<label>Tên đăng nhập:</label>
+		{{ form.username }}
+	</div>
+	<div>
+		<label>Mật khẩu:</label>
+		{{ form.password }}
+	</div>
+	<div>
+		<button type="submit">Đăng nhập</button>
+	</div>
+</form>
+
+{% endblock }
