@@ -1,17 +1,25 @@
+# -*- coding: utf-8 -*-
+
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
 
 # Create your models here.
 
+CONST_GENDERS = (
+	(u'Nam', u'Nam'),
+	(u'Nữ', u'Nữ')
+)
+
+CONST_PERMISSION = (
+	(u'Đọc', u'Đọc'),
+	(u'Ghi', u'Ghi'),
+	(u'Quản trị', u'Quản trị'),
+)
+
 #region Member
 
 class Member(models.Model):
-	CONST_GENDERS = (
-		(u'Nam', u'Nam'),
-		(u'Nữ', u'Nữ')
-	)
-
 	identify = models.CharField(u'Mã số', max_length=20, primary_key=True)
 	first_name = models.CharField(u'Tên', max_length=8)
 	last_name = models.CharField(u'Họ', max_length=128)
@@ -30,8 +38,8 @@ class Member(models.Model):
 	email = models.EmailField(u'Email', max_length=128, null = True, blank=True, default=None)
 
 	# If the member is a student, add member's admission date
-	admission_date = models.DateField(u'Ngày nhập học', null=True, blank=True, default=None)
-
+	details = models.CharField(u'Thông tin khác', max_length=2048, null=True, blank=True, default=None)
+	
 	def save(self, force_insert = False, force_update = False, using = None, update_fields = None):
 		# If the user's account is not exist, create new account in User model.
 		# Your code here
@@ -102,40 +110,42 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class OrganizationType(models.Model):
 	name = models.CharField(u'Loại tổ chức', max_length=128)
-
-class OrganizationPosition(models.Model):
-	organization_type = models.ForeignKey(OrganizationType)
-	name = models.CharField(u'Tên vị trí', max_length=128)
-
+	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
+	
 class Organization(models.Model):
 	name = models.CharField(u'Tên tổ chức', max_length=128)
 	organization_type = models.ForeignKey(OrganizationType)
+	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
 class OrganizationManager(models.Model):
 	organization_manager = models.ForeignKey(Organization, related_name='organization_manager')
 	organization_managed =  models.ForeignKey(Organization, related_name='organization_managed')
+	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
 	class Meta:
 		unique_together = ('organization_manager', 'organization_managed')
 
 class OrganizationUserManager(models.Model):
-	user = models.ForeignKey(User)
 	organization = models.ForeignKey(Organization)
-	position = models.ForeignKey(OrganizationPosition)
+	user = models.ForeignKey(User)
+	permission = models.CharField(u'Quyền hạn', max_length=8, null=True, choices=CONST_GENDERS, default=0)
+
+	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
 	def save(self, force_insert = False, force_update = False, using = None, update_fields = None):
-		# User's position must be related organization's type (models: OrganizationType, OrganizationPosition)
+		# User's position must be related user organization's type (models: OrganizationType)
 		#Your code here
 	
 		return super(OrganizationUserManager, self).save(force_insert, force_update, using, update_fields)
 
 	class Meta:
-		unique_together = ('user', 'organization', 'position')
+		unique_together = ('organization', 'user', 'permission')
 
 class OrganizationMember(models.Model):
 	organization = models.ForeignKey(Organization)
 	member = models.ForeignKey(Member)
-
+	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
+	
 	class Meta:
 		unique_together = ('organization', 'member')
 
@@ -145,10 +155,12 @@ class OrganizationMember(models.Model):
 
 class ActivityType(models.Model):
 	name = models.CharField(u'Loại hoạt động', max_length=128)
+	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
 class Activity(models.Model):
 	name = models.CharField(u'Tên hoạt động', max_length=128)
 	activity_type = models.ForeignKey(ActivityType)
+	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
 class ActivityEvent(models.Model):
 	activity = models.ForeignKey(Activity)	
@@ -164,6 +176,13 @@ class ActivityOrganization(models.Model):
 	class Meta:
 		unique_together = ('activity', 'organization')
 
+class ActivityUserManager(models.Model):
+	activity = models.ForeignKey(Activity)
+	user = models.ForeignKey(User)
+
+	class Meta:
+		unique_together = ('activity', 'user')
+
 class ActivityEventMemberParticipation(models.Model):
 	member = models.ForeignKey(Member)
 	event = models.ForeignKey(ActivityEvent)
@@ -175,3 +194,6 @@ class ActivityEventMemberParticipation(models.Model):
 
 #endregion
 
+#region Document
+
+#endregion
