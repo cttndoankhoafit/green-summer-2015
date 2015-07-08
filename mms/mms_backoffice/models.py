@@ -52,6 +52,9 @@ class Member(models.Model):
 
 		return super(Member, self).delete(using)
 
+	def __unicode__(self):
+		return self.identify + ' - ' + self.last_name + ' ' + self.first_name
+
 #endregion
 
 #region User
@@ -111,16 +114,26 @@ class User(AbstractBaseUser, PermissionsMixin):
 class OrganizationType(models.Model):
 	name = models.CharField(u'Loại tổ chức', max_length=128)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
+
+	def __unicode__(self):
+		return self.name
+
 	
 class Organization(models.Model):
 	name = models.CharField(u'Tên tổ chức', max_length=128)
 	organization_type = models.ForeignKey(OrganizationType)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
+	def __unicode__(self):
+		return self.name
+
 class OrganizationManager(models.Model):
 	organization_manager = models.ForeignKey(Organization, related_name='organization_manager')
 	organization_managed =  models.ForeignKey(Organization, related_name='organization_managed')
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
+
+	def __unicode__(self):
+		return self.organization_manager.name + ' - ' + self.organization_managed.name
 
 	class Meta:
 		unique_together = ('organization_manager', 'organization_managed')
@@ -138,6 +151,9 @@ class OrganizationUserManager(models.Model):
 	
 		return super(OrganizationUserManager, self).save(force_insert, force_update, using, update_fields)
 
+	def __unicode__(self):
+		return self.organization.name + ' - ' + self.user.username
+
 	class Meta:
 		unique_together = ('organization', 'user', 'permission')
 
@@ -146,6 +162,9 @@ class OrganizationMember(models.Model):
 	member = models.ForeignKey(Member)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 	
+	def __unicode__(self):
+		return self.organization.name + ' - ' + self.member.last_name + ' ' -self.member.first_name
+
 	class Meta:
 		unique_together = ('organization', 'member')
 
@@ -157,10 +176,16 @@ class ActivityType(models.Model):
 	name = models.CharField(u'Loại hoạt động', max_length=128)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
+	def __unicode__(self):
+		return self.name
+
 class Activity(models.Model):
 	name = models.CharField(u'Tên hoạt động', max_length=128)
 	activity_type = models.ForeignKey(ActivityType)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
+
+	def __unicode__(self):
+		return self.name
 
 class ActivityEvent(models.Model):
 	activity = models.ForeignKey(Activity)	
@@ -169,9 +194,15 @@ class ActivityEvent(models.Model):
 	start_time = models.DateTimeField()
 	end_time = models.DateTimeField()
 
+	def __unicode__(self):
+		return self.activity.name + ' ' + self.name
+
 class ActivityOrganization(models.Model):
 	activity = models.ForeignKey(Activity)
 	organization = models.ForeignKey(Organization)
+
+	def __unicode__(self):
+		return self.activity.name + ' - ' + self.organization.name
 
 	class Meta:
 		unique_together = ('activity', 'organization')
@@ -181,8 +212,9 @@ class ActivityUserManager(models.Model):
 	user = models.ForeignKey(User)
 	permission = models.CharField(u'Quyền hạn', max_length=8, null=True, choices=CONST_PERMISSION, default=0)
 
-	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
-	
+	def __unicode__(self):
+		return self.activity.name + ' - ' + self.user.username
+
 	class Meta:
 		unique_together = ('activity', 'user')
 
@@ -192,6 +224,9 @@ class ActivityEventMemberParticipation(models.Model):
 	published = models.BooleanField(default=False)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 	
+	def __unicode__(self):
+		return self.event.name + ' - ' + self.member.last_name + ' ' + self.member.first_name
+
 	class Meta:
 		unique_together = ('member', 'event')
 
