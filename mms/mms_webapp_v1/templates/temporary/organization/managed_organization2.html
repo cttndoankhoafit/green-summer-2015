@@ -1,0 +1,5 @@
+{% if html_content %}
+{{ html_content|safe }}
+{% else %}
+    <p>No managed organizations are available.</p>
+{% endif %}
