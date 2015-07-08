@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from mms_backoffice.models import *
-from django.views.generic import ListView
+from django.views import generic
 
-class ChildOrganizationListView(ListView):
+class ChildOrganizationListView(generic.View):
 	template_name = 'temporary/organization/sub_organization2.html'
 
 	# def get_queryset(self):
@@ -51,7 +51,7 @@ class ChildOrganizationListView(ListView):
 """
     Show all organizations (including child organizations) managed by a user.
 """
-class ManagedOrganizationListView(ListView):
+class ManagedOrganizationListView(generic.View):
 	template_name = 'temporary/organization/managed_organization2.html'
 
 	def get_queryset(self):
