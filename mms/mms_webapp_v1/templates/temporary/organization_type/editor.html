@@ -1,0 +1,20 @@
+{% extends 'temporary/base.html' %}
+
+{% load staticfiles %}
+
+{% block scripts %}
+<script type="text/javascript" src="{% static 'v1/js/form.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<button class="name" onclick="textBoxCreate()">Thêm vị trí</button>  
+<form action="" method="post">
+	{% csrf_token %}
+	{{ form.as_p }}
+	<div>Các vị trí trong ban điều hành:</div>
+	<p id="myForm">
+	</p>
+	<input type="submit" value="Save" />
+</form>
+
+{% endblock %}
