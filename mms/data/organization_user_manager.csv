@@ -1,0 +1,4 @@
+id,permission,details,organization_id,user_id
+1,Quản trị,,6,1
+2,Ghi,,8,2
+3,Đọc,,9,3
