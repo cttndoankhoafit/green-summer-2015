@@ -128,7 +128,7 @@ class OrganizationManager(models.Model):
 class OrganizationUserManager(models.Model):
 	organization = models.ForeignKey(Organization)
 	user = models.ForeignKey(User)
-	permission = models.CharField(u'Quyền hạn', max_length=8, null=True, choices=CONST_GENDERS, default=0)
+	permission = models.CharField(u'Quyền hạn', max_length=8, null=True, choices=CONST_PERMISSION, default=0)
 
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
@@ -179,7 +179,10 @@ class ActivityOrganization(models.Model):
 class ActivityUserManager(models.Model):
 	activity = models.ForeignKey(Activity)
 	user = models.ForeignKey(User)
+	permission = models.CharField(u'Quyền hạn', max_length=8, null=True, choices=CONST_PERMISSION, default=0)
 
+	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
+	
 	class Meta:
 		unique_together = ('activity', 'user')
 
@@ -187,8 +190,8 @@ class ActivityEventMemberParticipation(models.Model):
 	member = models.ForeignKey(Member)
 	event = models.ForeignKey(ActivityEvent)
 	published = models.BooleanField(default=False)
-	details = models.CharField(max_length=2048)
-
+	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
+	
 	class Meta:
 		unique_together = ('member', 'event')
 
