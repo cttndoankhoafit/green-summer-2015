@@ -47,28 +47,41 @@ class MemberResource(resources.ModelResource):
 class OrganizationTypeResource(resources.ModelResource):
 	class Meta:
 		model =  OrganizationType
-		fields = ('name')
+		fields = (	'id',
+					'name',	)
 
-		export_order = ('name')
+		export_order = (	'id',
+							'name',	)
 
 class OrganizationResource(resources.ModelResource):
 	class Meta:
 		model = Organization
 
-		fields = (	'name',
+		fields = (	'id',
+					'name',
 					'organization_type'	)
 
 class OrganizationManagerResource(resources.ModelResource):
 	class Meta:
 		model = OrganizationManager
 
-		fields = (	'organization_manager',
+		fields = (	'id',
+					'organization_manager',
 					'organization_managed',	)
 
 class OrganizationUserManagerResource(resources.ModelResource):
 	class Meta:
 		model = OrganizationUserManager
+		
+		fields = (	'id',
+					'organization',
+					'user',
+					'permission',	)
 
 class OrganizationMemberResource(resources.ModelResource):
 	class Meta:
 		model = OrganizationMember
+
+class UserResource(resources.ModelResource):
+	class Meta:
+		model = User
