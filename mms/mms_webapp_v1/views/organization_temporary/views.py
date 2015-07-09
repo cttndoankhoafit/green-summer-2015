@@ -110,8 +110,8 @@ class ManagedOrganizationListView(generic.TemplateView):
 		html += "</li>"
 		return html
 #Show organization type
-class OrganizationTypeListView(ListView):
-	template_name = 'temporary/organization/organization_types.html'
-	def get_queryset(self):
-	    objects = OrganizationType.objects.order_by('-name')
-	    return objects
+# class OrganizationTypeListView(ListView):
+# 	template_name = 'temporary/organization/organization_types.html'
+# 	def get_queryset(self):
+# 	    objects = OrganizationType.objects.order_by('-name')
+# 	    return objects

@@ -1,0 +1,16 @@
+{% extends 'temporary/base.html' %}
+
+{% load staticfiles %}
+
+{% block scripts %}
+{% endblock %}
+
+{% block content %}
+<table>
+{% for obj in object_list %}
+	<tr>
+		<td>{{ obj }}</td>
+	</tr>
+{% endfor %}
+</table>
+{% endblock %}
