@@ -51,7 +51,7 @@ class ChildOrganizationListView(generic.View):
 """
     Show all organizations (including child organizations) managed by a user.
 """
-class ManagedOrganizationListView(generic.View):
+class ManagedOrganizationListView(generic.TemplateView):
 	template_name = 'temporary/organization/managed_organization2.html'
 
 	def get_queryset(self):
