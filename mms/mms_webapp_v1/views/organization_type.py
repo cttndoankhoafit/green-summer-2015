@@ -1,6 +1,6 @@
 from django.views.generic import CreateView
 
-from mms_webapp_v1.forms.organization_type import OrganizationTypeForm
+#from mms_webapp_v1.forms.organization_type import OrganizationTypeForm
 from mms_backoffice.models import *
 
 class OrganizationTypeCreateView(CreateView):
