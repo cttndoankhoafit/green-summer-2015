@@ -4,14 +4,16 @@ from django.views.generic import TemplateView
 #region GET UNDER ORGANIZATION
 
 class OrganizationOrganizationView(TemplateView):
-	template_name = 'temporary/organization/organization_tree.html'
+	template_name = 'temporary/treeview/treeView.html'
+	rootID = 0
 
 	def get_context_data(self, **kwargs):
 		context = super(OrganizationOrganizationView, self).get_context_data(**kwargs)
 		
 		identify = self.kwargs['organization_id']
-		
-		context['html_content'] = self.toHtml(self.get_org_list(identify))
+		self.rootID = identify
+		context['html_content'] = 'foldersTree = gFld(\"%s\")\n' % Organization.objects.get(id=identify).name
+		context['html_content'] += self.toHtml(self.get_org_list(identify))
 		
 		return context
 
@@ -22,7 +24,7 @@ class OrganizationOrganizationView(TemplateView):
 			return res
 
 		for i in managed_list:
-			res.append(i.organization_managed)
+			res.append((i.organization_managed, i.organization_manager.id, ))
 			res.append(self.get_org_list(i.organization_managed.id))
 
 		return res
@@ -33,15 +35,19 @@ class OrganizationOrganizationView(TemplateView):
 			return html
 
 		if type(objects) is list:
-			html += "<ul>"
+			#html += "<ul>\n"
 			for o in objects:
 				html += self.toHtml(o)
-			html += "</ul>"
+			#html += "</ul>\n"
 			return html
 
-		html += "<li>"
-		html += objects.name
-		html += "</li>"
+		#html += "<li>"
+		#html += objects[0].name
+		#html += "</li>\n"
+		if objects[1] == int(self.rootID):
+			html += 'aux%d = insFld(foldersTree, gFld("%s"))\n' % (objects[0].id, objects[0].name)
+		else:
+			html += 'aux%d = insFld(aux%d, gFld("%s"))\n' % (objects[0].id, objects[1], objects[0].name)
 		return html
 
 #endregion
@@ -49,7 +55,7 @@ class OrganizationOrganizationView(TemplateView):
 #region GET ALL ORGANIZATIONS THAT USER user_id MANAGE
 
 class UserOrganizationView(TemplateView):
-	template_name = 'temporary/organization/organization_tree.html'
+	template_name = 'temporary/treeview/treeView.html'
 
 	def get_context_data(self, **kwargs):
 		context = super(UserOrganizationView, self).get_context_data(**kwargs)
@@ -57,10 +63,11 @@ class UserOrganizationView(TemplateView):
 		orgs = OrganizationUserManager.objects.filter(user__id=identify)
 		res = []
 		for i in orgs:
-			res.append(i.organization)
+			res.append((i.organization, 0, ))
 			res.append(self.get_org_list(i.organization.id))
 
-		context['html_content'] = self.toHtml(res)
+		context['html_content'] = 'foldersTree = gFld(\"%s\")\n' % User.objects.get(id=identify).username
+		context['html_content'] += self.toHtml(res)
 		return context
 
 	def get_org_list(self, org_id):
@@ -70,7 +77,7 @@ class UserOrganizationView(TemplateView):
 			return res
 
 		for i in managed_list:
-			res.append(i.organization_managed)
+			res.append((i.organization_managed, i.organization_manager.id, ))
 			res.append(self.get_org_list(i.organization_managed.id))
 
 		return res
@@ -81,15 +88,19 @@ class UserOrganizationView(TemplateView):
 			return html
 
 		if type(objects) is list:
-			html += "<ul>"
+			#html += "<ul>\n"
 			for o in objects:
 				html += self.toHtml(o)
-			html += "</ul>"
+			#html += "</ul>\n"
 			return html
 
-		html += "<li>"
-		html += objects.name
-		html += "</li>"
+		#html += "<li>"
+		#html += objects[0].name
+		#html += "</li>\n"
+		if objects[1] == 0:
+			html += 'aux%d = insFld(foldersTree, gFld("%s"))\n' % (objects[0].id, objects[0].name)
+		else:
+			html += 'aux%d = insFld(aux%d, gFld("%s"))\n' % (objects[0].id, objects[1], objects[0].name)
 		return html
 
 #nedregion
