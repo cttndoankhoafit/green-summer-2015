@@ -6,11 +6,15 @@
 {% endblock %}
 
 {% block content %}
-<table>
-{% for obj in object_list %}
-	<tr>
-		<td>{{ obj }}</td>
-	</tr>
-{% endfor %}
-</table>
+{% if object_list %}
+	<table>
+	{% for obj in object_list %}
+		<tr>
+			<td>{{ obj }}</td>
+		</tr>
+	{% endfor %}
+	</table>
+{% else %}
+	<p>List has no members.</p>
+{% endif %}
 {% endblock %}
