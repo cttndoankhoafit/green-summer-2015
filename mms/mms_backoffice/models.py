@@ -163,7 +163,7 @@ class OrganizationMember(models.Model):
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 	
 	def __unicode__(self):
-		return self.organization.name + ' - ' + self.member.last_name + ' ' -self.member.first_name
+		return self.organization.name + ' - ' + self.member.last_name + ' ' +self.member.first_name
 
 	class Meta:
 		unique_together = ('organization', 'member')
