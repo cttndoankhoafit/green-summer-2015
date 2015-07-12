@@ -4,7 +4,7 @@ import urlparse
 
 from django.conf import settings
 
-from django.contrib.auth import REDIRECT_FIELD_NAME, login, logout
+from django.contrib.auth import REDIRECT_FIELD_NAME, authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 
@@ -48,7 +48,7 @@ class LoginView(FormView):
 		login(self.request, form.get_user())
 
 		self.request.session['user_id'] = self.request.user.id
-		self.request.session['username'] = self.request.user.username
+		self.request.session['identify'] = self.request.user.identify
 		
 		return HttpResponseRedirect(self.get_success_url())
 

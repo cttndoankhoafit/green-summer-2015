@@ -17,12 +17,38 @@ CONST_PERMISSION = (
 	(u'Quản trị', u'Quản trị'),
 )
 
-#region Member
+#region User
 
-class Member(models.Model):
-	identify = models.CharField(u'Mã số', max_length=20, primary_key=True)
-	first_name = models.CharField(u'Tên', max_length=8)
-	last_name = models.CharField(u'Họ', max_length=128)
+class UserManager(BaseUserManager):
+	def create_user(self, identify, password=None, **extra_fields):
+		now = timezone.now()
+		user = self.model(identify=identify, is_staff=False, is_active=True, is_superuser=False, last_login=now, **extra_fields)
+		if password is None:
+			password = identify
+		user.set_password(password)
+		user.save(using=self._db)
+		return user
+
+	def create_superuser(self, identify, password, **extra_fields):
+		u = self.create_user(identify, password, **extra_fields)
+		u.is_staff = True
+		u.is_active = True
+		u.is_superuser = True
+		u.save(using=self._db)
+		return u
+
+class ActiveUser(models.Manager):
+	def get_query_set(self):
+		return super(ActiveUser, self).get_query_set().filter(is_active=True)
+
+class User(AbstractBaseUser, PermissionsMixin):
+	USERNAME_FIELD = 'identify'
+	REQUIRED_FIELDS = []
+
+	identify = models.CharField(max_length=40, unique=True, db_index=True)
+
+	first_name = models.CharField(u'Tên', max_length=8, null=True, blank=True, default=None)
+	last_name = models.CharField(u'Họ', max_length=128, null=True, blank=True, default=None)
 	gender =  models.CharField(u'Giới tính', max_length=3, null=True, choices=CONST_GENDERS, default=0)
 	date_of_birth = models.DateField(u'Ngày sinh', null=True, blank=True, default=None)
 	place_of_birth = models.CharField(u'Nơi sinh', max_length=128, null=True, blank=True, default=None)
@@ -39,60 +65,6 @@ class Member(models.Model):
 
 	# If the member is a student, add member's admission date
 	details = models.CharField(u'Thông tin khác', max_length=2048, null=True, blank=True, default=None)
-	
-	def save(self, force_insert = False, force_update = False, using = None, update_fields = None):
-		# If the user's account is not exist, create new account in User model.
-		# Your code here
-		
-		return super(Member, self).save(force_insert, force_update, using, update_fields)
-
-	def delete(self, using = None):
-		# If any user is deleted, delete the user that related it
-		# Your code here
-
-		return super(Member, self).delete(using)
-
-	def __unicode__(self):
-		return self.identify + ' - ' + self.last_name + ' ' + self.first_name
-
-#endregion
-
-#region User
-
-class UserManager(BaseUserManager):
-	def create_user(self, username="", email=None, password=None, **extra_fields):
-		now = timezone.now()
-		if not email:
-			raise ValueError('The given email must be set')
-		email = UserManager.normalize_email(email)
-		username = username if username else email
-		user = self.model(username=username, email=email,
-						is_staff=False, is_active=True, is_superuser=False,
-						last_login=now, **extra_fields)
-		user.set_password(password)
-		user.save(using=self._db)
-		return user
-
-	def create_superuser(self, username, email, password, **extra_fields):
-		u = self.create_user(username, email, password, **extra_fields)
-		u.is_staff = True
-		u.is_active = True
-		u.is_superuser = True
-		u.save(using=self._db)
-		return u
-
-class ActiveUser(models.Manager):
-	def get_query_set(self):
-		return super(ActiveUser, self).get_query_set().filter(is_active=True)
-
-class User(AbstractBaseUser, PermissionsMixin):
-	USERNAME_FIELD = 'username'
-	REQUIRED_FIELDS = ['email']
-
-	username = models.CharField(max_length=40, unique=True, db_index=True)
-	email = models.EmailField(max_length=254, unique=True)
-	
-	member = models.ForeignKey(Member, null=True, blank=True, default=None)
 
 	is_staff = models.BooleanField('staff status', default=False,
 		help_text='Designates whether the user can log into this admin '
@@ -105,7 +77,22 @@ class User(AbstractBaseUser, PermissionsMixin):
 	active_users = ActiveUser()
 
 	def get_short_name(self):
-		return self.username
+		return self.identify
+
+	def save(self, *args, **kwargs):
+		if self.password is None:
+			self.password = self.identify
+		else:
+			if len(self.password) == 0:
+				self.password = self.identify
+		self.set_password(self.password)
+		super(User, self).save(*args, **kwargs)
+
+	def __unicode__(self):
+		if self.last_name is None or self.first_name is None:
+			return self.identify
+		return self.identify + ' - ' + self.last_name + ' ' + self.first_name
+		
 
 #endregion
 
@@ -138,35 +125,18 @@ class OrganizationManager(models.Model):
 	class Meta:
 		unique_together = ('organization_manager', 'organization_managed')
 
-class OrganizationUserManager(models.Model):
+
+class OrganizationUser(models.Model):
 	organization = models.ForeignKey(Organization)
 	user = models.ForeignKey(User)
 	permission = models.CharField(u'Quyền hạn', max_length=8, null=True, choices=CONST_PERMISSION, default=0)
-
-	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
-
-	def save(self, force_insert = False, force_update = False, using = None, update_fields = None):
-		# User's position must be related user organization's type (models: OrganizationType)
-		#Your code here
-	
-		return super(OrganizationUserManager, self).save(force_insert, force_update, using, update_fields)
-
-	def __unicode__(self):
-		return self.organization.name + ' - ' + self.user.username
-
-	class Meta:
-		unique_together = ('organization', 'user', 'permission')
-
-class OrganizationMember(models.Model):
-	organization = models.ForeignKey(Organization)
-	member = models.ForeignKey(Member)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 	
 	def __unicode__(self):
-		return self.organization.name + ' - ' + self.member.last_name + ' ' +self.member.first_name
+		return self.organization.name + ' - ' + self.user.last_name + ' ' +self.user.first_name
 
 	class Meta:
-		unique_together = ('organization', 'member')
+		unique_together = ('organization', 'user')
 
 #endregion
 
@@ -183,19 +153,12 @@ class Activity(models.Model):
 	name = models.CharField(u'Tên hoạt động', max_length=128)
 	activity_type = models.ForeignKey(ActivityType)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
+	start_time = models.DateTimeField()
+	end_time = models.DateTimeField()
+	date_published = models.DateTimeField(null=True, blank=True, default=None)
 
 	def __unicode__(self):
 		return self.name
-
-class ActivityEvent(models.Model):
-	activity = models.ForeignKey(Activity)	
-	name = models.CharField(u'Tên sự kiện', max_length=128)
-	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
-	start_time = models.DateTimeField()
-	end_time = models.DateTimeField()
-
-	def __unicode__(self):
-		return self.activity.name + ' ' + self.name
 
 class ActivityOrganization(models.Model):
 	activity = models.ForeignKey(Activity)
@@ -218,17 +181,17 @@ class ActivityUserManager(models.Model):
 	class Meta:
 		unique_together = ('activity', 'user')
 
-class ActivityEventMemberParticipation(models.Model):
-	member = models.ForeignKey(Member)
-	event = models.ForeignKey(ActivityEvent)
-	published = models.BooleanField(default=False)
+class ActivityMemberParticipation(models.Model):
+	user = models.ForeignKey(User)
+	activity = models.ForeignKey(Activity)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
-	
+	paticipated = models.BooleanField(default=False)
+
 	def __unicode__(self):
-		return self.event.name + ' - ' + self.member.last_name + ' ' + self.member.first_name
+		return self.activity.name + ' - ' + self.user.last_name + ' ' + self.user.first_name
 
 	class Meta:
-		unique_together = ('member', 'event')
+		unique_together = ('user', 'activity')
 
 #endregion
 

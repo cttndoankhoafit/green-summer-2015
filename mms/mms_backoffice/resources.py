@@ -6,9 +6,9 @@ from datetime import date
 
 from mms_backoffice.models import *
 
-class MemberResource(resources.ModelResource):
+class UserResource(resources.ModelResource):
 	class Meta:
-		model = Member
+		model = User
 		fields = (	'identify',
 					'first_name',
 					'last_name',
@@ -69,19 +69,19 @@ class OrganizationManagerResource(resources.ModelResource):
 					'organization_manager',
 					'organization_managed',	)
 
-class OrganizationUserManagerResource(resources.ModelResource):
+class OrganizationUserResource(resources.ModelResource):
 	class Meta:
-		model = OrganizationUserManager
+		model = OrganizationUser
 		
 		fields = (	'id',
 					'organization',
 					'user',
 					'permission',	)
 
-class OrganizationMemberResource(resources.ModelResource):
-	class Meta:
-		model = OrganizationMember
+# class OrganizationMemberResource(resources.ModelResource):
+# 	class Meta:
+# 		model = OrganizationMember
 
-class UserResource(resources.ModelResource):
-	class Meta:
-		model = User
+# class UserResource(resources.ModelResource):
+# 	class Meta:
+# 		model = User

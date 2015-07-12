@@ -6,7 +6,20 @@ from mms_webapp_v1.views.organization_temporary.views import *
 from mms_webapp_v1.views.member import *
 from mms_webapp_v1.views.member_temporary.views import *
 
+
+from mms_webapp_v1.views.auth import LoginView, LogoutView
+from mms_webapp_v1.views.dashboard import DashboardView
+
+# from mms_webapp_v1.views.activity import ActivityListView
+
+from django.contrib.auth.decorators import login_required
+
 urlpatterns = [
+	url(r'^login/$', LoginView.as_view(), name='login_v1'),
+	url(r'^logout/$', LogoutView.as_view(), name='logout_v1'),
+
+	url(r'^$', login_required(DashboardView.as_view()), name='dashboard_v1'),
+
 	url(r'^member/', MemberListView.as_view(), name='member_list_view_v1'),
 	url(r'^organization_type/$', OrganizationTypeListView.as_view(), name='organization_type_list_view_v1'),
 	url(r'^organization_type/create/', OrganizationTypeCreateView.as_view(), name='organization_type_create_view_v1'),

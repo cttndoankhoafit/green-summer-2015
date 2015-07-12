@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
+from django.core.urlresolvers import reverse_lazy
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -105,3 +107,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 AUTH_USER_MODEL = 'mms_backoffice.User'
+
+LOGIN_URL = reverse_lazy('login_v1')
+LOGIN_REDIRECT_URL = reverse_lazy('dashboard_v1')
+# LOGIN_ERROR_URL = '/login-error/'
+LOGOUT_REDIRECT_URL = reverse_lazy('login_v1')
