@@ -170,25 +170,13 @@ class ActivityOrganization(models.Model):
 	class Meta:
 		unique_together = ('activity', 'organization')
 
-class ActivityUserManager(models.Model):
-	activity = models.ForeignKey(Activity)
-	user = models.ForeignKey(User)
-	permission = models.CharField(u'Quyền hạn', max_length=8, null=True, choices=CONST_PERMISSION, default=0)
-
-	def __unicode__(self):
-		return self.activity.name + ' - ' + self.user.username
-
-	class Meta:
-		unique_together = ('activity', 'user')
-
-class ActivityMemberParticipation(models.Model):
+class ActivityUser(models.Model):
 	user = models.ForeignKey(User)
 	activity = models.ForeignKey(Activity)
-	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
-	paticipated = models.BooleanField(default=False)
+	state =  models.CharField(u'Trạng thái', max_length=8, null=True, default=0)
 
 	def __unicode__(self):
-		return self.activity.name + ' - ' + self.user.last_name + ' ' + self.user.first_name
+		return self.activity.name + ' - ' + self.user.identify
 
 	class Meta:
 		unique_together = ('user', 'activity')
