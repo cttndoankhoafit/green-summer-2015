@@ -104,7 +104,7 @@ class Organization(models.Model):
 	name = models.CharField(u'Tên tổ chức', max_length=128)
 	organization_type = models.ForeignKey(OrganizationType)
 	organization_manager = models.ForeignKey('self', null=True, blank=True, default=None)
-	details = models.PositiveSmallIntegerField(max_length=2048, null=True, blank=True, default=None)
+	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
 	def __unicode__(self):
 		return self.name
