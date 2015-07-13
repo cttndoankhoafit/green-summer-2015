@@ -6,17 +6,6 @@ from django.utils import timezone
 
 # Create your models here.
 
-CONST_GENDERS = (
-	(u'Nam', u'Nam'),
-	(u'Nữ', u'Nữ')
-)
-
-CONST_PERMISSION = (
-	(u'Đọc', u'Đọc'),
-	(u'Ghi', u'Ghi'),
-	(u'Quản trị', u'Quản trị'),
-)
-
 #region User
 
 class UserManager(BaseUserManager):
@@ -42,6 +31,11 @@ class ActiveUser(models.Manager):
 		return super(ActiveUser, self).get_query_set().filter(is_active=True)
 
 class User(AbstractBaseUser, PermissionsMixin):
+	CONST_GENDERS = (
+		(0 , u'Nam'),
+		(1, u'Nữ')
+	)
+
 	USERNAME_FIELD = 'identify'
 	REQUIRED_FIELDS = []
 
@@ -49,7 +43,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 	first_name = models.CharField(u'Tên', max_length=8, null=True, blank=True, default=None)
 	last_name = models.CharField(u'Họ', max_length=128, null=True, blank=True, default=None)
-	gender =  models.CharField(u'Giới tính', max_length=3, null=True, choices=CONST_GENDERS, default=0)
+	gender =  models.PositiveSmallIntegerField(u'Giới tính', null=True, choices=CONST_GENDERS, default=0)
 	date_of_birth = models.DateField(u'Ngày sinh', null=True, blank=True, default=None)
 	place_of_birth = models.CharField(u'Nơi sinh', max_length=128, null=True, blank=True, default=None)
 	folk = models.CharField(u'Dân tộc', max_length=32, null=True, blank=True, default=None)
@@ -109,27 +103,23 @@ class OrganizationType(models.Model):
 class Organization(models.Model):
 	name = models.CharField(u'Tên tổ chức', max_length=128)
 	organization_type = models.ForeignKey(OrganizationType)
-	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
+	organization_manager = models.ForeignKey('self', null=True, blank=True, default=None)
+	details = models.PositiveSmallIntegerField(max_length=2048, null=True, blank=True, default=None)
 
 	def __unicode__(self):
 		return self.name
 
-class OrganizationManager(models.Model):
-	organization_manager = models.ForeignKey(Organization, related_name='organization_manager')
-	organization_managed =  models.ForeignKey(Organization, related_name='organization_managed')
-	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
-
-	def __unicode__(self):
-		return self.organization_manager.name + ' - ' + self.organization_managed.name
-
-	class Meta:
-		unique_together = ('organization_manager', 'organization_managed')
-
-
 class OrganizationUser(models.Model):
+	CONST_STATES = (
+		(0, u'Quản trị'),
+		(1, u'Cán bộ chủ chốt'),
+		(2, u'Cán bộ'),
+		(3, u'Thành viên'),
+	)
+
 	organization = models.ForeignKey(Organization)
 	user = models.ForeignKey(User)
-	permission = models.CharField(u'Quyền hạn', max_length=8, null=True, choices=CONST_PERMISSION, default=0)
+	state =  models.PositiveSmallIntegerField(u'Trạng thái', null=True, choices=CONST_STATES, default=3)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 	
 	def __unicode__(self):
@@ -142,20 +132,20 @@ class OrganizationUser(models.Model):
 
 #region Activity
 
-class ActivityType(models.Model):
-	name = models.CharField(u'Loại hoạt động', max_length=128)
-	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
-
-	def __unicode__(self):
-		return self.name
-
 class Activity(models.Model):
+	CONST_TYPES = (
+		(0, u'Nhận thức'),
+		(1, u'Hành động'),
+		(2, u'Khác'),
+	)
+
 	name = models.CharField(u'Tên hoạt động', max_length=128)
-	activity_type = models.ForeignKey(ActivityType)
-	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
+	activity_type =  models.PositiveSmallIntegerField(u'Loại hoạt động', null=True, choices=CONST_TYPES, default=2)
 	start_time = models.DateTimeField()
 	end_time = models.DateTimeField()
-	date_published = models.DateTimeField(null=True, blank=True, default=None)
+	published_time = models.DateTimeField(null=True, blank=True, default=None)
+
+	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
 	def __unicode__(self):
 		return self.name
@@ -171,9 +161,31 @@ class ActivityOrganization(models.Model):
 		unique_together = ('activity', 'organization')
 
 class ActivityUser(models.Model):
+	CONST_STATES = (
+		(0, u'Quản trị'),
+		(1, u'Ban tổ chức'),
+		(2, u'Cộng tác viên'),
+		(3, u'Tham gia'),
+		(4, u'Đăng ký'),
+	
+		(5, u'Ban tổ chức - Rèn luyện Đoàn viên'),
+		(6, u'Cộng tác viên - Rèn luyện Đoàn viên'),
+		(7, u'Tham gia - Rèn luyện Đoàn viên'),
+		(8, u'Đăng ký - Rèn luyện Đoàn viên'),
+		(9, u'Rèn luyện Đoàn viên'),
+
+		(10, u'Ban tổ chức - Rèn luyện Hội viên'),
+		(11, u'Cộng tác viên - Rèn luyện Hội viên'),
+		(12, u'Tham gia - Rèn luyện Hội viên'),
+		(13, u'Đăng ký - Rèn luyện Hội viên'),
+		(14, u'Rèn luyện Hội viên'),
+
+		(15, u'Không tham gia'),
+	)
+
 	user = models.ForeignKey(User)
 	activity = models.ForeignKey(Activity)
-	state =  models.CharField(u'Trạng thái', max_length=8, null=True, default=0)
+	state =  models.PositiveSmallIntegerField(u'Trạng thái', null=True, choices=CONST_STATES, default=15)
 
 	def __unicode__(self):
 		return self.activity.name + ' - ' + self.user.identify

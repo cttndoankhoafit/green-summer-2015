@@ -61,14 +61,6 @@ class OrganizationResource(resources.ModelResource):
 					'name',
 					'organization_type'	)
 
-class OrganizationManagerResource(resources.ModelResource):
-	class Meta:
-		model = OrganizationManager
-
-		fields = (	'id',
-					'organization_manager',
-					'organization_managed',	)
-
 class OrganizationUserResource(resources.ModelResource):
 	class Meta:
 		model = OrganizationUser
