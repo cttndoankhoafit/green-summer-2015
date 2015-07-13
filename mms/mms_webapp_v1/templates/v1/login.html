@@ -1,0 +1,127 @@
+{% extends 'v1/base.html' %}
+
+{% load staticfiles %}
+
+{% block page_level_styles %}
+<link href="{% static "v1/assets/global/plugins/select2/select2.css" %}" rel="stylesheet" type="text/css"/>
+<link href="{% static "v1/assets/admin/pages/css/login.css" %}" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+{% block page_level_plugins_scripts %}
+<script src="{% static "v1/assets/global/plugins/jquery-validation/js/jquery.validate.min.js" %}" type="text/javascript"></script>
+<script type="text/javascript" src="{% static "v1/assets/global/plugins/select2/select2.min.js" %}"></script>
+{% endblock %}
+
+{% block page_level_scripts %}
+<script src="{% static "v1/assets/admin/pages/scripts/login.js" %}" type="text/javascript"></script>
+{% endblock %}
+
+{% block other_scripts %}
+<script>
+	jQuery(document).ready(function() {
+		Metronic.init(); // init metronic core components
+		Layout.init(); // init current layout
+		QuickSidebar.init() // init quick sidebar
+		Login.init();
+	});
+</script>
+{% endblock %}
+
+{% block body %}
+<body class="login">
+<!-- BEGIN LOGO -->
+<div class="logo">
+	<a href="index.html">
+	<img src="{% static "v1/assets/admin/layout/img/logo-big.png" %}" alt=""/>
+	</a>
+</div>
+<!-- END LOGO -->
+<!-- BEGIN SIDEBAR TOGGLER BUTTON -->
+<div class="menu-toggler sidebar-toggler">
+</div>
+<!-- END SIDEBAR TOGGLER BUTTON -->
+<!-- BEGIN LOGIN -->
+<div class="content">
+	<!-- BEGIN LOGIN FORM -->
+	<form class="login-form" id="login-form" method="post">
+		{% csrf_token %}
+		<h3 class="form-title">Đăng nhập</h3>
+		<div class="alert alert-danger display-hide">
+			<button class="close" data-close="alert"></button>
+			<span>
+			Enter any username and password. </span>
+		</div>
+
+		{% for field, errors in form.errors.items %}
+			{% for error in errors %}
+			<h5 class="alert alert-danger">{{ error|escape }}</h5>
+			{% endfor %}
+		{% endfor %}
+
+		<div class="form-group">
+			<!--ie8, ie9 does not support html5 placeholder, so we just show field title for that-->
+			<label class="control-label visible-ie8 visible-ie9">Tên đăng nhập</label>
+			<div class="input-icon">
+				<i class="fa fa-user"></i>
+				{{ form.username }}
+				{% for error in field.errors %}
+				<span class="help-block">{{ error|escape }}</span>
+				{% endfor %}
+				<!-- <input class="form-control placeholder-no-fix" type="text" autocomplete="off" placeholder="Username" name="username"/> -->
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="control-label visible-ie8 visible-ie9">Mật khẩu</label>
+			<div class="input-icon">
+				<i class="fa fa-lock"></i>
+				{{ form.password }}
+				<!-- <input class="form-control placeholder-no-fix" type="password" autocomplete="off" placeholder="Password" name="password"/> -->
+			</div>
+		</div>
+		<div class="form-actions">
+			<label class="checkbox">
+			<input type="checkbox" name="remember" value="1"/>Lưu thông tin</label>
+			<button type="submit" class="btn green pull-right">
+			Đăng nhập <i class="m-icon-swapright m-icon-white"></i>
+			</button>
+		</div>
+		<div class="forget-password">
+			<h4>Quên mật khẩu?</h4>
+			<p>
+				<a href="javascript:;" id="forget-password">
+				Thiết lập lại mật khẩu</a>
+			</p>
+		</div>
+	</form>
+	<!-- END LOGIN FORM -->
+	<!-- BEGIN FORGOT PASSWORD FORM -->
+	<!-- action="index.html" -->
+	<form class="forget-form" method="post">
+		<h3>Quên mật khẩu?</h3>
+		<p>
+			 Nhập tên đăng nhập để thiết lập lại mật khẩu.
+		</p>
+		<div class="form-group">
+			<div class="input-icon">
+				<i class="fa fa-user"></i>
+				<input class="form-control placeholder-no-fix" type="text" autocomplete="off" placeholder="Email" name="email"/>
+			</div>
+		</div>
+		<div class="form-actions">
+			<button type="button" id="back-btn" class="btn">
+			<i class="m-icon-swapleft"></i> Trở về </button>
+			<button type="submit" class="btn green pull-right">
+			Thực hiện <i class="m-icon-swapright m-icon-white"></i>
+			</button>
+		</div>
+	</form>
+	<!-- END FORGOT PASSWORD FORM -->
+</div>
+<!-- END LOGIN -->
+<!-- BEGIN COPYRIGHT -->
+<div class="copyright">
+	 &copy; 2015 Trường Đại học Khoa học Tự nhiên TP Hồ Chí Minh
+</div>
+<!-- END COPYRIGHT -->
+</body>
+{% endblock %}

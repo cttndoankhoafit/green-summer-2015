@@ -20,7 +20,10 @@ urlpatterns = [
 
 	url(r'^$', login_required(DashboardView.as_view()), name='dashboard_v1'),
 
+	url(r'^profile/', login_required(UserUpdateView.as_view()), name='member_profile_view_v1'),
+	
 	url(r'^member/', MemberListView.as_view(), name='member_list_view_v1'),
+
 	url(r'^organization_type/$', OrganizationTypeListView.as_view(), name='organization_type_list_view_v1'),
 	url(r'^organization_type/create/', OrganizationTypeCreateView.as_view(), name='organization_type_create_view_v1'),
 	url(r'^organization/(?P<organization_id>\d+)/under_organization/$', OrganizationOrganizationView.as_view(), name='organization_organization_view_v1'),

@@ -18,7 +18,7 @@ from django.views.generic.edit import FormView
 class LoginView(FormView):
 	form_class = AuthenticationForm
 	redirect_field_name = REDIRECT_FIELD_NAME
-	template_name = 'temporary/login.html'
+	template_name = 'v1/login.html'
 
 	def get_context_data(self, **kwargs):
 		context = super(LoginView, self).get_context_data(**kwargs)
