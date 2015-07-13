@@ -73,6 +73,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 	def get_short_name(self):
 		return self.identify
 
+	def get_full_name(self):
+		if self.last_name is None or self.first_name is None:
+			return self.identify
+		return self.last_name + ' ' + self.first_name
+		
 	def save(self, *args, **kwargs):
 		if self.password is None:
 			self.password = self.identify
