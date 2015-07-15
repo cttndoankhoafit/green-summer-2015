@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from django.utils.html import mark_safe
+
 from django.views.generic import ListView, TemplateView, UpdateView
 
 from mms_backoffice.models import User
@@ -61,6 +63,9 @@ class UserProfileView(UserFormView):
 		context['title'] = u'Thông tin cá nhân'
 		context['page_title'] = u'Thông tin cá nhân'
 		
+		context['user_active'] = 'active'
+		context['profile_active'] = 'active'
+
 		context['member_full_name'] = self.object.get_full_name()
 
 		return context
@@ -75,22 +80,44 @@ class UserUpdateView(UserFormView):
 		context['title'] = u'Thông tin cá nhân'
 		context['page_title'] = u'Thông tin cá nhân'
 		
+		context['user_active'] = 'active'
+
 		context['member_full_name'] = self.object.get_full_name()
 
 		return context
 
 	def get_object(self):
-		return User.objects.get(identify=self.kwargs['user_identify'])
+		return User.objects.get(id=self.kwargs['user_id'])
 
 
-class UserListView(TemplateView):
+class UserListView(ListView):
 	template_name = 'v1/list.html'
+	paginate_by = '20'
 
 	def get_context_data(self, **kwargs):
 		context = super(UserListView, self).get_context_data(**kwargs)
 
 		context['title'] = u'Quản lý tài khoản'
 		context['page_title'] = u'Quản lý tài khoản'
-		context['user_active'] = u'active'
+
+		context['user_active'] = 'active'
+		context['user_list_active'] = 'active'
+
+		context['theads'] = [	{'name': u'Mã số', 'size' : '20%'},
+								{'name': u'Họ và Tên', 'size' : '70'},
+								{'name': '', 'size' : '8%'},	]
 
 		return context
+
+	def get_queryset(self):
+		user_list = User.objects.all()
+
+		objects = []
+		for obj in user_list:
+			values = []			
+			values.append(obj.identify)
+			values.append(obj.get_full_name())
+			values.append(mark_safe(u'<a href="/user/%s"><div class="btn btn-sm green">Chi tiết</div></a>' % (obj.id)))
+			objects.append(values)
+
+		return objects

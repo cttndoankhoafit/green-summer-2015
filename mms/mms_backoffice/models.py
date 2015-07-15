@@ -75,6 +75,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 	def get_full_name(self):
 		if self.last_name is None or self.first_name is None:
 			return self.identify
+		if len(self.last_name) == 0 or len(self.first_name) == 0:
+			return self.identify
 		return self.last_name + ' ' + self.first_name
 		
 	def save(self, *args, **kwargs):

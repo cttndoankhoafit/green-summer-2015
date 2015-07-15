@@ -22,9 +22,9 @@ urlpatterns = [
 
 	url(r'^profile/', login_required(UserProfileView.as_view()), name='user_profile_view_v1'),
 
-	url(r'^user/(?P<user_identify>\d+)/$', login_required(UserUpdateView.as_view()), name='user_update_view_v1'),
+	url(r'^user/(?P<user_id>\d+)/$', login_required(UserUpdateView.as_view()), name='user_update_view_v1'),
 	
-	url(r'^user/', UserListView.as_view(), name='member_list_view_v1'),
+	url(r'^user/list/', UserListView.as_view(), name='member_list_view_v1'),
 
 	url(r'^member/', MemberListView.as_view(), name='member_list_view_v1'),
 
