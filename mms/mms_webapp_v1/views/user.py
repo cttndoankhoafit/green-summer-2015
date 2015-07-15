@@ -97,14 +97,14 @@ class UserListView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(UserListView, self).get_context_data(**kwargs)
 
-		context['title'] = u'Quản lý tài khoản'
-		context['page_title'] = u'Quản lý tài khoản'
+		context['title'] = u'Danh sách tài khoản'
+		context['page_title'] = u'Danh sách tài khoản'
 
 		context['user_active'] = 'active'
 		context['user_list_active'] = 'active'
 
 		context['theads'] = [	{'name': u'Mã số', 'size' : '20%'},
-								{'name': u'Họ và Tên', 'size' : '70'},
+								{'name': u'Họ và Tên', 'size' : 'auto'},
 								{'name': '', 'size' : '8%'},	]
 
 		return context
@@ -114,10 +114,12 @@ class UserListView(ListView):
 
 		objects = []
 		for obj in user_list:
-			values = []			
+			values = []	
 			values.append(obj.identify)
 			values.append(obj.get_full_name())
-			values.append(mark_safe(u'<a href="/user/%s"><div class="btn btn-sm green">Chi tiết</div></a>' % (obj.id)))
+			values.append(mark_safe(u'<a href="/user/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
 			objects.append(values)
+
+		print objects
 
 		return objects

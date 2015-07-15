@@ -23,6 +23,9 @@
 		Metronic.init(); // init metronic core components
 		Layout.init(); // init current layout
 		QuickSidebar.init() // init quick sidebar
+		{% block init_scripts %}
+
+		{% endblock %}
 	});
 </script>
 {% endblock %}
@@ -190,7 +193,7 @@
 				</li>
 
 				<li class="{{ user_active }} ">
-					<a href="">
+					<a>
 						<i class="icon-user"></i>
 						<span class="title">Quản lý tài khoản</span>
 						<span class="arrow "></span>
@@ -208,7 +211,7 @@
 						</li>
 						<li class="{{ profile_active }}">
 							<a href="/profile/">
-							<i class="icon-pencil"></i>
+							<i class="icon-user"></i>
 							Thông tin cá nhân</a>
 						</li>
 					</ul>
@@ -223,11 +226,25 @@
 				</li>
 
 				<li>
-					<a href="javascript:;">
+					<a>
 					<i class="icon-basket"></i>
 					<span class="title">Quản lý hoạt động</span>
-					<span class=""></span>
+					<span class="arrow "></span>
 					</a>
+					<ul class="sub-menu">
+						<li class="">
+							<a href="">
+							<i class="icon-user"></i>
+								Danh sách hoạt động
+							</a>
+						</li>
+						<li class="">
+							<a href="">
+							<i class="fa fa-search"></i>
+								Hoạt động của tôi
+							</a>
+						</li>
+					</ul>
 				</li>
 
 				<li>

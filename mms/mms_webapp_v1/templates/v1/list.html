@@ -3,10 +3,25 @@
 {% load staticfiles %}
 
 {% block page_level_styles %}
-	{{ block.super }}
-	<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/select2/select2.css" %}"/>
-	<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.css" %}"/>
-	<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/bootstrap-datepicker/css/datepicker.css" %}"/>
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "/assets/global/plugins/select2/select2.css" %}"/>
+<link rel="stylesheet" type="text/css" href="{% static "/assets/global/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.css" %}"/>
+{% endblock %}
+
+{% block page_level_scripts %}
+{{ block.super }}
+<script src="{% static "v1/assets/admin/pages/scripts/table-managed.js" %}"></script>
+{% endblock %}
+
+{% block page_level_plugins_scripts %}
+{{ block.super }}
+<script type="text/javascript" src="{% static "v1/assets/global/plugins/select2/select2.min.js" %}"></script>
+<script type="text/javascript" src="{% static "v1/assets/global/plugins/datatables/media/js/jquery.dataTables.min.js" %}"></script>
+<script type="text/javascript" src="{% static "v1/assets/global/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.js" %}"></script>
+{% endblock %}
+
+{% block init_scripts %}
+		TableManaged.init();
 {% endblock %}
 
 {% block page_content %}
@@ -15,9 +30,6 @@
 	<div class="col-md-12">
 		<div class="portlet">
 			<div class="portlet-title">
-				<div class="caption">
-					<i class="fa fa-shopping-cart"></i>Danh sách tài khoản
-				</div>
 				<div class="actions">
 					<a href="#" class="btn default yellow-stripe">
 						<i class="fa fa-plus"></i>
@@ -32,85 +44,66 @@
 						<span class="hidden-480">Xuất</span>
 					</a>
 				</div>
+				<div class="actions">
+					<a href="#" class="btn btn-default btn-sm">
+					<i class="fa fa-pencil"></i> Add </a>
+					<div class="btn-group">
+						<a class="btn btn-default btn-sm" href="#" data-toggle="dropdown">
+						<i class="fa fa-cogs"></i> Tools <i class="fa fa-angle-down"></i>
+						</a>
+						<ul class="dropdown-menu pull-right">
+							<li>
+								<a href="#">
+								<i class="fa fa-pencil"></i> Edit </a>
+							</li>
+							<li>
+								<a href="#">
+								<i class="fa fa-trash-o"></i> Delete </a>
+							</li>
+							<li>
+								<a href="#">
+								<i class="fa fa-ban"></i> Ban </a>
+							</li>
+							<li class="divider">
+							</li>
+							<li>
+								<a href="#">
+								<i class="i"></i> Make admin </a>
+							</li>
+						</ul>
+					</div>
+				</div>
 			</div>
-			<div class="portlet-body">
-				<div class="table-container">
-					
-					<div id="datatable_orders_wrapper" class="dataTables_wrapper dataTables_extended_wrapper no-footer">
-						<div class="row">
-							<div class="col-md-8 col-sm-12">
-								<div class="dataTables_paginate paging_bootstrap_extended" id="datatable_orders_paginate">
-									<div class="pagination-panel"> Trang <a href="#" class="btn btn-sm default prev disabled" title="Prev"><i class="fa fa-angle-left"></i></a><input type="text" class="pagination-panel-input form-control input-mini input-inline input-sm" maxlenght="5" style="text-align:center; margin: 0 5px;"><a href="#" class="btn btn-sm default next disabled" title="Next"><i class="fa fa-angle-right"></i></a> trong <span class="pagination-panel-total"></span>
-									</div>
-								</div>
-								<div class="dataTables_length" id="datatable_orders_length"><label><span class="seperator">|</span>View <select name="datatable_orders_length" aria-controls="datatable_orders" class="form-control input-xsmall input-sm input-inline"><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="150">150</option><option value="-1">All</option></select> records</label>
-								</div>
-								<div class="dataTables_info" id="datatable_orders_info" role="status" aria-live="polite">
-								</div>
-							</div>
-							<div class="col-md-4 col-sm-12">
-								<div class="table-group-actions pull-right">
-						<span>
-						</span>
-						<select class="table-group-action-input form-control input-inline input-small input-sm">
-							<option value="">Chọn...</option>
-							<option value="Lock">Khóa</option>
-							<option value="Delete">Xóa</option>
-						</select>
-						<button class="btn btn-sm yellow table-group-action-submit"><i class="fa fa-check"></i> Submit</button>
-					</div></div></div><div class="table-scrollable"><table class="table table-striped table-bordered table-hover dataTable no-footer" id="datatable_orders" aria-describedby="datatable_orders_info" role="grid">
-					<thead>
-					<tr role="row" class="heading">
-						<th width="2%" class="sorting_disabled" rowspan="1" colspan="1">
-						<div class="checker"><span><input type="checkbox" class="group-checkable"></span></div>
+		</div>
+		<div class="portlet-body">
+			<table class="table table-hover table-advance" id="table">
+				<thead>
+					<tr>
+						<th class="table-checkbox" width="2%">
+							<input type="checkbox" class="group-checkable" data-set="#table .checkboxes"/>
 						</th>
 						{% for thead in theads %}
-						<th width="{{thead.size}}" tabindex="0" rowspan="1" colspan="1">
-							<div>{{ thead.name }}</div>
+						<th width="{{ thead.size }}">
+							{{ thead.name }}
 						</th>
 						{% endfor %}
 					</tr>
-					</thead>
-					<tbody>s
-						{% for object in object_list  %}
-						<tr>
-							<td>
-								<div class="checker"><span><input type="checkbox" class="group-checkable"></span></div>
-								<!-- <input class="action-select" name="_selected_action" type="checkbox" value="{{ object.row }}"> -->
-							</td>
-							{% for value in object %}
-							<td>{{ value }}</td>
-							{% endfor %}
-						</tr>
+				</thead>
+				<tbody>
+					{% for object in object_list  %}
+					<tr class="odd gradeX">
+						<td>
+							<input type="checkbox" class="checkboxes" value="1"/>
+						</td>
+						{% for value in object %}
+						<td>{{ value }}</td>
 						{% endfor %}
-					</tbody>
-					</table>
-				</div>
-				<div class="row">
-					<div class="col-md-8 col-sm-12">
-						<div class="dataTables_paginate paging_bootstrap_extended">
-							<div class="pagination-panel"> Page
-								<a href="#" class="btn btn-sm default prev disabled" title="Prev">
-									<i class="fa fa-angle-left"></i>
-								</a>
-								<input type="text" class="pagination-panel-input form-control input-mini input-inline input-sm" maxlenght="5" style="text-align:center; margin: 0 5px;">
-								<a href="#" class="btn btn-sm default next disabled" title="Next">
-									<i class="fa fa-angle-right"></i>
-								</a> of
-								<span class="pagination-panel-total"></span>
-							</div>
-						</div>
-						<div class="dataTables_length">
-							<label>
-								<span class="seperator">|
-								</span>View 
-								<select name="datatable_orders_length" aria-controls="datatable_orders" class="form-control input-xsmall input-sm input-inline"><option value="20">20</option>
-									<option value="50">50</option>
-									<option value="100">100</option>
-									<option value="150">150</option>
-									<option value="-1">All</option></select> records</label>
-								</div><div class="dataTables_info"></div></div><div class="col-md-4 col-sm-12"></div></div></div>
-				</div>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+
+			{% include 'v1/pagination.html' %}
 			</div>
 		</div>
 	</div>
