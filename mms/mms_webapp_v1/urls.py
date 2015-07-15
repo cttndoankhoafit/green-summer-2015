@@ -3,14 +3,13 @@ from django.conf.urls import include, url
 from mms_webapp_v1.views.organization_type import *
 from mms_webapp_v1.views.organization import *
 from mms_webapp_v1.views.organization_temporary.views import *
-from mms_webapp_v1.views.user import *
 from mms_webapp_v1.views.member_temporary.views import *
 
+from mms_webapp_v1.views.user import *
+from mms_webapp_v1.views.activity import *
 
 from mms_webapp_v1.views.auth import LoginView, LogoutView
 from mms_webapp_v1.views.dashboard import DashboardView
-
-# from mms_webapp_v1.views.activity import ActivityListView
 
 from django.contrib.auth.decorators import login_required
 
@@ -24,7 +23,9 @@ urlpatterns = [
 
 	url(r'^user/(?P<user_id>\d+)/$', login_required(UserUpdateView.as_view()), name='user_update_view_v1'),
 	
-	url(r'^user/list/', UserListView.as_view(), name='member_list_view_v1'),
+	url(r'^user/list/', login_required(UserListView.as_view()), name='user_list_view_v1'),
+
+	url(r'^activity/list/', login_required(ActivityListView.as_view()), name='activity_list_view_v1'),
 
 	url(r'^member/', MemberListView.as_view(), name='member_list_view_v1'),
 
