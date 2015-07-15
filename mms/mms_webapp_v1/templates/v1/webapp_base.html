@@ -95,7 +95,7 @@
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
 					<img alt="" class="img-circle" src="{% static "v1/assets/admin/layout/img/avatar3_small.jpg" %}"/>
 					<span class="username">
-					{{ member_name }} </span>
+					{{ request.session.user_full_name }} </span>
 					<i class="fa fa-angle-down"></i>
 					</a>
 					<ul class="dropdown-menu">
@@ -193,8 +193,20 @@
 					<a href="\user\">
 					<i class="icon-basket"></i>
 					<span class="title">Quản lý tài khoản</span>
-					<span class=""></span>
+					<span class="arrow "></span>
 					</a>
+					<ul class="sub-menu">
+						<li class="{{ user_list_active }}">
+							<a href="ecommerce_index.html">
+							<i class="icon-home"></i>
+							Danh sách tài khoản</a>
+						</li>
+						<li>
+							<a href="ecommerce_orders.html">
+							<i class="icon-basket"></i>
+							Tìm kiếm</a>
+						</li>
+					</ul>
 				</li>
 
 				<li>

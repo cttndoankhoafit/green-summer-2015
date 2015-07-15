@@ -18,6 +18,4 @@ class DashboardView(TemplateView):
 		context['page_title'] = u'Trang chủ'
 		context['dashboard_active'] = 'active'
 
-		context['member_name'] = User.objects.get(id = self.request.session['user_id']).get_full_name()
-
 		return context

@@ -61,7 +61,6 @@ class UserProfileView(UserFormView):
 		context['title'] = u'Thông tin cá nhân'
 		context['page_title'] = u'Thông tin cá nhân'
 		
-		context['member_name'] = self.object.get_full_name()
 		context['member_full_name'] = self.object.get_full_name()
 
 		return context
@@ -76,7 +75,6 @@ class UserUpdateView(UserFormView):
 		context['title'] = u'Thông tin cá nhân'
 		context['page_title'] = u'Thông tin cá nhân'
 		
-		context['member_name'] = self.object.get_full_name()
 		context['member_full_name'] = self.object.get_full_name()
 
 		return context
@@ -94,7 +92,5 @@ class UserListView(TemplateView):
 		context['title'] = u'Quản lý tài khoản'
 		context['page_title'] = u'Quản lý tài khoản'
 		context['user_active'] = u'active'
-		
-		context['member_name'] = User.objects.get(id = self.request.session['user_id']).get_full_name()
 
 		return context
