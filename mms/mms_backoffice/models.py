@@ -154,8 +154,8 @@ class Activity(models.Model):
 
 	name = models.CharField(u'Tên hoạt động', max_length=128)
 	activity_type =  models.PositiveSmallIntegerField(u'Loại hoạt động', null=True, choices=CONST_TYPES, default=2)
-	start_time = models.DateTimeField()
-	end_time = models.DateTimeField()
+	start_time = models.DateTimeField(null=True, blank=True, default=None)
+	end_time = models.DateTimeField(null=True, blank=True, default=None)
 	published_time = models.DateTimeField(null=True, blank=True, default=None)
 
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
@@ -178,33 +178,22 @@ class ActivityUser(models.Model):
 		(0, u'Quản trị'),
 		(1, u'Ban tổ chức'),
 		(2, u'Cộng tác viên'),
-		(3, u'Tham gia'),
-		(4, u'Đăng ký'),
-	
-		(5, u'Ban tổ chức - Rèn luyện Đoàn viên'),
-		(6, u'Cộng tác viên - Rèn luyện Đoàn viên'),
-		(7, u'Tham gia - Rèn luyện Đoàn viên'),
-		(8, u'Đăng ký - Rèn luyện Đoàn viên'),
-		(9, u'Rèn luyện Đoàn viên'),
-
-		(10, u'Ban tổ chức - Rèn luyện Hội viên'),
-		(11, u'Cộng tác viên - Rèn luyện Hội viên'),
-		(12, u'Tham gia - Rèn luyện Hội viên'),
-		(13, u'Đăng ký - Rèn luyện Hội viên'),
-		(14, u'Rèn luyện Hội viên'),
-
-		(15, u'Không tham gia'),
+		(3, u'Đã tham gia'),
+		(4, u'Đã đăng ký'),
+		(5, u'Rèn luyện Đoàn viên'),
+		(6, u'Rèn luyện Hội viên'),
+		(7, u'Không tham gia'),
 	)
 
 	user = models.ForeignKey(User)
 	activity = models.ForeignKey(Activity)
-	state =  models.PositiveSmallIntegerField(u'Trạng thái', null=True, choices=CONST_STATES, default=15)
+	state =  models.PositiveSmallIntegerField(u'Trạng thái', null=True, choices=CONST_STATES, default=7)
 
 	def __unicode__(self):
 		return self.activity.name + ' - ' + self.user.identify
 
 	class Meta:
-		unique_together = ('user', 'activity')
+		unique_together = ('user', 'activity', 'state')
 
 #endregion
 
