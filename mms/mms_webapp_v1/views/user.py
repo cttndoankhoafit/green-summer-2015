@@ -11,9 +11,29 @@ class MemberListView(ListView):
 	def get_queryset(self):
 		return None
 
-class UserFormView:
+class UserFormView(UpdateView):
+	model = User
+
+	fields =[	'first_name',
+				'last_name',
+				'gender',
+				'date_of_birth',
+				'place_of_birth',
+				'folk',
+				'religion',
+				'address',
+				'ward',
+				'district',
+				'province',
+				'temporary_address',
+				'home_phone',
+				'mobile_phone',
+				'email' ]
+
+	template_name = 'v1/user/profile.html'
+
 	def get_form(self, form_class):
-		form = super(UserProfileView, self).get_form(form_class)
+		form = super(UserFormView, self).get_form(form_class)
 		form.fields['first_name'].widget.attrs['class'] = 'form-control'
 		form.fields['last_name'].widget.attrs['class'] = 'form-control'
 		form.fields['gender'].widget.attrs['class'] = 'form-control'
@@ -33,25 +53,7 @@ class UserFormView:
 
 		return form
 
-class UserProfileView(UserFormView, UpdateView):
-	model = User
-	fields =[	'first_name',
-				'last_name',
-				'gender',
-				'date_of_birth',
-				'place_of_birth',
-				'folk',
-				'religion',
-				'address',
-				'ward',
-				'district',
-				'province',
-				'temporary_address',
-				'home_phone',
-				'mobile_phone',
-				'email' ]
-
-	template_name = 'v1/user/profile.html'
+class UserProfileView(UserFormView):
 	
 	def get_context_data(self, **kwargs):
 		context = super(UserProfileView, self).get_context_data(**kwargs)
@@ -59,47 +61,26 @@ class UserProfileView(UserFormView, UpdateView):
 		context['title'] = u'Thông tin cá nhân'
 		context['page_title'] = u'Thông tin cá nhân'
 		
-		context['member_name'] = self.objects.get_full_name()
-		context['member_full_name'] = self.objects.get_full_name()
+		context['member_name'] = self.object.get_full_name()
+		context['member_full_name'] = self.object.get_full_name()
 
 		return context
-
-	
 
 	def get_object(self):
 		return User.objects.get(id=self.request.session['user_id'])
 
-class UserUpdateView(UserFormView, UpdateView):
-	model = User
-	fields =[	'first_name',
-				'last_name',
-				'gender',
-				'date_of_birth',
-				'place_of_birth',
-				'folk',
-				'religion',
-				'address',
-				'ward',
-				'district',
-				'province',
-				'temporary_address',
-				'home_phone',
-				'mobile_phone',
-				'email' ]
-
-	template_name = 'v1/user/profile.html'
-	
+class UserUpdateView(UserFormView):
 	def get_context_data(self, **kwargs):
 		context = super(UserUpdateView, self).get_context_data(**kwargs)
 
 		context['title'] = u'Thông tin cá nhân'
 		context['page_title'] = u'Thông tin cá nhân'
 		
-		context['member_name'] = self.objects.get_full_name()
-		context['member_full_name'] = self.objects.get_full_name()
+		context['member_name'] = self.object.get_full_name()
+		context['member_full_name'] = self.object.get_full_name()
 
 		return context
-		
+
 	def get_object(self):
 		return User.objects.get(identify=self.kwargs['user_identify'])
 
