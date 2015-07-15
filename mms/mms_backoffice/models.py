@@ -14,7 +14,6 @@ class UserManager(BaseUserManager):
 		user = self.model(identify=identify, is_staff=False, is_active=True, is_superuser=False, last_login=now, **extra_fields)
 		if password is None:
 			password = identify
-		user.set_password(password)
 		user.save(using=self._db)
 		return user
 
@@ -80,11 +79,18 @@ class User(AbstractBaseUser, PermissionsMixin):
 		
 	def save(self, *args, **kwargs):
 		if self.password is None:
-			self.password = self.identify
+			self.set_password(self.identify)
 		else:
 			if len(self.password) == 0:
-				self.password = self.identify
-		self.set_password(self.password)
+				self.set_password(self.identify)
+			else:
+				try:
+					user = User.objects.get(identify=self.identify)	
+					if self.password != user.password:
+						self.set_password(self.password)
+				except User.DoesNotExist:
+					self.set_password(self.password)
+					
 		super(User, self).save(*args, **kwargs)
 
 	def __unicode__(self):
