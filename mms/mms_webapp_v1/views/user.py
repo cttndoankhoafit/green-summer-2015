@@ -120,6 +120,4 @@ class UserListView(ListView):
 			values.append(mark_safe(u'<a href="/user/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
 			objects.append(values)
 
-		print objects
-
 		return objects
