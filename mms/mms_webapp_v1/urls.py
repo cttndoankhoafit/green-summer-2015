@@ -3,7 +3,7 @@ from django.conf.urls import include, url
 from mms_webapp_v1.views.organization_type import *
 from mms_webapp_v1.views.organization import *
 from mms_webapp_v1.views.organization_temporary.views import *
-from mms_webapp_v1.views.member import *
+from mms_webapp_v1.views.user import *
 from mms_webapp_v1.views.member_temporary.views import *
 
 
@@ -20,8 +20,12 @@ urlpatterns = [
 
 	url(r'^$', login_required(DashboardView.as_view()), name='dashboard_v1'),
 
-	url(r'^profile/', login_required(UserUpdateView.as_view()), name='member_profile_view_v1'),
+	url(r'^profile/', login_required(UserProfileView.as_view()), name='user_profile_view_v1'),
+
+	url(r'^user/(?P<user_identify>\d+)/$', login_required(UserUpdateView.as_view()), name='user_update_view_v1'),
 	
+	url(r'^user/', UserListView.as_view(), name='member_list_view_v1'),
+
 	url(r'^member/', MemberListView.as_view(), name='member_list_view_v1'),
 
 	url(r'^organization_type/$', OrganizationTypeListView.as_view(), name='organization_type_list_view_v1'),

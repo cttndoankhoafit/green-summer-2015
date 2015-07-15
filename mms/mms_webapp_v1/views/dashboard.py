@@ -14,8 +14,8 @@ class DashboardView(TemplateView):
 		# Call the base implementation first to get a context
 		context = super(DashboardView, self).get_context_data(**kwargs)
 
-		context['title'] = u'Bảng làm việc'
-		context['page_title'] = u'Bảng làm việc'
+		context['title'] = u'Trang chủ'
+		context['page_title'] = u'Trang chủ'
 		context['dashboard_active'] = 'active'
 
 		context['member_name'] = User.objects.get(id = self.request.session['user_id']).get_full_name()
