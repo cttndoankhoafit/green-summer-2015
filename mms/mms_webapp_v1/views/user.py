@@ -39,8 +39,8 @@ class UserFormView(UpdateView):
 		form.fields['first_name'].widget.attrs['class'] = 'form-control'
 		form.fields['last_name'].widget.attrs['class'] = 'form-control'
 		form.fields['gender'].widget.attrs['class'] = 'form-control'
-		form.fields['date_of_birth'].widget.attrs['class'] = 'form-control input-sm form-filter'
-		# form.fields['date_of_birth'].widget.attrs['readonly']
+		form.fields['date_of_birth'].widget.attrs['class'] = 'form-control'
+		form.fields['date_of_birth'].widget.attrs['readonly'] = '1'
 		form.fields['place_of_birth'].widget.attrs['class'] = 'form-control'
 		form.fields['folk'].widget.attrs['class'] = 'form-control'
 		form.fields['religion'].widget.attrs['class'] = 'form-control'
