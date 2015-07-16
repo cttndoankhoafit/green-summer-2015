@@ -62,3 +62,11 @@ class ActivityListView(ListView):
 			objects.append(values)
 
 		return objects
+class UserActivityListView(ListView):
+	template_name = 'temporary/member/list.html'
+	paginate_by = '10'
+
+	def get_queryset(self): 
+		identify = self.kwargs['user_id']
+		user_activity = ActivityUser.objects.filter(user__id=identify)
+		return list(user_activity)
