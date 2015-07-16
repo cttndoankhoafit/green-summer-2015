@@ -4,6 +4,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
 
+from django.contrib import admin
+
 # Create your models here.
 
 #region User
@@ -190,10 +192,16 @@ class ActivityUser(models.Model):
 	state =  models.PositiveSmallIntegerField(u'Trạng thái', null=True, choices=CONST_STATES, default=7)
 
 	def __unicode__(self):
-		return self.activity.name + ' - ' + self.user.identify
+		return self.activity.name + ' - ' + self.user.identify + ' - ' + self.CONST_STATES[self.state][1]
 
 	class Meta:
 		unique_together = ('user', 'activity', 'state')
+
+class ActivityUserAdmin(admin.ModelAdmin):
+	def save_model(self, request, obj, form, change):
+		f = ActivityUser.objects.filter(user=request.user, activity=obj.activity, state=0)
+		if request.user.is_superuser or len(f) != 0:
+			obj.save()
 
 #endregion
 

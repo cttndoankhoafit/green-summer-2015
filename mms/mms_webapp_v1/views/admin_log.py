@@ -21,7 +21,7 @@ class ActivityLogListView(ListView):
 				line += "changed "
 			if log.action_flag == 3:
 				line += "deleted "
-
+			line = line.decode("utf-8")
 			line += "%s \"%s\"" %(log.content_type, log.object_repr)
 
 			res.append(line)
