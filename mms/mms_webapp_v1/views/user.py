@@ -6,6 +6,10 @@ from django.views.generic import ListView, TemplateView, UpdateView
 
 from mms_backoffice.models import User
 
+from django.http import HttpResponseRedirect, HttpResponse
+
+from django.core.urlresolvers import reverse_lazy, reverse
+
 class MemberListView(ListView):
 	template_name = 'temporary/member/list.html'
 	paginate_by = '10'
@@ -54,6 +58,19 @@ class UserFormView(UpdateView):
 		form.fields['email'].widget.attrs['class'] = 'form-control'
 
 		return form
+
+	def form_valid(self,form):
+		self.object = form.save(commit=False)
+		self.object.creator = self.request.user
+		self.object.status = 0
+		# self.request.session['user'] = self.object
+		self.request.session['user_full_name'] = self.object.get_full_name()
+		self.request.session['user_id'] = self.object.id
+		self.object.save()
+		return HttpResponseRedirect(reverse('UserProfileView'))()
+
+	def form_invalid(self, form):
+		return HttpResponse(FailedMessage)
 
 class UserProfileView(UserFormView):
 	

@@ -27,6 +27,8 @@ urlpatterns = [
 
 	url(r'^activity/list/', login_required(ActivityListView.as_view()), name='activity_list_view_v1'),
 
+	url(r'^activity/(?P<activity_id>\d+)/', login_required(ActivityUpdateView.as_view()), name='activity_update_view_v1'),
+
 	url(r'^member/', MemberListView.as_view(), name='member_list_view_v1'),
 
 	url(r'^organization_type/$', OrganizationTypeListView.as_view(), name='organization_type_list_view_v1'),

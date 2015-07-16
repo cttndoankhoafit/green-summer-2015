@@ -110,5 +110,5 @@ AUTH_USER_MODEL = 'mms_backoffice.User'
 
 LOGIN_URL = reverse_lazy('login_v1')
 LOGIN_REDIRECT_URL = reverse_lazy('dashboard_v1')
-# LOGIN_ERROR_URL = '/login-error/'
+LOGIN_ERROR_URL = '/login-error/'
 LOGOUT_REDIRECT_URL = reverse_lazy('login_v1')

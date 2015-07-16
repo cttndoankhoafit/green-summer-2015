@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from django.utils.html import mark_safe
+
 from mms_backoffice.models import *
 from django.views.generic import TemplateView
 
@@ -11,8 +15,13 @@ class OrganizationOrganizationView(TemplateView):
 		
 		identify = self.kwargs['organization_id']
 
-		context['html_content'] = self.toHtml(self.get_org_list(identify))
+		org =  Organization.objects.get(id=identify)
+
+		if org is not None:
+			context['html_content'] = mark_safe('<ul><li>' + org.name + self.toHtml(self.get_org_list(identify)) + '</li></ul>')
 		
+		# print context['html_content']
+
 		return context
 
 	def get_org_list(self, organization_id):
@@ -32,19 +41,19 @@ class OrganizationOrganizationView(TemplateView):
 		return res
 
 	def toHtml(self, objects):
-		html = ""
+		html = u''
 		if (type(objects) is list) and (len(objects) == 0):
 			return html
 
 		if type(objects) is list:
-			html += "<ul>\n"
+			html += u'<ul>\n'
 			for o in objects:
 				html += self.toHtml(o)
-			html += "</ul>\n"
+			html += u'</ul>\n'
 			return html
 
-		html += "<li>\n"
-		html += objects.name + "\n"
+		html += u'<li>\n'
+		html += objects.name + u'\n'
 		return html
 
 #endregion

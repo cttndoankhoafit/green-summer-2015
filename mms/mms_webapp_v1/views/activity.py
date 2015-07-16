@@ -6,6 +6,9 @@ from django.views.generic import ListView, UpdateView
 
 from mms_backoffice.models import Activity, ActivityUser
 
+class ActivityUpdateView(TemplateView):
+	template_name = 'v1/activity/detail.html'
+	
 class ActivityListView(ListView):
 	template_name = 'v1/list.html'
 	paginate_by = '20'
@@ -62,6 +65,7 @@ class ActivityListView(ListView):
 			objects.append(values)
 
 		return objects
+
 class UserActivityListView(ListView):
 	template_name = 'temporary/member/list.html'
 	paginate_by = '10'
