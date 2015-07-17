@@ -2,7 +2,7 @@
 
 from django.utils.html import mark_safe
 
-from django.views.generic import ListView, UpdateView
+from django.views.generic import ListView, UpdateView, TemplateView
 
 from mms_backoffice.models import Activity, ActivityUser
 

@@ -3,7 +3,9 @@
 from django.utils.html import mark_safe
 
 from mms_backoffice.models import *
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, CreateView
+
+from django.http import HttpResponseRedirect, HttpResponse
 
 #region GET UNDER ORGANIZATION
 
@@ -104,4 +106,21 @@ class UserOrganizationView(TemplateView):
 		html += objects.name + "\n"
 		return html
 
+class OrganizationCreateView(CreateView):
+	model = Organization
+	fields = '__all__'
+
+	template_name = 'v1/user/create.html'# template of OrganizationCreateView is the same as UserCreateView
+
+ 	def get_form(self, form_class):
+		form = super(OrganizationCreateView, self).get_form(form_class)
+		return form
+
+	def form_valid(self,form):
+		self.object = form.save(commit=False)
+		self.object.save()
+		return HttpResponse('Create User success')
+
+	def form_invalid(self, form):
+		return HttpResponse("Failed")
 #nedregion
