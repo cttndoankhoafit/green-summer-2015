@@ -2,7 +2,7 @@
 
 from django.utils.html import mark_safe
 
-from django.views.generic import ListView, TemplateView, UpdateView
+from django.views.generic import ListView, TemplateView, UpdateView, CreateView
 
 from mms_backoffice.models import User
 
@@ -138,3 +138,36 @@ class UserListView(ListView):
 			objects.append(values)
 
 		return objects
+
+class UserCreateView(CreateView):
+	model = User
+	fields =[	'identify',
+				'first_name',
+				'last_name',
+				'gender',
+				'date_of_birth',
+				'place_of_birth',
+				'folk',
+				'religion',
+				'address',
+				'ward',
+				'district',
+				'province',
+				'temporary_address',
+				'home_phone',
+				'mobile_phone',
+				'email' ]
+
+	template_name = 'v1/user/create.html'
+
+ 	def get_form(self, form_class):
+		form = super(UserCreateView, self).get_form(form_class)
+		return form
+
+	def form_valid(self,form):
+		self.object = form.save(commit=False)
+		self.object.save()
+		return HttpResponse('Create User success')
+
+	def form_invalid(self, form):
+		return HttpResponse("Failed")
