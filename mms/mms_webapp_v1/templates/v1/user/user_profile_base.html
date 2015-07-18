@@ -1,0 +1,105 @@
+{% extends 'v1/webapp_base.html' %}
+
+{% load staticfiles %}
+
+{% block breadcrumb_button_group %}
+	{% if request.session.staff %}
+	<button type="button" class="btn blue dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-delay="1000" data-close-others="true">
+		<span>Công cụ</span><i class="fa fa-angle-down"></i>
+	</button>
+	<ul class="dropdown-menu pull-right" role="menu">
+		<li>
+			<a href="#">
+				<i class="fa fa-pencil"></i> Thay đổi thông tin
+			</a>
+		</li>
+		<li>
+			<a href="#">
+				<i class="fa fa-pencil"></i> Đặt lại mật khẩu
+			</a>
+		</li>
+	</ul>
+	{% endif %}
+{% endblock %}
+
+{% block page_title %}
+	{{ object.get_full_name }}	
+{% endblock %}
+
+{% block page_content %}
+<div class="row profile">
+	<div class="col-md-12">
+		<!--BEGIN TABS-->
+		<div class="tabbable tabbable-custom tabbable-full-width">
+			<ul class="nav nav-tabs">
+				<li class="active">
+					<a href="{% block overview_href %}{% endblock %}">
+					Tổng quan </a>
+				</li>
+				<li>
+					<a href="{% block recent_href %}{% endblock %}">
+					Hoạt động </a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				{% block tab_content %}
+				<div class="tab-pane active">
+					<div class="row">
+						<div class="col-md-12">
+							<div class="row">
+								<div class="fa-item col-md-4 col-sm-4">
+									<i class="fa fa-credit-card"></i> {{ object.identify }}  
+								</div>
+								<div class="fa-item col-md-4 col-sm-4">
+									<i class="fa fa-male"></i>  {{ object.get_gender_display }} 
+								</div>
+							</div>
+							<div class="row">
+								<div class="fa-item col-md-4 col-sm-4">
+									<i class="fa fa-calendar"></i>  {{ object.date_of_birth }}
+								</div>
+								<div class="fa-item col-md-4 col-sm-4">
+									<i class="fa fa-home"></i> {{ object.place_of_birth }}
+								</div>
+							</div>
+							<div class="row">
+								<div class="fa-item col-md-4 col-sm-4">
+									<i class="fa fa-users"></i> {{ object.folk }}
+								</div>
+								<div class="fa-item col-md-4 col-sm-4">
+									<i class="fa fa-ge"></i> {{ object.religion }}
+								</div>
+							</div>
+							<div class="row">
+								<div class="fa-item col-md-4 col-sm-4">
+									<i class="fa fa-phone"></i> {{ object.home_phone }}
+								</div>
+								<div class="fa-item col-md-4 col-sm-4">
+									<i class="fa fa-mobile-phone"></i> {{ object.mobile_phone }}
+								</div>
+							</div>
+							<div class="row">
+								<div class="fa-item col-md-12 col-sm-4">
+									<i class="fa fa-map-marker"></i> {{ object.get_address }}
+								</div>
+							</div>
+							<div class="row">
+								<div class="fa-item col-md-12 col-sm-4">
+									<i class="fa fa-paper-plane"></i> {{ object.temporary_address }}
+								</div>
+							</div>
+							<div class="row">
+								<div class="fa-item col-md-8 col-sm-4">
+									<i class="fa fa-envelope"></i> {{ object.email }}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				{% endblock %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+

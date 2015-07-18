@@ -1,0 +1,30 @@
+{% extends 'v1/webapp_base.html' %}
+
+{% load staticfiles %}
+
+{% block page_content %}
+<div class="row profile">
+	<div class="col-md-12">
+		<!--BEGIN TABS-->
+		<div class="tabbable tabbable-custom tabbable-full-width">
+			<ul class="nav nav-tabs">
+				<li class="{% block change_profile_active %}{% endblock %}">
+					<a href="{% block change_profile_link %}{% endblock %}">
+					Thay đổi thông tin </a>
+				</li>
+				<li class="{% block change_password_active %}{% endblock %}">
+					<a href="{% block change_password_link %}{% endblock %}">
+					Đặt lại mật khẩu </a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				{% block tab_content %}
+
+				{% endblock %}
+			</div>
+		</div>
+		<!--END TABS-->
+	</div>
+</div>
+{% endblock %}
+

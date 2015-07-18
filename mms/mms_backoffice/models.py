@@ -68,6 +68,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 		help_text='Designates whether this user should be treated as '
 						'active. Unselect this instead of deleting accounts.')
 
+	class Meta:
+		ordering = ['identify']
+
 	objects = UserManager()
 	active_users = ActiveUser()
 
@@ -80,20 +83,28 @@ class User(AbstractBaseUser, PermissionsMixin):
 		if len(self.last_name) == 0 or len(self.first_name) == 0:
 			return self.identify
 		return self.last_name + ' ' + self.first_name
-		
+	
+	def get_address(self):
+		if self.address is not None and self.ward is not None and self.province is not None:
+			if len(self.address) > 0 and len(self.ward) > 0 and len(self.province) > 0:
+				return self.address + ', ' + self.ward + ', ' + self.province
+		return ''
+
 	def save(self, *args, **kwargs):
 		if self.password is None:
 			self.set_password(self.identify)
 		else:
 			if len(self.password) == 0:
 				self.set_password(self.identify)
-			else:
-				try:
-					user = User.objects.get(identify=self.identify)	
-					if self.password != user.password:
-						self.set_password(self.password)
-				except User.DoesNotExist:
-					self.set_password(self.password)
+			# else:
+			# 	try:
+			# 		user = User.objects.get(identify=self.identify)	
+			# 		print self.password
+			# 		print user.password
+			# 		if self.password != user.password:
+			# 			self.set_password(self.password)
+			# 	except User.DoesNotExist:
+			# 		self.set_password(self.password)
 					
 		super(User, self).save(*args, **kwargs)
 
@@ -102,7 +113,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 			return self.identify
 		return self.identify + ' - ' + self.last_name + ' ' + self.first_name
 		
-
 #endregion
 
 #region Organization

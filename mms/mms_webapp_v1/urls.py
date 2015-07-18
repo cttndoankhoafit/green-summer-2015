@@ -13,15 +13,28 @@ from mms_webapp_v1.views.dashboard import DashboardView
 
 from django.contrib.auth.decorators import login_required
 
+from django.contrib.auth.views import password_change, password_change_done
+
 urlpatterns = [
 	url(r'^login/$', LoginView.as_view(), name='login_v1'),
+
 	url(r'^logout/$', LogoutView.as_view(), name='logout_v1'),
 
 	url(r'^$', login_required(DashboardView.as_view()), name='dashboard_v1'),
 
-	url(r'^profile/', login_required(UserProfileView.as_view()), name='user_profile_view_v1'),
+	# url(r'^profile/edit/$', login_required(UserUpdateProfileView.as_view()), name='user_update_profile_view_v1'),
+	
+	url(r'^profile/$', login_required(UserProfileView.as_view()), name='user_profile_view_v1'),
 
-	url(r'^user/(?P<user_id>\d+)/$', login_required(UserUpdateView.as_view()), name='user_update_view_v1'),
+	url(r'^edit-profile/$', login_required(UserProfileUpdateView.as_view()), name='user_profile_update_view_v1'),
+
+	url(r'^user/(?P<user_id>\d+)/$', login_required(UserDetailView.as_view()), name='user_detail_view_v1'),
+
+	url(r'^user/(?P<user_id>\d+)/edit/$', login_required(UserUpdateView.as_view()), name='user_update_view_v1'),
+
+	url(r'^change-password-done/$', 'django.contrib.auth.views.password_change_done', kwargs={'template_name': 'v1/user/change_password_done.html'}, name='user_change_password_done_v1'),
+
+	url(r'^change-password/$', 'django.contrib.auth.views.password_change', kwargs={'post_change_redirect' : '/change-password-done/', 'template_name': 'v1/user/change_password.html'}, name='user_change_password_v1'),
 	
 	url(r'^user/list/', login_required(UserListView.as_view()), name='user_list_view_v1'),
 
@@ -40,4 +53,6 @@ urlpatterns = [
 	url(r'^user/(?P<user_id>[0-9]+)/activity/$', UserActivityListView.as_view(), name='user_activity_list_view'),
 	url(r'^user/create/$', UserCreateView.as_view(), name='user_create_view'),
 	url(r'^organization/(?P<organization_id>\d+)/member/$', OrganizationMemberListView.as_view(), name='organization_member_list_view'),
+
+
 ]

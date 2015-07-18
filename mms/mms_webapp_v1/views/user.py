@@ -2,13 +2,15 @@
 
 from django.utils.html import mark_safe
 
-from django.views.generic import ListView, TemplateView, UpdateView, CreateView
+from django.views.generic import ListView, TemplateView, UpdateView, CreateView, DetailView
 
 from mms_backoffice.models import User
 
 from django.http import HttpResponseRedirect, HttpResponse
 
 from django.core.urlresolvers import reverse_lazy, reverse
+
+# from django.shortcuts import render
 
 class MemberListView(ListView):
 	template_name = 'temporary/member/list.html'
@@ -17,7 +19,52 @@ class MemberListView(ListView):
 	def get_queryset(self):
 		return None
 
-class UserFormView(UpdateView):
+success_update_string = u'Cập nhật thông tin thành công'
+# def SucessFullUpdateUser(request):
+# 	template_name = 'v1/user/edit.html'
+# 	context = { 'message': u'Cập nhật thông tin thành công' }
+# 	return render(request, template_name, context)
+
+
+class UserDetailView(DetailView):
+	model = User
+	template_name = 'v1/user/profile.html'
+
+	def get_context_data(self, **kwargs):
+		context = super(UserDetailView, self).get_context_data(**kwargs)
+
+		context['title'] = u'Thông tin cá nhân'
+		context['page_title'] = u'Thông tin cá nhân'
+		
+		context['user_active'] = 'active'
+		context['profile_active'] = 'active'
+
+		context['page_breadcrumb'] = mark_safe(u'<li><i class="fa fa-user"></i><a>Quản lý tài khoản</a><i class="fa fa-angle-right"></i></li><li><i class="fa fa-user"></i><a>Thông tin cá nhân</a></li>')
+		return context
+
+	def get_object(self):
+		return User.objects.get(id=self.kwargs['user_id'])
+
+class UserProfileView(UserDetailView):
+	model = User
+	template_name = 'v1/user/profile.html'
+
+	def get_context_data(self, **kwargs):
+		context = super(UserDetailView, self).get_context_data(**kwargs)
+
+		context['title'] = u'Thông tin cá nhân'
+		context['page_title'] = u'Thông tin cá nhân'
+		
+		context['user_active'] = 'active'
+		context['profile_active'] = 'active'
+
+		context['page_breadcrumb'] = mark_safe(u'<li><i class="fa fa-user"></i><a>Quản lý tài khoản</a><i class="fa fa-angle-right"></i></li><li><i class="fa fa-user"></i><a>Thông tin cá nhân</a></li>')
+		return context
+
+	def get_object(self):
+		return User.objects.get(id=self.request.session['user_id'])
+
+class UserUpdateView(UpdateView):
 	model = User
 
 	fields =[	'first_name',
@@ -36,10 +83,10 @@ class UserFormView(UpdateView):
 				'mobile_phone',
 				'email' ]
 
-	template_name = 'v1/user/profile.html'
+	template_name = 'v1/user/user_update.html'
 
 	def get_form(self, form_class):
-		form = super(UserFormView, self).get_form(form_class)
+		form = super(UpdateView, self).get_form(form_class)
 		form.fields['first_name'].widget.attrs['class'] = 'form-control'
 		form.fields['last_name'].widget.attrs['class'] = 'form-control'
 		form.fields['gender'].widget.attrs['class'] = 'form-control'
@@ -59,38 +106,6 @@ class UserFormView(UpdateView):
 
 		return form
 
-	def form_valid(self,form):
-		self.object = form.save(commit=False)
-		self.object.creator = self.request.user
-		self.object.status = 0
-		# self.request.session['user'] = self.object
-		self.request.session['user_full_name'] = self.object.get_full_name()
-		self.request.session['user_id'] = self.object.id
-		self.object.save()
-		return HttpResponseRedirect(reverse('UserProfileView'))()
-
-	def form_invalid(self, form):
-		return HttpResponse(FailedMessage)
-
-class UserProfileView(UserFormView):
-	
-	def get_context_data(self, **kwargs):
-		context = super(UserProfileView, self).get_context_data(**kwargs)
-
-		context['title'] = u'Thông tin cá nhân'
-		context['page_title'] = u'Thông tin cá nhân'
-		
-		context['user_active'] = 'active'
-		context['profile_active'] = 'active'
-
-		context['member_full_name'] = self.object.get_full_name()
-
-		return context
-
-	def get_object(self):
-		return User.objects.get(id=self.request.session['user_id'])
-
-class UserUpdateView(UserFormView):
 	def get_context_data(self, **kwargs):
 		context = super(UserUpdateView, self).get_context_data(**kwargs)
 
@@ -103,9 +118,41 @@ class UserUpdateView(UserFormView):
 
 		return context
 
+	def form_valid(self,form):
+		self.object = form.save(commit=False)
+		self.object.creator = self.request.user
+		self.object.status = 0
+		# self.request.session['user'] = self.object
+
+		user_id = self.request.session['user_id']
+		user = self.kwargs['user_id']
+
+		if int(user) == user_id:
+			self.request.session['user_full_name'] = self.object.get_full_name()
+		
+		self.object.save()
+		return HttpResponseRedirect(reverse('user_update_view_v1', kwargs={'user_id' : user }))
+
 	def get_object(self):
 		return User.objects.get(id=self.kwargs['user_id'])
 
+class UserProfileUpdateView(UserUpdateView):
+
+	template_name = 'v1/user/edit_profile.html'
+
+	def form_valid(self,form):
+		self.object = form.save(commit=False)
+		self.object.creator = self.request.user
+		self.object.status = 0
+		
+		self.request.session['user_full_name'] = self.object.get_full_name()
+		
+		self.object.save()
+		return HttpResponseRedirect(reverse('user_profile_update_view_v1'))
+
+
+	def get_object(self):
+		return User.objects.get(id=self.request.session['user_id'])
 
 class UserListView(ListView):
 	template_name = 'v1/list.html'
@@ -127,15 +174,19 @@ class UserListView(ListView):
 		return context
 
 	def get_queryset(self):
-		user_list = User.objects.all()
+		user_list = None
+		user = User.objects.get(id=self.request.session['user_id'])
+		if user.is_staff:
+			user_list = User.objects.order_by('identify')
 
 		objects = []
-		for obj in user_list:
-			values = []	
-			values.append(obj.identify)
-			values.append(obj.get_full_name())
-			values.append(mark_safe(u'<a href="/user/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
-			objects.append(values)
+		if user_list is not None:
+			for obj in user_list:
+				values = []	
+				values.append(obj.identify)
+				values.append(obj.get_full_name())
+				values.append(mark_safe(u'<a href="/user/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
+				objects.append(values)
 
 		return objects
 
