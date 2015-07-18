@@ -20,3 +20,4 @@ urlpatterns = [
 	url(r'^admin/', include(admin.site.urls)),
 	url(r'', include('mms_webapp_v1.urls')),
 ]
+

@@ -10,6 +10,8 @@ from django.http import HttpResponseRedirect, HttpResponse
 
 from django.core.urlresolvers import reverse_lazy, reverse
 
+from mms_controller.resources.user import *
+
 # from django.shortcuts import render
 
 class MemberListView(ListView):
@@ -28,7 +30,7 @@ success_update_string = u'Cập nhật thông tin thành công'
 
 class UserDetailView(DetailView):
 	model = User
-	template_name = 'v1/user/profile.html'
+	template_name = 'v1/user/user_profile.html'
 
 	def get_context_data(self, **kwargs):
 		context = super(UserDetailView, self).get_context_data(**kwargs)
@@ -43,11 +45,13 @@ class UserDetailView(DetailView):
 		return context
 
 	def get_object(self):
-		return User.objects.get(id=self.kwargs['user_id'])
+		return get_user(	self.request.session['user_id'],
+							self.kwargs['user_id']
+						)
 
 class UserProfileView(UserDetailView):
 	model = User
-	template_name = 'v1/user/profile.html'
+	template_name = 'v1/user/user_profile.html'
 
 	def get_context_data(self, **kwargs):
 		context = super(UserDetailView, self).get_context_data(**kwargs)
@@ -62,8 +66,10 @@ class UserProfileView(UserDetailView):
 		return context
 
 	def get_object(self):
-		return User.objects.get(id=self.request.session['user_id'])
-
+		return get_user(	self.request.session['user_id'],
+							self.request.session['user_id']
+						)
+		
 class UserUpdateView(UpdateView):
 	model = User
 
@@ -134,7 +140,11 @@ class UserUpdateView(UpdateView):
 		return HttpResponseRedirect(reverse('user_update_view_v1', kwargs={'user_id' : user }))
 
 	def get_object(self):
-		return User.objects.get(id=self.kwargs['user_id'])
+		return set_user(	self.request.session['user_id'],
+							get_user(	self.request.session['user_id'], 
+										self.kwargs['user_id']
+									)
+						)
 
 class UserProfileUpdateView(UserUpdateView):
 
@@ -152,7 +162,36 @@ class UserProfileUpdateView(UserUpdateView):
 
 
 	def get_object(self):
-		return User.objects.get(id=self.request.session['user_id'])
+		return set_user(	self.request.session['user_id'],
+							get_user(	self.request.session['user_id'], 
+										self.request.session['user_id']
+									)
+						)
+
+class UserResetPasswordView(DetailView):
+	template_name = 'v1/user/reset_password.html'
+	
+	def get_context_data(self, **kwargs):
+		context = super(UserResetPasswordView, self).get_context_data(**kwargs)
+
+		return context
+
+	def get_object(self):
+		return User.objects.get(id=self.kwargs['user_id'])
+
+class UserResetPasswordDoneView(DetailView):
+	template_name = 'v1/user/reset_password_done.html'
+	
+	def get_context_data(self, **kwargs):
+		context = super(UserResetPasswordDoneView, self).get_context_data(**kwargs)
+
+		return context
+
+	def get_object(self):
+		user = User.objects.get(id=self.kwargs['user_id'])
+		user.password = None
+		user.save()
+		return user
 
 class UserListView(ListView):
 	template_name = 'v1/list.html'

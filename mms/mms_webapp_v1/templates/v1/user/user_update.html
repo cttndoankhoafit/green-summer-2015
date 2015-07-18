@@ -28,6 +28,10 @@
 active
 {% endblock %}
 
+{% block change_password_link %}
+/user/{{ object.id }}/reset-password/
+{% endblock %}
+
 {% block tab_content %}
 <div class="tab-pane active">
 	<form role="form" method="post">

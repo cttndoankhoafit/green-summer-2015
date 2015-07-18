@@ -2,6 +2,14 @@
 
 {% load staticfiles %}
 
+{% block user_update_link %}
+/user/{{ object.id }}/edit/
+{% endblock %}
+
+{% block user_reset_passwotd_link %}
+/user/{{ object.id }}/reset-password/
+{% endblock %}
+
 {% block tab_content %}
 <div class="tab-pane active">
 	<div class="row">

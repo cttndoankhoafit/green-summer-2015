@@ -28,14 +28,19 @@ urlpatterns = [
 
 	url(r'^edit-profile/$', login_required(UserProfileUpdateView.as_view()), name='user_profile_update_view_v1'),
 
-	url(r'^user/(?P<user_id>\d+)/$', login_required(UserDetailView.as_view()), name='user_detail_view_v1'),
-
-	url(r'^user/(?P<user_id>\d+)/edit/$', login_required(UserUpdateView.as_view()), name='user_update_view_v1'),
-
 	url(r'^change-password-done/$', 'django.contrib.auth.views.password_change_done', kwargs={'template_name': 'v1/user/change_password_done.html'}, name='user_change_password_done_v1'),
 
 	url(r'^change-password/$', 'django.contrib.auth.views.password_change', kwargs={'post_change_redirect' : '/change-password-done/', 'template_name': 'v1/user/change_password.html'}, name='user_change_password_v1'),
 	
+	url(r'^user/(?P<user_id>\d+)/$', login_required(UserDetailView.as_view()), name='user_detail_view_v1'),
+
+	url(r'^user/(?P<user_id>\d+)/edit/$', login_required(UserUpdateView.as_view()), name='user_update_view_v1'),
+
+	url(r'^user/(?P<user_id>\d+)/reset-password/$', login_required(UserResetPasswordView.as_view()), name='user_reset_password_view_v1'),
+
+	url(r'^user/(?P<user_id>\d+)/reset-password-done/$', login_required(UserResetPasswordDoneView.as_view()), name='user_reset_password_done_view_v1'),
+	
+
 	url(r'^user/list/', login_required(UserListView.as_view()), name='user_list_view_v1'),
 
 	url(r'^activity/list/', login_required(ActivityListView.as_view()), name='activity_list_view_v1'),

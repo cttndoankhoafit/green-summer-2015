@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'mms_backoffice',
+    'mms_controller',
     'mms_webapp_v1',
     'import_export',
 )
