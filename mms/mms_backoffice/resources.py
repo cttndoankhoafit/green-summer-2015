@@ -57,18 +57,16 @@ class OrganizationResource(resources.ModelResource):
 	class Meta:
 		model = Organization
 
-		fields = (	'id',
-					'name',
+		fields = (	'name',
 					'organization_type'	)
 
 class OrganizationUserResource(resources.ModelResource):
 	class Meta:
 		model = OrganizationUser
 		
-		fields = (	'id',
-					'organization',
+		fields = (	'organization',
 					'user',
-					'permission',	)
+					'state',	)
 
 # class OrganizationMemberResource(resources.ModelResource):
 # 	class Meta:

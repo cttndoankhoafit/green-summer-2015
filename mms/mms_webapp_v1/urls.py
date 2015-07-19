@@ -39,15 +39,18 @@ urlpatterns = [
 	url(r'^user/(?P<user_id>\d+)/reset-password/$', login_required(UserResetPasswordView.as_view()), name='user_reset_password_view_v1'),
 
 	url(r'^user/(?P<user_id>\d+)/reset-password-done/$', login_required(UserResetPasswordDoneView.as_view()), name='user_reset_password_done_view_v1'),
-	
 
 	url(r'^user/list/', login_required(UserListView.as_view()), name='user_list_view_v1'),
+
+	url(r'^user/import/', login_required(UserImportView.as_view()), name='user_import_view_v1'),
+
+	url(r'^user/import/', login_required(UserProcessImportView.as_view()), name='user_process_import_view_v1'),
 
 	url(r'^activity/list/', login_required(ActivityListView.as_view()), name='activity_list_view_v1'),
 
 	url(r'^activity/(?P<activity_id>\d+)/', login_required(ActivityUpdateView.as_view()), name='activity_update_view_v1'),
 
-	url(r'^member/', MemberListView.as_view(), name='member_list_view_v1'),
+	# url(r'^member/', MemberListView.as_view(), name='member_list_view_v1'),
 
 	url(r'^organization_type/$', OrganizationTypeListView.as_view(), name='organization_type_list_view_v1'),
 	url(r'^organization_type/create/', OrganizationTypeCreateView.as_view(), name='organization_type_create_view_v1'),

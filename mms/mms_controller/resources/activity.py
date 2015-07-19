@@ -1,0 +1,1 @@
+import mms_backoffice.models import Activity, User

@@ -1,35 +1,24 @@
 # -*- coding: utf-8 -*-
 
-from django.utils.html import mark_safe
-
-from django.views.generic import ListView, TemplateView, UpdateView, CreateView, DetailView
-
-from mms_backoffice.models import User
-
-from django.http import HttpResponseRedirect, HttpResponse
+from import_export.formats import base_formats
+from import_export.resources import modelresource_factory
+from import_export.forms import ConfirmImportForm, ImportForm
+from import_export.results import RowResult
 
 from django.core.urlresolvers import reverse_lazy, reverse
+from django.http import HttpResponseRedirect, HttpResponse
+from django.utils.html import mark_safe
+from django.views.generic import ListView, TemplateView, UpdateView, CreateView, DetailView, View
+
+
+from django.template.response import TemplateResponse
+
+import os
+import tempfile
 
 from mms_controller.resources.user import *
 
-# from django.shortcuts import render
-
-class MemberListView(ListView):
-	template_name = 'temporary/member/list.html'
-	paginate_by = '10'
-
-	def get_queryset(self):
-		return None
-
-success_update_string = u'Cập nhật thông tin thành công'
-# def SucessFullUpdateUser(request):
-# 	template_name = 'v1/user/edit.html'
-# 	context = { 'message': u'Cập nhật thông tin thành công' }
-# 	return render(request, template_name, context)
-
-
 class UserDetailView(DetailView):
-	model = User
 	template_name = 'v1/user/user_profile.html'
 
 	def get_context_data(self, **kwargs):
@@ -50,7 +39,6 @@ class UserDetailView(DetailView):
 						)
 
 class UserProfileView(UserDetailView):
-	model = User
 	template_name = 'v1/user/user_profile.html'
 
 	def get_context_data(self, **kwargs):
@@ -71,8 +59,6 @@ class UserProfileView(UserDetailView):
 						)
 		
 class UserUpdateView(UpdateView):
-	model = User
-
 	fields =[	'first_name',
 				'last_name',
 				'gender',
@@ -147,7 +133,6 @@ class UserUpdateView(UpdateView):
 						)
 
 class UserProfileUpdateView(UserUpdateView):
-
 	template_name = 'v1/user/edit_profile.html'
 
 	def form_valid(self,form):
@@ -177,7 +162,11 @@ class UserResetPasswordView(DetailView):
 		return context
 
 	def get_object(self):
-		return User.objects.get(id=self.kwargs['user_id'])
+		return get_user(	self.request.session['user_id'],
+							get_user(	self.request.session['user_id'], 
+										self.kwargs['user_id']
+									)
+						)
 
 class UserResetPasswordDoneView(DetailView):
 	template_name = 'v1/user/reset_password_done.html'
@@ -188,11 +177,8 @@ class UserResetPasswordDoneView(DetailView):
 		return context
 
 	def get_object(self):
-		user = User.objects.get(id=self.kwargs['user_id'])
-		user.password = None
-		user.save()
-		return user
-
+		return reset_user_password(self.request.session['user_id'], self.kwargs['user_id'])
+		
 class UserListView(ListView):
 	template_name = 'v1/list.html'
 	paginate_by = '20'
@@ -213,10 +199,14 @@ class UserListView(ListView):
 		return context
 
 	def get_queryset(self):
-		user_list = None
-		user = User.objects.get(id=self.request.session['user_id'])
-		if user.is_staff:
-			user_list = User.objects.order_by('identify')
+		
+		user_list =None
+
+		if can_get_user_list(self.request.session['user_id']):
+			user_list = get_user_list(self.request.session['user_id'])
+		else:
+			if can_get_managed_user_list(self.request.session['user_id']):
+				user_list = get_managed_user_list(self.request.session['user_id'])
 
 		objects = []
 		if user_list is not None:
@@ -230,7 +220,8 @@ class UserListView(ListView):
 		return objects
 
 class UserCreateView(CreateView):
-	model = User
+	model = get_user_model()
+
 	fields =[	'identify',
 				'first_name',
 				'last_name',
@@ -261,3 +252,202 @@ class UserCreateView(CreateView):
 
 	def form_invalid(self, form):
 		return HttpResponse("Failed")
+
+#region ImportView
+class UserImportView(View):
+	model = User
+	from_encoding = "utf-8"
+	resource_class = get_user_resource()
+	process_import = 'user_process_import_view_v1'
+
+	title = 'Nhập dữ liệu thành viên'
+	main_title = 'Nhập dữ liệu thành viên'
+	fields = [	u'Mã số', 
+				u'Tên',
+				u'Họ',
+				u'Giới tính',
+				u'Ngày sinh',
+				u'Quê quán',
+				u'Dân tộc',
+				u'Tôn giáo',
+				u'Địa chỉ thường trú',
+				u'Xã/Phường/Thị trấn',
+				u'Quận/Huyện/Thành phố thuộc tỉnh',
+				u'Tỉnh/Thành phố',
+				u'Địa chỉ tạm trú',
+				u'Điện thoại',
+				u'Điện thoại di động',
+				u'Email'	]
+
+	from_encoding = "utf-8"
+	
+	#: import / export formats
+	DEFAULT_FORMATS = (
+		base_formats.CSV,
+		base_formats.XLS,
+		base_formats.ODS,
+	)
+	formats = DEFAULT_FORMATS
+	#: template for import view
+	import_template_name = 'v1/import.html'
+	resource_class = None
+
+	def get_import_formats(self):
+		return [f for f in self.formats if f().can_import()]
+
+	def get_resource_class(self):
+		if not self.resource_class:
+			return modelresource_factory(self.model)
+		else:
+			return self.resource_class
+
+	def get_import_resource_class(self):
+		return self.get_resource_class()
+
+	def get(self, *args, **kwargs):
+		resource = self.get_import_resource_class()()
+		context = {}
+
+		import_formats = self.get_import_formats()
+		form = ImportForm(import_formats, self.request.POST or None, self.request.FILES or None)
+
+		if self.request.POST and form.is_valid():
+			input_format = import_formats[int(form.cleaned_data['input_format'])]()
+			import_file = form.cleaned_data['import_file']
+			# first always write the uploaded file to disk as it may be a
+			# memory file or else based on settings upload handlers
+			with tempfile.NamedTemporaryFile(delete=False) as uploaded_file:
+				for chunk in import_file.chunks():
+					uploaded_file.write(chunk)
+
+			# then read the file, using the proper format-specific mode
+			with open(uploaded_file.name, input_format.get_read_mode()) as uploaded_import_file:
+				# warning, big files may exceed memory
+				data = uploaded_import_file.read()
+				if not input_format.is_binary() and self.from_encoding:
+					data = force_text(data, self.from_encoding)
+				dataset = input_format.create_dataset(data)
+				
+
+
+
+
+				# Edit data set ???
+				print dataset
+
+
+
+
+
+
+
+
+
+
+
+				result = resource.import_data(dataset, dry_run=True, raise_errors=False)
+
+			context['result'] = result
+
+			if not result.has_errors():
+				context['confirm_form'] = ConfirmImportForm(initial={
+					'import_file_name': os.path.basename(uploaded_file.name),
+					'input_format': form.cleaned_data['input_format'],
+				})
+
+		context['form'] = form
+		context['opts'] = self.model._meta
+		context['fields'] = [f.column_name for f in resource.get_fields()]
+		context['process_import'] = self.process_import
+		context['title'] = self.title
+		context['main_title'] = self.main_title
+		context['fields'] = self.fields
+
+		print context['process_import'] 
+		return TemplateResponse(self.request, [self.import_template_name], context)
+
+	def post(self, *args, **kwargs ):
+		return self.get(self, *args, **kwargs)
+
+class UserProcessImportView(View):
+	model = User
+	resource_class = get_user_resource()
+	redirect_url = 'user_list_view_v1'
+
+	from_encoding = "utf-8"
+
+	#: import / export formats
+	DEFAULT_FORMATS = (
+		base_formats.CSV,
+		base_formats.XLS,
+		base_formats.ODS,
+	)
+
+	formats = DEFAULT_FORMATS
+
+	import_template_name = 'v1/import.html'
+	resource_class = None
+
+	def get_import_formats(self):
+		return [f for f in self.formats if f().can_import()]
+
+	def get_resource_class(self):
+		if not self.resource_class:
+			return modelresource_factory(self.model)
+		else:
+			return self.resource_class
+
+	def get_import_resource_class(self):
+		
+		return self.get_resource_class()
+
+	def post(self, *args, **kwargs ):
+		opts = self.model._meta
+		resource = self.get_import_resource_class()()
+
+		confirm_form = ConfirmImportForm(self.request.POST)
+		if confirm_form.is_valid():
+			import_formats = self.get_import_formats()
+			input_format = import_formats[
+				int(confirm_form.cleaned_data['input_format'])
+			]()
+			import_file_name = os.path.join(
+				tempfile.gettempdir(),
+				confirm_form.cleaned_data['import_file_name']
+			)
+			import_file = open(import_file_name, input_format.get_read_mode())
+			data = import_file.read()
+			if not input_format.is_binary() and self.from_encoding:
+				data = force_text(data, self.from_encoding)
+			dataset = input_format.create_dataset(data)
+
+			result = resource.import_data(dataset, dry_run=False, raise_errors=True)
+
+			# Add imported objects to LogEntry
+			ADDITION = 1
+			CHANGE = 2
+			DELETION = 3
+			logentry_map = {
+				RowResult.IMPORT_TYPE_NEW: ADDITION,
+				RowResult.IMPORT_TYPE_UPDATE: CHANGE,
+				RowResult.IMPORT_TYPE_DELETE: DELETION,
+			}
+			content_type_id=ContentType.objects.get_for_model(self.model).pk
+			'''
+			for row in result:
+				LogEntry.objects.log_action(
+					user_id=request.user.pk,
+					content_type_id=content_type_id,
+					object_id=row.object_id,
+					object_repr=row.object_repr,
+					action_flag=logentry_map[row.import_type],
+					change_message="%s through import_export" % row.import_type,
+				)
+			'''
+			success_message = 'Import finished'
+			messages.success(self.request, success_message)
+			import_file.close()
+
+			return HttpResponseRedirect(self.redirect_url)
+
+#endregion
