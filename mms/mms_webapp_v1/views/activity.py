@@ -4,12 +4,15 @@ from django.utils.html import mark_safe
 
 from django.views.generic import ListView, UpdateView, TemplateView
 
-from mms_backoffice.models import Activity, ActivityUser
+from mms_backoffice.models import Activity, ActivityUser, ActivityOrganization
 
 class ActivityUpdateView(TemplateView):
-	template_name = 'v1/activity/detail.html'
-	
+	template_name = 'v1/activity/lish.html'
+
 class ActivityListView(ListView):
+	# template v1/activity/list.html cần anh sửa, 
+	# hiện h em đang chạy template v1/list.html
+	# template_name = 'v1/activity/list.html'
 	template_name = 'v1/list.html'
 	paginate_by = '20'
 
@@ -19,49 +22,51 @@ class ActivityListView(ListView):
 		context['title'] = u'Danh sách hoạt động'
 		context['page_title'] = u'Danh sách hoạt động'
 
-		context['activity_active'] = 'active'
-		context['activity_list_active'] = 'active'
+		context['user_active'] = 'active'
+		context['user_list_active'] = 'active'
 
-		context['theads'] = [	{'name': u'Mã số', 'size' : '10%'},
-								{'name': u'Tên hoạt động', 'size' : 'auto'},
-								{'name': u'Thời gian tổ chức', 'size' : '20%'},
-								{'name': u'Trạng thái', 'size' : '20%'},
-								{'name': '', 'size' : '8%'},	]
+		context['theads'] = [	{'name': u'Tên hoạt động', 'size' : 'auto'},
+								{'name': u'Tổ chức', 'size' : 'auto'},
+								{'name': u'Loại', 'size' : 'auto'},
+								{'name': u'Bắt đầu', 'size' : 'auto'},
+								{'name': u'Kết thúc', 'size' : 'auto'},
+								{'name': u'Mô tả', 'size' : 'auto'}
+							]
 
 		return context
 
 	def get_color(self, value):
 		if value == 0:
-			return 'red'
-		elif value == 1:
-			return 'red-pink'
-		elif value == 2:
-			return 'red-sunglo'
-		elif value == 3:
-			return 'yellow'
-		elif value == 4:
-			return 'purple'
-		elif value == 5:
-			return 'green'
-		elif value == 6:
 			return 'blue'
+		elif value == 1:
+			return 'green'
+		elif value == 2:
+			return 'purple'
 
 	def get_queryset(self):
 		user_list = Activity.objects.all()
 
 		objects = []
 		for obj in user_list:
-			values = []	
-			values.append(obj.id)
+			values = []
+			#Tên hoạt động
 			values.append(obj.name)
-			values.append(obj.start_time)
-
-			states = ActivityUser.objects.filter(activity=obj.id, user=self.request.session['user_id'])
+			#Đơn vị tổ chức
+			org = ActivityOrganization.objects.filter(activity=obj.id)
 			state_string = ''
-			for s in states:
-				state_string += '<div class="margin-bottom-5"><span class="btn label label-sm %s margin-bottom">%s</span></div>' % (self.get_color(s.state), s.get_state_display())
+			for s in org:
+				state_string += s.organization.name
 			values.append(mark_safe(state_string))
-			values.append(mark_safe(u'<a href="/user/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
+			#Loại hoạt động
+			org = ActivityOrganization.objects.filter(activity=obj.id)
+			state_string = ''
+			state_string += '<div class="margin-bottom-5"><span class="btn label label-sm %s margin-bottom">%s</span></div>' % (self.get_color(obj.activity_type), obj.get_activity_type_display())
+			values.append(mark_safe(state_string))
+			#Thời gian bắt đầu - kết thúc
+			values.append(obj.start_time)
+			values.append(obj.end_time)
+			#Mô tả hoạt động
+			values.append(obj.details)
 			objects.append(values)
 
 		return objects
