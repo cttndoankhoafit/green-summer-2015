@@ -40,7 +40,7 @@ urlpatterns = [
 
 	url(r'^user/import/', login_required(UserImportView.as_view()), name='user_import_view_v1'),
 
-	url(r'^user/import/', login_required(UserProcessImportView.as_view()), name='user_process_import_view_v1'),
+	# url(r'^user/import/', login_required(UserProcessImportView.as_view()), name='user_process_import_view_v1'),
 
 	url(r'^user/create/', login_required(UserCreateView.as_view()), name='user_create_view_v1'),
 
