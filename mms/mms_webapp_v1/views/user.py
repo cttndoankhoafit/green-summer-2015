@@ -6,11 +6,11 @@ from import_export.forms import ConfirmImportForm, ImportForm
 from import_export.results import RowResult
 
 from django.core.urlresolvers import reverse_lazy, reverse
-from django.contrib.messages.views import SuccessMessageMixin
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.html import mark_safe
-from django.views.generic import ListView, TemplateView, UpdateView, CreateView, DetailView, View, FormView
+from django.views.generic import ListView, UpdateView, CreateView, DetailView, View, FormView
 
+from django.contrib.auth.forms import PasswordChangeForm
 
 from django.template.response import TemplateResponse
 
@@ -18,8 +18,11 @@ import os
 import tempfile
 
 from mms_controller.resources.user import *
+from mms_webapp_v1.views.base import *
 
+success_create_user_message = u'Thêm người dùng thành công'
 success_update_user_message = u'Cập nhật thông tin thành công'
+success_reset_password_message = u'Đặt lại mật khẩu thành công'
 
 class UserDetailView(DetailView):
 	template_name = 'v1/user/user_profile.html'
@@ -61,7 +64,7 @@ class UserProfileView(UserDetailView):
 							self.request.session['user_id']
 						)
 		
-class UserFormView(SuccessMessageMixin, FormView):
+class UserFormView(BaseSuccessMessageMixin, FormView):
 	def get_form(self, form_class):
 		form = super(UserFormView, self).get_form(form_class)
 		form.fields['first_name'].widget.attrs['class'] = 'form-control'
@@ -83,13 +86,6 @@ class UserFormView(SuccessMessageMixin, FormView):
 
 		return form
 
-	def clear_messages(self):
-		from django.contrib import messages
-		storage = messages.get_messages(self.request)
-		for message in storage:
-			do_something_with(message)
-		storage.used = False
-
 class BaseUserUpdateView(UpdateView, UserFormView):
 	model = get_user_model()
 
@@ -108,6 +104,7 @@ class BaseUserUpdateView(UpdateView, UserFormView):
 				'home_phone',
 				'mobile_phone',
 				'email' ]
+	
 	success_message = success_update_user_message
 
 	def get_context_data(self, **kwargs):
@@ -172,30 +169,90 @@ class UserProfileUpdateView(BaseUserUpdateView):
 							self.request.session['user_id']
 						)
 
-class UserResetPasswordView(DetailView):
+class UserResetPasswordView(BaseSuccessMessageMixin, UpdateView):
 	template_name = 'v1/user/reset_password.html'
-	
+	success_message = success_reset_password_message
+
+	fields = []
+
 	def get_context_data(self, **kwargs):
 		context = super(UserResetPasswordView, self).get_context_data(**kwargs)
 
 		return context
 
-	def get_object(self):
-		return set_user(	self.request.session['user_id'],
-							self.kwargs['user_id']
-						)
+	def get_success_url(self):
+		return reverse('user_reset_password_view_v1', kwargs={'user_id' : self.kwargs['user_id'] })
 
-class UserResetPasswordDoneView(DetailView):
-	template_name = 'v1/user/reset_password_done.html'
-	
-	def get_context_data(self, **kwargs):
-		context = super(UserResetPasswordDoneView, self).get_context_data(**kwargs)
+	def form_valid(self, form):
+		
+		self.clear_messages()
 
-		return context
+		return super(UserResetPasswordView, self).form_valid(form)
 
 	def get_object(self):
 		return reset_user_password(self.request.session['user_id'], self.kwargs['user_id'])
+
+class UserPasswordChangeView(BaseSuccessMessageMixin, FormView):
+	template_name = 'v1/user/change_password.html'
+	form_class = PasswordChangeForm
+	success_message = success_reset_password_message
+
+	def get_success_url(self):
+		return reverse('user_password_change_view_v1')
+
+	def get_form_kwargs(self):
+		kwargs = super(UserPasswordChangeView, self).get_form_kwargs()
+		kwargs['user'] = self.request.user
+		return kwargs
+
+	def form_valid(self, form):
+		form.save()
+
+		self.clear_messages()
+
+		return super(UserPasswordChangeView, self).form_valid(form)
+
+class UserCreateView(CreateView, UserFormView):
+	model = get_user_model()
+
+	fields =[	'identify',
+				'password',
+				'first_name',
+				'last_name',
+				'gender',
+				'date_of_birth',
+				'place_of_birth',
+				'folk',
+				'religion',
+				'address',
+				'ward',
+				'district',
+				'province',
+				'temporary_address',
+				'home_phone',
+				'mobile_phone',
+				'email' ]
+
+	template_name = 'v1/user/create.html'
+
+	success_message = success_create_user_message
+
+	def get_success_url(self):
+		return reverse('user_list_view_v1')
+
+ 	def get_form(self, form_class):
+		form = super(UserCreateView, self).get_form(form_class)
+		form.fields['identify'].widget.attrs['class'] = 'form-control'
+		form.fields['password'].widget.attrs['class'] = 'form-control'
+		return form
+
+	def form_valid(self, form):
+		self.object = form.save(commit=False)
 		
+		if create_user(self.request.session['user_id'], self.object):
+			self.clear_messages()
+			return super(UserCreateView, self).form_valid(form)
+
 class UserListView(ListView, FormView):
 	template_name = 'v1/list.html'
 	paginate_by = '20'
@@ -260,40 +317,6 @@ class UserListView(ListView, FormView):
 			todel = request.POST.getlist('list')
 			print todel
 		return self.get(self, *args, **kwargs) #HttpResponseRedirect(reverse('user_list_view_v1'))
-
-class UserCreateView(CreateView, UserFormView):
-	model = get_user_model()
-
-	fields =[	'identify',
-				'password',
-				'first_name',
-				'last_name',
-				'gender',
-				'date_of_birth',
-				'place_of_birth',
-				'folk',
-				'religion',
-				'address',
-				'ward',
-				'district',
-				'province',
-				'temporary_address',
-				'home_phone',
-				'mobile_phone',
-				'email' ]
-
-	template_name = 'v1/user/create.html'
-
- 	def get_form(self, form_class):
-		form = super(UserCreateView, self).get_form(form_class)
-		form.fields['identify'].widget.attrs['class'] = 'form-control'
-		form.fields['password'].widget.attrs['class'] = 'form-control'
-		return form
-
-	def form_valid(self, form):
-		self.object = form.save(commit=False)
-		if create_user(self.request.session['user_id'], self.object):
-			return HttpResponseRedirect(reverse('user_list_view_v1'))
 
 #region ImportView
 class UserImportView(View):

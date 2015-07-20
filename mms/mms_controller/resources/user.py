@@ -93,9 +93,9 @@ def can_set_user_list(user_id_access):
 #endregion
 
 #region reset_user_password
-def reset_user_password(user_id_access, user_is_accessed):
-	if can_set_user(user_id_access, user_is_accessed):
-		user = User.objects.get(user_is_accessed)
+def reset_user_password(user_id_access, accessed_user_id):
+	if can_set_user(user_id_access, accessed_user_id):
+		user = User.objects.get(id=accessed_user_id)
 		user.set_password(user.identify)
 		user.save()
 		return user
