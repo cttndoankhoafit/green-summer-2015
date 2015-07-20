@@ -85,9 +85,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 		return self.last_name + ' ' + self.first_name
 	
 	def get_address(self):
-		if self.address is not None and self.ward is not None and self.province is not None:
-			if len(self.address) > 0 and len(self.ward) > 0 and len(self.province) > 0:
-				return self.address + ', ' + self.ward + ', ' + self.province
+		if self.address is not None and self.ward is not None and self.district is not None and self.province is not None:
+			return self.address + ', ' + self.ward + ', ' + self.district + ', ' + self.province
 		return ''
 
 	def save(self, *args, **kwargs):

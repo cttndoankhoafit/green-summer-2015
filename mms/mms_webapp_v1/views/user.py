@@ -6,6 +6,7 @@ from import_export.forms import ConfirmImportForm, ImportForm
 from import_export.results import RowResult
 
 from django.core.urlresolvers import reverse_lazy, reverse
+from django.contrib.messages.views import SuccessMessageMixin
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.html import mark_safe
 from django.views.generic import ListView, TemplateView, UpdateView, CreateView, DetailView, View, FormView
@@ -17,6 +18,8 @@ import os
 import tempfile
 
 from mms_controller.resources.user import *
+
+success_update_user_message = u'Cập nhật thông tin thành công'
 
 class UserDetailView(DetailView):
 	template_name = 'v1/user/user_profile.html'
@@ -58,7 +61,7 @@ class UserProfileView(UserDetailView):
 							self.request.session['user_id']
 						)
 		
-class UserFormView(FormView):
+class UserFormView(SuccessMessageMixin, FormView):
 	def get_form(self, form_class):
 		form = super(UserFormView, self).get_form(form_class)
 		form.fields['first_name'].widget.attrs['class'] = 'form-control'
@@ -80,7 +83,16 @@ class UserFormView(FormView):
 
 		return form
 
-class UserUpdateView(UpdateView, UserFormView):
+	def clear_messages(self):
+		from django.contrib import messages
+		storage = messages.get_messages(self.request)
+		for message in storage:
+			do_something_with(message)
+		storage.used = False
+
+class BaseUserUpdateView(UpdateView, UserFormView):
+	model = get_user_model()
+
 	fields =[	'first_name',
 				'last_name',
 				'gender',
@@ -96,13 +108,10 @@ class UserUpdateView(UpdateView, UserFormView):
 				'home_phone',
 				'mobile_phone',
 				'email' ]
-
-	template_name = 'v1/user/user_update.html'
-
-	
+	success_message = success_update_user_message
 
 	def get_context_data(self, **kwargs):
-		context = super(UserUpdateView, self).get_context_data(**kwargs)
+		context = super(BaseUserUpdateView, self).get_context_data(**kwargs)
 
 		context['title'] = u'Thông tin cá nhân'
 		context['page_title'] = u'Thông tin cá nhân'
@@ -113,11 +122,16 @@ class UserUpdateView(UpdateView, UserFormView):
 
 		return context
 
+class UserUpdateView(BaseUserUpdateView):
+	template_name = 'v1/user/user_update.html'
+
+	def get_success_url(self):
+		return reverse('user_update_view_v1', kwargs={'user_id' : self.kwargs['user_id'] })
+
 	def form_valid(self,form):
 		self.object = form.save(commit=False)
 		self.object.creator = self.request.user
 		self.object.status = 0
-		# self.request.session['user'] = self.object
 
 		user_id = self.request.session['user_id']
 		user = self.kwargs['user_id']
@@ -126,17 +140,23 @@ class UserUpdateView(UpdateView, UserFormView):
 			self.request.session['user_full_name'] = self.object.get_full_name()
 		
 		self.object.save()
-		return HttpResponseRedirect(reverse('user_update_view_v1', kwargs={'user_id' : user }))
+
+		self.clear_messages()
+
+		return super(UserUpdateView, self).form_valid(form)
 
 	def get_object(self):
 		return set_user(	self.request.session['user_id'],
 							self.kwargs['user_id']
 						)
 
-class UserProfileUpdateView(UserUpdateView):
+class UserProfileUpdateView(BaseUserUpdateView):
 	template_name = 'v1/user/edit_profile.html'
 
-	def form_valid(self,form):
+	def get_success_url(self):
+		return reverse('user_profile_update_view_v1')
+
+	def form_valid(self, form):
 		self.object = form.save(commit=False)
 		self.object.creator = self.request.user
 		self.object.status = 0
@@ -144,8 +164,8 @@ class UserProfileUpdateView(UserUpdateView):
 		self.request.session['user_full_name'] = self.object.get_full_name()
 		
 		self.object.save()
-		return HttpResponseRedirect(reverse('user_profile_update_view_v1'))
 
+		return super(UserProfileUpdateView, self).form_valid(form)
 
 	def get_object(self):
 		return set_user(	self.request.session['user_id'],
@@ -239,7 +259,7 @@ class UserListView(ListView, FormView):
 		if 'list' in request.POST:
 			todel = request.POST.getlist('list')
 			print todel
-		return HttpResponseRedirect(reverse('user_list_view_v1'))
+		return self.get(self, *args, **kwargs) #HttpResponseRedirect(reverse('user_list_view_v1'))
 
 class UserCreateView(CreateView, UserFormView):
 	model = get_user_model()
@@ -355,11 +375,9 @@ class UserImportView(View):
 
 
 				# Edit data set ???
-				print dataset
+				print dataset.headers
 
-
-
-
+				print dataset[0]
 
 
 
