@@ -1,9 +1,24 @@
-<html>
-<body>
-	<form method="post" enctype="multipart/form-data">
+{% extends 'v1/webapp_base.html' %}
+
+{% load staticfiles %}
+
+{% load addclass_filter %}
+
+{% block page_content %}
+<div class="row profile">
+	<div class="col-md-12">
+		<form method="post" enctype="multipart/form-data">
 		{% csrf_token %}
-		{{ form.as_p }}
-		<input type="submit" value="submit" />
+		<div class="form-group">
+			<label class="control-label">Chọn tập tin:</label>
+			{{ form.import_file }}
+			{{ form.import_file.errors }}
+		</div>
+		<div class="margin-top-10">
+			<input type="submit" class="btn green" data-loading-text="Đang lưu dữ liệu..." value="Nhập danh sách">
+		</div>
 	</form>
-</body>
-</html>
+	</div>
+</div>
+
+{% endblock %}

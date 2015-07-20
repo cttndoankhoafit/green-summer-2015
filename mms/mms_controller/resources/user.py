@@ -139,3 +139,49 @@ def get_user_resource():
 
 def get_user_model():
 	return User
+
+def create_user_by_infomation(	user_id, 
+								identify,
+								first_name,
+								last_name,
+								gender,
+								date_of_birth,
+								place_of_birth,
+								folk,
+								religion,
+								address,
+								ward,
+								district,
+								province,
+								temporary_address,
+								home_phone,
+								mobile_phone,
+								email	):
+
+	if can_set_user_list(user_id):
+		try:
+			user_object = User(	identify=identify,
+							first_name=first_name,
+							last_name=last_name,
+							gender=gender,
+							date_of_birth=date_of_birth,
+							place_of_birth=place_of_birth,
+							folk=folk,
+							religion=religion,
+							address=address,
+							ward=ward,
+							district=district,
+							province=province,
+							temporary_address=temporary_address,
+							home_phone=home_phone,
+							mobile_phone=mobile_phone,
+							email=email	)
+
+			user_object.set_password(user_object.identify)
+			user_object.save()
+		except Exception as e:
+			print e
+			return False
+
+		return True
+	return False

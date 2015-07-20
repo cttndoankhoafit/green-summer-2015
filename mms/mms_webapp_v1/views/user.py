@@ -335,91 +335,61 @@ class UserImportView(BaseImportView):
 						'mobile_phone',
 						'email'	)
 
+	def get_success_url(self):
+		return reverse('user_list_view_v1')
+
 	def input_row(self, row):
-		for field in self.CONST_FIELDS:
-			print row[field]
+		try:
+			for field in self.CONST_FIELDS:
+				print row[field]
+		except Exception as e:
+			return e
+		
+		identify = row['identify']
+		first_name = row['first_name']
+		last_name = row['last_name']
+		gender = row['gender']
+		date_of_birth = row['date_of_birth']
+		place_of_birth = row['place_of_birth']
+		folk = row['folk']
+		religion = row['religion']
+		address = row['address']
+		ward = row['ward']
+		district = row['district']
+		province = row['province']
+		temporary_address = row['temporary_address']
+		home_phone = row['home_phone']
+		mobile_phone = row['mobile_phone']
+		email = row['email']
+
+		create_user_by_infomation(	self.request.session['user_id'],
+									identify,
+									first_name,
+									last_name,
+									gender,
+									date_of_birth,
+									place_of_birth,
+									folk,
+									religion,
+									address,
+									ward,
+									district,
+									province,
+									temporary_address,
+									home_phone,
+									mobile_phone,
+									email	)
 
 		print '-------------'
 		return 'ok'
 
-# class UserProcessImportView(View):
-# 	model = User
-# 	resource_class = get_user_resource()
-# 	redirect_url = 'user_list_view_v1'
+	def get_context_data(self, **kwargs):
+		context = super(UserImportView, self).get_context_data(**kwargs)
 
-# 	from_encoding = "utf-8"
+		context['title'] = u'Nhập danh sách tài khoản'
+		context['page_title'] =  u'Nhập danh sách tài khoản'
 
-# 	#: import / export formats
-# 	DEFAULT_FORMATS = (
-# 		base_formats.CSV,
-# 		base_formats.XLS,
-# 	)
-
-# 	formats = DEFAULT_FORMATS
-
-# 	import_template_name = 'v1/import.html'
-# 	resource_class = None
-
-# 	def get_import_formats(self):
-# 		return [f for f in self.formats if f().can_import()]
-
-# 	def get_resource_class(self):
-# 		if not self.resource_class:
-# 			return modelresource_factory(self.model)
-# 		else:
-# 			return self.resource_class
-
-# 	def get_import_resource_class(self):
+		context['user_active'] = 'active'
 		
-# 		return self.get_resource_class()
-
-# 	def post(self, *args, **kwargs ):
-# 		opts = self.model._meta
-# 		resource = self.get_import_resource_class()()
-
-# 		confirm_form = ConfirmImportForm(self.request.POST)
-# 		if confirm_form.is_valid():
-# 			import_formats = self.get_import_formats()
-# 			input_format = import_formats[
-# 				int(confirm_form.cleaned_data['input_format'])
-# 			]()
-# 			import_file_name = os.path.join(
-# 				tempfile.gettempdir(),
-# 				confirm_form.cleaned_data['import_file_name']
-# 			)
-# 			import_file = open(import_file_name, input_format.get_read_mode())
-# 			data = import_file.read()
-# 			if not input_format.is_binary() and self.from_encoding:
-# 				data = force_text(data, self.from_encoding)
-# 			dataset = input_format.create_dataset(data)
-
-# 			result = resource.import_data(dataset, dry_run=False, raise_errors=True)
-
-# 			# Add imported objects to LogEntry
-# 			ADDITION = 1
-# 			CHANGE = 2
-# 			DELETION = 3
-# 			logentry_map = {
-# 				RowResult.IMPORT_TYPE_NEW: ADDITION,
-# 				RowResult.IMPORT_TYPE_UPDATE: CHANGE,
-# 				RowResult.IMPORT_TYPE_DELETE: DELETION,
-# 			}
-# 			content_type_id=ContentType.objects.get_for_model(self.model).pk
-# 			'''
-# 			for row in result:
-# 				LogEntry.objects.log_action(
-# 					user_id=request.user.pk,
-# 					content_type_id=content_type_id,
-# 					object_id=row.object_id,
-# 					object_repr=row.object_repr,
-# 					action_flag=logentry_map[row.import_type],
-# 					change_message="%s through import_export" % row.import_type,
-# 				)
-# 			'''
-# 			success_message = 'Import finished'
-# 			messages.success(self.request, success_message)
-# 			import_file.close()
-
-# 			return HttpResponseRedirect(self.redirect_url)
-
-#endregion
+		context['page_breadcrumb'] =  mark_safe(u'<li><i class="fa fa-user"></i><a>Quản lý tài khoản</a><i class="fa fa-angle-right"></i></li><li><i class="icon-login"></i><a> Nhập danh sách tài khoản</a></li>')
+		return context
