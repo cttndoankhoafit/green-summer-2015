@@ -176,16 +176,16 @@
 					</ul>
 				</li>
 
-				<li>
+				<li class="{{ organization_active }} ">
 					<a>
-					<i class="icon-basket"></i>
+					<i class="fa fa-tree"></i>
 					<span class="title">Quản lý tổ chức</span>
-					<span class=""></span>
+					<span class="arrow"></span>
 					</a>
 					<ul class="sub-menu">
 						<li class="{{ organization_list_active }}">
-							<a href="/organization/list/">
-							<i class="icon-users"></i>
+							<a href="{% url 'organization_list_view_v1' %}">
+							<i class="fa fa-pagelines"></i>
 							Tổ chức được quản lý</a>
 						</li>
 						<!-- <li class="{{ user_search_active }}">

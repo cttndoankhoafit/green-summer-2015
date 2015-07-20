@@ -16,6 +16,8 @@ def can_get_user(user_id_access, user_id_accessed):
 	if int(user_id_access) == int(user_id_accessed):
 		return True
 	
+	user = User.objects.get(id=user_id_access)
+
 	#case 1: if access user is super admin
 	if user.is_staff:
 		return True
@@ -39,14 +41,17 @@ def can_get_user(user_id_access, user_id_accessed):
 
 #region can_set_user
 def can_set_user(user_id_access, user_id_accessed):
-	if not is_user_valid(user_id_access) or not is_user_valid(user_id_accessed):
+	u_access = int(user_id_access)
+	u_accessed = int(user_id_accessed)
+
+	if not is_user_valid(u_access) or not is_user_valid(u_accessed):
 		return False
 
 	#case 0: if access user is accessed user
-	if int(user_id_access) == int(user_id_accessed):
+	if u_access == u_accessed:
 		return True
 
-	user = User.objects.get(id=user_id_access)
+	user = User.objects.get(id=u_access)
 	
 	#case 1: if access user is super admin
 	if user.is_staff:
@@ -65,7 +70,7 @@ def get_user(user_id_access, user_id_accessed):
 #region set_user
 def set_user(user_id_access, user_id_accessed):
 	if can_set_user(user_id_access, user_id_accessed):
-		return User.objects.get(user_id_accessed)
+		return User.objects.get(id=user_id_accessed)
 	return None
 #endregion
 
@@ -120,6 +125,14 @@ def get_managed_user_list(user_id_access):
 		return OrganizationUser.objects.filter(organization__in=org_list).values('user').distinct()
 	return None
 #endregion
+
+def create_user(user_id, user_object):
+	if can_set_user_list(user_id):
+		if len(user_object.password) > 0:
+			user_object.set_password(user_object.password)
+		user_object.save()
+		return True
+	return False
 
 def get_user_resource():
 	return UserResource

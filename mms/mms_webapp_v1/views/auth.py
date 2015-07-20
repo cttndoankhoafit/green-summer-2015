@@ -51,6 +51,7 @@ class LoginView(FormView):
 		self.request.session['identify'] = self.request.user.identify
 		self.request.session['staff'] = int(self.request.user.is_staff)
 		self.request.session['user_full_name'] = self.request.user.get_full_name()
+		self.request.session['message'] = ''
 
 		return HttpResponseRedirect(self.get_success_url())
 

@@ -8,7 +8,7 @@ from import_export.results import RowResult
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.html import mark_safe
-from django.views.generic import ListView, TemplateView, UpdateView, CreateView, DetailView, View
+from django.views.generic import ListView, TemplateView, UpdateView, CreateView, DetailView, View, FormView
 
 
 from django.template.response import TemplateResponse
@@ -58,27 +58,9 @@ class UserProfileView(UserDetailView):
 							self.request.session['user_id']
 						)
 		
-class UserUpdateView(UpdateView):
-	fields =[	'first_name',
-				'last_name',
-				'gender',
-				'date_of_birth',
-				'place_of_birth',
-				'folk',
-				'religion',
-				'address',
-				'ward',
-				'district',
-				'province',
-				'temporary_address',
-				'home_phone',
-				'mobile_phone',
-				'email' ]
-
-	template_name = 'v1/user/user_update.html'
-
+class UserFormView(FormView):
 	def get_form(self, form_class):
-		form = super(UpdateView, self).get_form(form_class)
+		form = super(UserFormView, self).get_form(form_class)
 		form.fields['first_name'].widget.attrs['class'] = 'form-control'
 		form.fields['last_name'].widget.attrs['class'] = 'form-control'
 		form.fields['gender'].widget.attrs['class'] = 'form-control'
@@ -97,6 +79,27 @@ class UserUpdateView(UpdateView):
 		form.fields['email'].widget.attrs['class'] = 'form-control'
 
 		return form
+
+class UserUpdateView(UpdateView, UserFormView):
+	fields =[	'first_name',
+				'last_name',
+				'gender',
+				'date_of_birth',
+				'place_of_birth',
+				'folk',
+				'religion',
+				'address',
+				'ward',
+				'district',
+				'province',
+				'temporary_address',
+				'home_phone',
+				'mobile_phone',
+				'email' ]
+
+	template_name = 'v1/user/user_update.html'
+
+	
 
 	def get_context_data(self, **kwargs):
 		context = super(UserUpdateView, self).get_context_data(**kwargs)
@@ -127,9 +130,7 @@ class UserUpdateView(UpdateView):
 
 	def get_object(self):
 		return set_user(	self.request.session['user_id'],
-							get_user(	self.request.session['user_id'], 
-										self.kwargs['user_id']
-									)
+							self.kwargs['user_id']
 						)
 
 class UserProfileUpdateView(UserUpdateView):
@@ -148,9 +149,7 @@ class UserProfileUpdateView(UserUpdateView):
 
 	def get_object(self):
 		return set_user(	self.request.session['user_id'],
-							get_user(	self.request.session['user_id'], 
-										self.request.session['user_id']
-									)
+							self.request.session['user_id']
 						)
 
 class UserResetPasswordView(DetailView):
@@ -162,10 +161,8 @@ class UserResetPasswordView(DetailView):
 		return context
 
 	def get_object(self):
-		return get_user(	self.request.session['user_id'],
-							get_user(	self.request.session['user_id'], 
-										self.kwargs['user_id']
-									)
+		return set_user(	self.request.session['user_id'],
+							self.kwargs['user_id']
 						)
 
 class UserResetPasswordDoneView(DetailView):
@@ -179,7 +176,7 @@ class UserResetPasswordDoneView(DetailView):
 	def get_object(self):
 		return reset_user_password(self.request.session['user_id'], self.kwargs['user_id'])
 		
-class UserListView(ListView):
+class UserListView(ListView, FormView):
 	template_name = 'v1/list.html'
 	paginate_by = '20'
 
@@ -229,7 +226,7 @@ class UserListView(ListView):
 			for obj in user_list:
 				values = []	
 				if self.can_set:
-					values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.id))
+					values.append(mark_safe('<input type="checkbox" class="checkboxes" value="%s" name="list"/>' % obj.id))
 				values.append(obj.identify)
 				values.append(obj.get_full_name())
 				values.append(mark_safe(u'<a href="/user/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
@@ -237,10 +234,18 @@ class UserListView(ListView):
 
 		return objects
 
-class UserCreateView(CreateView):
+	def post(self, request, *args, **kwargs):
+		print request.POST
+		if 'list' in request.POST:
+			todel = request.POST.getlist('list')
+			print todel
+		return HttpResponseRedirect(reverse('user_list_view_v1'))
+
+class UserCreateView(CreateView, UserFormView):
 	model = get_user_model()
 
 	fields =[	'identify',
+				'password',
 				'first_name',
 				'last_name',
 				'gender',
@@ -261,19 +266,18 @@ class UserCreateView(CreateView):
 
  	def get_form(self, form_class):
 		form = super(UserCreateView, self).get_form(form_class)
+		form.fields['identify'].widget.attrs['class'] = 'form-control'
+		form.fields['password'].widget.attrs['class'] = 'form-control'
 		return form
 
-	def form_valid(self,form):
+	def form_valid(self, form):
 		self.object = form.save(commit=False)
-		self.object.save()
-		return HttpResponse('Create User success')
-
-	def form_invalid(self, form):
-		return HttpResponse("Failed")
+		if create_user(self.request.session['user_id'], self.object):
+			return HttpResponseRedirect(reverse('user_list_view_v1'))
 
 #region ImportView
 class UserImportView(View):
-	model = User
+	model = get_user_model()
 	from_encoding = "utf-8"
 	resource_class = get_user_resource()
 	process_import = 'user_process_import_view_v1'

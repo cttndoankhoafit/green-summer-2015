@@ -1,4 +1,55 @@
-<form action="" method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Create" />
-</form>
+{% extends 'v1/webapp_base.html' %}
+
+{% load staticfiles %}
+
+{% block page_level_styles %}
+	{{ block.super }}
+	<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/bootstrap-datepicker/css/datepicker3.css" %}"/>
+	<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/bootstrap-datepicker/css/datepicker.css" %}"/>
+	<link href="{% static "v1/assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.css" %}" rel="stylesheet" type="text/css"/>
+	<link href="{% static "v1/assets/admin/pages/css/profile.css" %}" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+{% block page_level_plugins_scripts %}
+	{{ block.super }}
+	<script type="text/javascript" src="{% static "v1/assets/global/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js" %}"></script>
+{% endblock %}
+
+{% block page_level_scripts %}
+{{ block.super }}
+<script src="{% static "v1/assets/admin/pages/scripts/date-picker.js" %}"></script>
+{% endblock %}
+
+{% block init_scripts %}
+		DatePicker.init();
+{% endblock %}
+
+{% block page_content %}
+<div class="row profile">
+	<div class="col-md-12">
+		<form role="form" method="post">
+			{% csrf_token %}
+			<h3>Thông tin tài khoản</h3>
+			<hr>
+			<div class="row">
+				<div class="form-group col-md-6">
+					<label class="control-label">Tên tài khoản</label>
+					{{ form.identify }}
+					{{ form.identify.errors }}
+				</div>
+				<div class="form-group col-md-6">
+					<label class="control-label">Mật khẩu</label>
+					{{ form.password }}
+					{{ form.password.errors }}
+				</div>
+			</div>
+			{% include 'v1/user/editor.html' %}
+			
+			<div class="margin-top-10">
+				<input type="submit" class="btn green" data-loading-text="Đang lưu dữ liệu..." value="Thêm người dùng">
+			</div>
+		</form>
+	</div>
+</div>
+
+{% endblock %}

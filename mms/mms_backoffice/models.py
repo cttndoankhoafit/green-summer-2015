@@ -96,16 +96,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 		else:
 			if len(self.password) == 0:
 				self.set_password(self.identify)
-			# else:
-			# 	try:
-			# 		user = User.objects.get(identify=self.identify)	
-			# 		print self.password
-			# 		print user.password
-			# 		if self.password != user.password:
-			# 			self.set_password(self.password)
-			# 	except User.DoesNotExist:
-			# 		self.set_password(self.password)
-					
+
 		super(User, self).save(*args, **kwargs)
 
 	def __unicode__(self):
@@ -127,7 +118,7 @@ class OrganizationType(models.Model):
 	
 class Organization(models.Model):
 	name = models.CharField(u'Tên tổ chức', max_length=128)
-	organization_type = models.ForeignKey(OrganizationType)
+	organization_type = models.ForeignKey(OrganizationType, null=True, default=None)
 	organization_manager = models.ForeignKey('self', null=True, blank=True, default=None)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
