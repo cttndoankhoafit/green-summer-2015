@@ -46,9 +46,13 @@ urlpatterns = [
 
 	url(r'^user/import/', login_required(UserProcessImportView.as_view()), name='user_process_import_view_v1'),
 
+	url(r'^user/create/', login_required(UserCreateView.as_view()), name='user_create_view_v1'),
+
 	url(r'^activity/list/', login_required(ActivityListView.as_view()), name='activity_list_view_v1'),
 
 	url(r'^activity/(?P<activity_id>\d+)/', login_required(ActivityUpdateView.as_view()), name='activity_update_view_v1'),
+
+
 
 	# url(r'^member/', MemberListView.as_view(), name='member_list_view_v1'),
 

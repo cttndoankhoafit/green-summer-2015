@@ -159,17 +159,17 @@
 					</a>
 					<ul class="sub-menu">
 						<li class="{{ user_list_active }}">
-							<a href="/user/list/">
-							<i class="icon-user"></i>
-							Danh sách tài khoản</a>
+							<a href="{% url 'user_list_view_v1' %}">
+							<i class="icon-users"></i>
+							Tài khoản được quản lý</a>
 						</li>
-						<li class="{{ user_search_active }}">
+						<!-- <li class="{{ user_search_active }}">
 							<a href="/user/search/">
 							<i class="fa fa-search"></i>
 							Tìm kiếm</a>
-						</li>
+						</li> -->
 						<li class="{{ profile_active }}">
-							<a href="/user/{{ request.session.user_id }}/">
+							<a href="{% url 'user_profile_view_v1' %}">
 							<i class="icon-user"></i>
 							Thông tin cá nhân</a>
 						</li>
@@ -177,11 +177,28 @@
 				</li>
 
 				<li>
-					<a href="javascript:;">
+					<a>
 					<i class="icon-basket"></i>
 					<span class="title">Quản lý tổ chức</span>
 					<span class=""></span>
 					</a>
+					<ul class="sub-menu">
+						<li class="{{ organization_list_active }}">
+							<a href="/organization/list/">
+							<i class="icon-users"></i>
+							Tổ chức được quản lý</a>
+						</li>
+						<!-- <li class="{{ user_search_active }}">
+							<a href="/user/search/">
+							<i class="fa fa-search"></i>
+							Tìm kiếm</a>
+						</li> -->
+						<!-- <li class="{{ profile_active }}">
+							<a href="/user/{{ request.session.user_id }}/">
+							<i class="icon-user"></i>
+							Thông tin cá nhân</a>
+						</li> -->
+					</ul>
 				</li>
 
 				<li class="{{ activity_active }}">

@@ -3,9 +3,11 @@
 from django.utils.html import mark_safe
 
 from mms_backoffice.models import *
-from django.views.generic import TemplateView, CreateView
+from django.views.generic import TemplateView, CreateView, ListView
 
 from django.http import HttpResponseRedirect, HttpResponse
+
+from mms_controller.resources.organization import *
 
 #region GET UNDER ORGANIZATION
 
@@ -124,3 +126,9 @@ class OrganizationCreateView(CreateView):
 	def form_invalid(self, form):
 		return HttpResponse("Failed")
 #nedregion
+
+
+class OrganizationListView(ListView):
+	template_name = 'v1/list.html'
+
+	

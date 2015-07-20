@@ -125,4 +125,4 @@ def get_user_resource():
 	return UserResource
 
 def get_user_model():
-	return UserResource
+	return User

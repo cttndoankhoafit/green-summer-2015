@@ -31,14 +31,17 @@
 		<div class="portlet">
 			<div class="portlet-title">
 				<div class="actions">
-					<a href="#" class="btn btn-default btn-sm">
+					{% if can_set_list %}
+					<a href="{{ add_link }}" class="btn btn-default btn-sm">
 						<i class="fa fa-plus"></i> Thêm
 					</a>
+					{% endif %}
 					<div class="btn-group">
 						<a class="btn btn-default btn-sm" data-toggle="dropdown">
 						<i class="fa fa-cogs"></i> Công cụ <i class="fa fa-angle-down"></i>
 						</a>
 						<ul class="dropdown-menu pull-right">
+							{% if can_set_list %}
 							<li>
 								<a href="#">
 								<i class="fa fa-trash-o"></i> Xóa </a>
@@ -50,11 +53,12 @@
 							<li class="divider">
 							</li>
 							<li>
-								<a href="#">
+								<a href="{{ import_link }}">
 								<i class="icon-login"></i> Nhập danh sách</a>
 							</li>
+							{% endif %}
 							<li>
-								<a href="#">
+								<a href="{{ export_link }}">
 								<i class="icon-logout"></i> Xuất danh sách</a>
 							</li>
 						</ul>
@@ -63,12 +67,14 @@
 			</div>
 		</div>
 		<div class="portlet-body">
-			<table class="table table-hover table-advance" id="table">
+			<table class="table table-hover table-bordered" id="table">
 				<thead>
 					<tr>
+						{% if can_set_list %}
 						<th class="table-checkbox" width="2%">
 							<input type="checkbox" class="group-checkable" data-set="#table .checkboxes"/>
 						</th>
+						{% endif %}
 						{% for thead in theads %}
 						<th width="{{ thead.size }}">
 							{{ thead.name }}
@@ -79,9 +85,6 @@
 				<tbody>
 					{% for object in object_list  %}
 					<tr class="odd gradeX">
-						<td>
-							<input type="checkbox" class="checkboxes" value="1"/>
-						</td>
 						{% for value in object %}
 						<td>{{ value }}</td>
 						{% endfor %}

@@ -183,6 +183,8 @@ class UserListView(ListView):
 	template_name = 'v1/list.html'
 	paginate_by = '20'
 
+	can_set = False
+	
 	def get_context_data(self, **kwargs):
 		context = super(UserListView, self).get_context_data(**kwargs)
 
@@ -196,22 +198,38 @@ class UserListView(ListView):
 								{'name': u'Họ và Tên', 'size' : 'auto'},
 								{'name': '', 'size' : '8%'},	]
 
+		context['add_link'] = '/user/create/'
+		context['import_link'] = '/user/import/'
+
+		if self.can_set:
+			context['can_set_list'] = 1
+
 		return context
 
 	def get_queryset(self):
 		
 		user_list =None
 
-		if can_get_user_list(self.request.session['user_id']):
+		self.can_set = can_set_user_list(self.request.session['user_id'])
+		
+		can_get = can_get_user_list(self.request.session['user_id'])
+
+		can_get_managed_user = can_get_managed_user_list(self.request.session['user_id'])
+
+		
+		if can_get:
 			user_list = get_user_list(self.request.session['user_id'])
 		else:
-			if can_get_managed_user_list(self.request.session['user_id']):
+			if can_get_managed_user:
 				user_list = get_managed_user_list(self.request.session['user_id'])
+	
 
 		objects = []
 		if user_list is not None:
 			for obj in user_list:
 				values = []	
+				if self.can_set:
+					values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.id))
 				values.append(obj.identify)
 				values.append(obj.get_full_name())
 				values.append(mark_safe(u'<a href="/user/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
@@ -285,7 +303,6 @@ class UserImportView(View):
 	DEFAULT_FORMATS = (
 		base_formats.CSV,
 		base_formats.XLS,
-		base_formats.ODS,
 	)
 	formats = DEFAULT_FORMATS
 	#: template for import view
@@ -324,6 +341,7 @@ class UserImportView(View):
 			with open(uploaded_file.name, input_format.get_read_mode()) as uploaded_import_file:
 				# warning, big files may exceed memory
 				data = uploaded_import_file.read()
+
 				if not input_format.is_binary() and self.from_encoding:
 					data = force_text(data, self.from_encoding)
 				dataset = input_format.create_dataset(data)
@@ -380,7 +398,6 @@ class UserProcessImportView(View):
 	DEFAULT_FORMATS = (
 		base_formats.CSV,
 		base_formats.XLS,
-		base_formats.ODS,
 	)
 
 	formats = DEFAULT_FORMATS
