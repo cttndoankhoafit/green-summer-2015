@@ -140,11 +140,11 @@ class OrganizationUser(models.Model):
 
 	organization = models.ForeignKey(Organization)
 	user = models.ForeignKey(User)
-	state =  models.PositiveSmallIntegerField(u'Trạng thái', null=True, choices=CONST_STATES, default=3)
+	state =  models.PositiveSmallIntegerField(null=True, choices=CONST_STATES, default=3)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 	
-	def __unicode__(self):
-		return self.organization.name + ' - ' + self.user.last_name + ' ' +self.user.first_name
+	# def __unicode__(self):
+	# 	return unicode(self.organization.name + ' - ' + self.user.last_name + ' ' +self.user.first_name) or u''
 
 	class Meta:
 		unique_together = ('organization', 'user')

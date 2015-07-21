@@ -113,11 +113,38 @@ class UserOrganizationView(TemplateView):
 		html += objects.name + "\n"
 		return html
 
-class OrganizationCreateView(CreateView):
-	model = Organization
-	fields = '__all__'
+class OrganizationFormView(BaseSuccessMessageMixin, FormView):
+	def get_form(self, form_class):
+		form = super(OrganizationFormView, self).get_form(form_class)
+		form.fields['identify'].widget.attrs['class'] = 'form-control'
+		form.fields['name'].widget.attrs['class'] = 'form-control'
+		form.fields['organization_type'].widget.attrs['class'] = 'form-control'
+		form.fields['manager_organization'].widget.attrs['class'] = 'form-control'
 
-	template_name = 'v1/organization/editor.html'# template of OrganizationCreateView is the same as UserCreateView
+		return form
+
+class OrganizationCreateView(CreateView, OrganizationFormView):
+	model = Organization
+	fields = [	'identify',
+				'name',
+				'organization_type',
+				'manager_organization'	]
+
+	template_name = 'v1/organization/organization_editor.html'# template of OrganizationCreateView is the same as UserCreateView
+
+
+	def get_context_data(self, **kwargs):
+		context = super(OrganizationCreateView, self).get_context_data(**kwargs)
+		
+		context['title'] = u'Thêm tổ chức'
+
+		context['page_title'] = u'Thêm tổ chức'
+
+		context['organization_active'] = 'active'
+		
+		context['button_name'] = u'Thêm tổ chức'
+
+		return context
 
  	def get_form(self, form_class):
 		form = super(OrganizationCreateView, self).get_form(form_class)
@@ -166,17 +193,12 @@ class OrganizationListView(ListView):
 
 		can_get = can_get_organization_list(user_id)
 
-		can_get_managed_organization = can_get_managed_organization_list(user_id)
-
-		if can_get:
-			organization_list = get_organization_list(user_id)
-		else:
-			if can_get_managed_organization:
-				organization_list = get_managed_organization_list(user_id)
-
+		organization_list = get_organization_list(user_id)
+		
 		objects = []
 		if organization_list is not None:
 			for obj in organization_list:
+				print obj
 				values = []
 				if self.can_set:
 					values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.id))
@@ -194,10 +216,13 @@ class OrganizationTreeView(TemplateView):
 		
 		org = get_organization_root()
 
+		context['organization_active'] = 'active'
+		context['organization_tree_active'] = 'active'
+
 		context['html_content'] = mark_safe(self.toHtml(self.get_org_list(org.id)))
 
-		if can_create_organization(self.request.session['user_id']):
-			context['can_create_organization'] = 1
+		if can_manage_organization(self.request.session['user_id']):
+			context['can_manage_organization'] = 1
 
 		return context
 
@@ -296,3 +321,26 @@ class OrganizationManagementImportView(BaseImportView):
 
 		print '-------------'
 		return 'ok'
+
+class OrganizationMemberListView(ListView):
+	template_name = 'v1/organization/organization_member.html'
+	paginate_by = '10'
+
+	def get_context_data(self, **kwargs):
+		context = super(OrganizationMemberListView, self).get_context_data(**kwargs)
+		
+		org = get_organization_root()
+
+		context['organization_active'] = 'active'
+		context['organization_tree_active'] = 'active'
+
+		context['html_content'] = mark_safe(self.toHtml(self.get_org_list(org.id)))
+
+		if can_manage_organization(self.request.session['user_id']):
+			context['can_manage_organization'] = 1
+
+	def get_queryset(self):
+		
+		objects = []
+
+		return objects

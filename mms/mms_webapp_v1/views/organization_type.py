@@ -26,16 +26,17 @@ class OrganizationTypeListView(ListView):
 		context['organization_active'] = 'active'
 		context['organization_type_list_active'] = 'active'
 
-		context['theads'] = [	{'name': u'Mã loại tổ chức', 'size' : '20%'},
-								{'name': u'Tên loại tổ chức', 'size' : 'auto'},
-								{'name': u'Mức độ quản lý', 'size' : '20%'}, ]
-
-		# context['add_link'] = '/organization/create/'
-		# context['import_link'] = '/organization/import/'
+		context['theads'] = []
 
 		if self.can_set:
-			context['theads'].append({'name': '', 'size' : '8%'})
+			context['theads'].append({'name': u'Mã loại tổ chức', 'size' : '20%'})
 			context['can_set_list'] = 1
+
+		context['theads'].append({'name': u'Tên loại tổ chức', 'size' : 'auto'})
+		context['theads'].append({'name': '', 'size' : '8%'})
+			
+		# context['add_link'] = '/organization/create/'
+		# context['import_link'] = '/organization/import/'
 
 		return context
 
@@ -48,11 +49,9 @@ class OrganizationTypeListView(ListView):
 			values =[]
 			if self.can_set:
 				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.id))
-			values.append(obj.identify)
+				values.append(obj.identify)
 			values.append(obj.name)
-			values.append(obj.management_level)
-			if self.can_set:
-				values.append(mark_safe(u'<a href="/organization_type/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
+			values.append(mark_safe(u'<a href="/organization_type/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
 			objects.append(values)
 
 		return objects

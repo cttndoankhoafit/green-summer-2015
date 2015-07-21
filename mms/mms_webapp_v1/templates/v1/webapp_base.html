@@ -186,19 +186,22 @@
 					<span class="arrow"></span>
 					</a>
 					<ul class="sub-menu">
+						<li class="{{ organization_type_list_active }}">
+							<a href="{% url 'organization_type_list_view_v1' %}">
+							<i class="fa fa-pagelines"></i>
+							Loại tổ chức</a>
+						</li>
 						<li class="{{ organization_list_active }}">
 							<a href="{% url 'organization_list_view_v1' %}">
 							<i class="fa fa-pagelines"></i>
-							Tổ chức được quản lý</a>
+							Tổ chức tham gia</a>
 						</li>
 						<li class="{{ organization_tree_active }}">
 							<a href="{% url 'organization_tree_view_v1' %}">
 							<i class="fa fa-tree"></i>
-							Cây quản lý tổ chức</a>
+							Cây tổ chức</a>
 						</li>
-						{% block other_organization_sidebar_item %}
 						
-						{% endblock %}
 						<!-- <li class="{{ user_search_active }}">
 							<a href="/user/search/">
 							<i class="fa fa-search"></i>

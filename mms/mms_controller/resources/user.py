@@ -7,30 +7,40 @@ def is_user_valid(user_id):
 		return True
 	return False
 
+def is_user_identify_valid(user_identify):
+	if User.objects.get(identify=user_identify):
+		return True
+	return False
+
+def is_super_administrator(user_id):
+	try:
+		return User.objects.get(id=user_id).is_superuser	
+	except:
+		pass
+	return False
+
 #region can_get_user
-def can_get_user(user_id_access, user_id_accessed):
-	if not is_user_valid(user_id_access) or not is_user_valid(user_id_accessed):
+def can_get_user(user_id, accessed_user_id):
+	if not is_user_valid(user_id) or not is_user_valid(accessed_user_id):
 		return False
 
 	#case 0: if access user is accessed user
-	if int(user_id_access) == int(user_id_accessed):
+	if int(user_id) == int(accessed_user_id):
 		return True
 	
-	user = User.objects.get(id=user_id_access)
-
 	#case 1: if access user is super admin
-	if user.is_staff:
+	if is_super_administrator(user_id):
 		return True
 
 	#case 2: if access user manage at least one oganization that accessed user participate
-	org_usr_list = OrganizationUser.objects.filter(user=user_id_access, state__lte=2)
+	org_usr_list = OrganizationUser.objects.filter(user=user_id, state__lte=2)
 	
 	for ou in org_usr_list:
 		if OrganizationUser.objects.get(user=user_id_accessed, organization=ou.organization):
 			return True
 
 	#case 3:  if access user manage at least one activity that accessed user participate
-	atv_usr_list = ActivityUser.objects.filter(user=user_id_access, state__lte=2)
+	atv_usr_list = ActivityUser.objects.filter(user=user_id, state__lte=2)
 	
 	for au in atv_usr_list:
 		if ActivityUser.objects.get(user=user_id_accessed, activity=au.activity):

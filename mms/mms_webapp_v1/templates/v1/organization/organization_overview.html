@@ -5,55 +5,24 @@
 {% block tab_content %}
 <div class="tab-pane active">
 	<div class="row">
-		<!-- <div class="col-md-12">
-			<div class="row">
-				<div class="fa-item col-md-4 col-sm-4">
-					<i class="fa fa-credit-card"></i> {{ object.identify }}  
+		<div class="col-md-8">
+			<div class="row static-info">
+				<div class="col-md-3 name">
+					Loại tổ chức:
 				</div>
-				<div class="fa-item col-md-4 col-sm-4">
-					<i class="fa fa-male"></i>  {{ object.get_gender_display }} 
-				</div>
-			</div>
-			<div class="row">
-				<div class="fa-item col-md-4 col-sm-4">
-					<i class="fa fa-calendar"></i>  {{ object.date_of_birth }}
-				</div>
-				<div class="fa-item col-md-4 col-sm-4">
-					<i class="fa fa-home"></i> {{ object.place_of_birth }}
+				<div class="col-md-5 value">
+					{{ object.organization_type }}
 				</div>
 			</div>
-			<div class="row">
-				<div class="fa-item col-md-4 col-sm-4">
-					<i class="fa fa-users"></i> {{ object.folk }}
+			<div class="row static-info">
+				<div class="col-md-3 name">
+					Tổ chức quản lý:
 				</div>
-				<div class="fa-item col-md-4 col-sm-4">
-					<i class="fa fa-ge"></i> {{ object.religion }}
-				</div>
-			</div>
-			<div class="row">
-				<div class="fa-item col-md-4 col-sm-4">
-					<i class="fa fa-phone"></i> {{ object.home_phone }}
-				</div>
-				<div class="fa-item col-md-4 col-sm-4">
-					<i class="fa fa-mobile-phone"></i> {{ object.mobile_phone }}
+				<div class="col-md-5 value">
+					{{ object.manager_organization }}
 				</div>
 			</div>
-			<div class="row">
-				<div class="fa-item col-md-12 col-sm-4">
-					<i class="fa fa-map-marker"></i> {{ object.get_address }}
-				</div>
-			</div>
-			<div class="row">
-				<div class="fa-item col-md-12 col-sm-4">
-					<i class="fa fa-paper-plane"></i> {{ object.temporary_address }}
-				</div>
-			</div>
-			<div class="row">
-				<div class="fa-item col-md-8 col-sm-4">
-					<i class="fa fa-envelope"></i> {{ object.email }}
-				</div>
-			</div>
-		</div> -->
+		</div>
 	</div>
 </div>
 
