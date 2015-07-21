@@ -61,7 +61,8 @@ urlpatterns = [
 
 	url(r'^organization/(?P<organization_id>\d+)/$', login_required(OrganizationDetailView.as_view()), name='organization_detail_view_v1'),
 
-
+	url(r'^organization/(?P<organization_id>\d+)/member/$', OrganizationMemberListView.as_view(), name='organization_member_list_view_v1'
+		
 
 	url(r'^organization_type/$', login_required(OrganizationTypeListView.as_view()), name='organization_type_list_view_v1'),
 
@@ -74,7 +75,7 @@ urlpatterns = [
 	url(r'^user/(?P<user_id>[0-9]+)/member/$', UserMemberListView.as_view(), name='user_member_list_view'),
 	url(r'^user/(?P<user_id>[0-9]+)/activity/$', UserActivityListView.as_view(), name='user_activity_list_view'),
 	url(r'^user/create/$', UserCreateView.as_view(), name='user_create_view'),
-	url(r'^organization/(?P<organization_id>\d+)/member/$', OrganizationMemberListView.as_view(), name='organization_member_list_view'),
+	),
 
 
 ]

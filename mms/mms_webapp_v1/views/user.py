@@ -142,7 +142,7 @@ class UserUpdateView(BaseUserUpdateView):
 						)
 
 class UserProfileUpdateView(BaseUserUpdateView):
-	template_name = 'v1/user/edit_profile.html'
+	template_name = 'v1/user/user_edit_profile.html'
 
 	def get_success_url(self):
 		return reverse('user_profile_update_view_v1')
@@ -164,7 +164,7 @@ class UserProfileUpdateView(BaseUserUpdateView):
 						)
 
 class UserResetPasswordView(BaseSuccessMessageMixin, UpdateView):
-	template_name = 'v1/user/reset_password.html'
+	template_name = 'v1/user/user_reset_password.html'
 	success_message = success_reset_password_message
 
 	fields = []
@@ -187,7 +187,7 @@ class UserResetPasswordView(BaseSuccessMessageMixin, UpdateView):
 		return reset_user_password(self.request.session['user_id'], self.kwargs['user_id'])
 
 class UserPasswordChangeView(BaseSuccessMessageMixin, FormView):
-	template_name = 'v1/user/change_password.html'
+	template_name = 'v1/user/user_change_password.html'
 	form_class = PasswordChangeForm
 	success_message = success_reset_password_message
 
@@ -227,7 +227,7 @@ class UserCreateView(CreateView, UserFormView):
 				'mobile_phone',
 				'email' ]
 
-	template_name = 'v1/user/create.html'
+	template_name = 'v1/user/user_create.html'
 
 	success_message = success_create_user_message
 

@@ -29,7 +29,7 @@ active
 {% endblock %}
 
 {% block change_password_link %}
-/user/{{ object.id }}/reset-password/
+{% url 'user_reset_password_view_v1' object.id %}
 {% endblock %}
 
 {% block tab_content %}

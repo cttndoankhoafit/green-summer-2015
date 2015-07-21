@@ -33,12 +33,16 @@
 		<div class="tabbable tabbable-custom tabbable-full-width">
 			<ul class="nav nav-tabs">
 				<li class="active">
-					<a href="{% block overview_link %}{% endblock %}">
+					<a href="{% url 'organization_detail_view_v1' organization_id %}">
 					Tổng quan </a>
 				</li>
 				<li>
 					<a href="{% block activity_link %}{% endblock %}">
 					Các hoạt động </a>
+				</li>
+				<li>
+					<a href="{% url 'organization_member_list_view_v1' organization_id %}">
+					Các thành viên </a>
 				</li>
 				<li>
 					<a href="{% block organization_under_link %}{% endblock %}">
