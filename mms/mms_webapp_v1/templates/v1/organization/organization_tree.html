@@ -1,0 +1,62 @@
+{% extends 'v1/tree.html' %}
+
+{% block page_content %}
+<div class="row">
+	<div class="col-md-12">
+		{% if messages %}
+			{% for message in messages %}
+				<div class="Metronic-alerts alert alert-success fade in">
+					{{ message }}
+				</div>
+			{% endfor %}
+		{% endif %}
+		<form method="post">
+			{% csrf_token %}
+			<div class="portlet">
+				<div class="portlet-title">
+					<div class="actions">
+						{% if can_create_organization %}
+						<a href="{% url 'organization_create_view_v1' %}" class="btn btn-default btn-sm">
+							<i class="fa fa-plus"></i> Thêm
+						</a>
+						{% endif %}
+						<div class="btn-group">
+							<a class="btn btn-default btn-sm" data-toggle="dropdown">
+							<i class="fa fa-cogs"></i> Công cụ <i class="fa fa-angle-down"></i>
+							</a>
+							<ul class="dropdown-menu pull-right">
+								
+								<li>
+									<a href="#">
+									<i class="fa fa-trash-o"></i> Xóa </a>
+								</li>
+								<li>
+									<a href="#">
+									<i class="fa fa-ban"></i> Khóa </a>
+								</li>
+								<li class="divider">
+								</li>
+								<li>
+									<a href="{{ import_link }}">
+									<i class="icon-login"></i> Nhập danh sách</a>
+								</li>
+								
+								<li>
+									<a href="{{ export_link }}">
+									<i class="icon-logout"></i> Xuất danh sách</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+
+				</div>
+				<div class="portlet-body">
+					<div id="tree_1" class="tree-demo">
+					{{ html_content }}
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

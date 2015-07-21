@@ -3,7 +3,7 @@
 from django.utils.html import mark_safe
 
 from mms_backoffice.models import *
-from django.views.generic import TemplateView, CreateView, ListView
+from django.views.generic import TemplateView, CreateView, ListView, DetailView
 
 from django.http import HttpResponseRedirect, HttpResponse
 
@@ -184,16 +184,20 @@ class OrganizationListView(ListView):
 		return objects
 
 class OrganizationTreeView(TemplateView):
-	template_name = 'v1/tree.html'
+	template_name = 'v1/organization/organization_tree.html'
 
 	def get_context_data(self, **kwargs):
 		context = super(OrganizationTreeView, self).get_context_data(**kwargs)
 		
 		org = Organization.objects.get(name='root')
 
+
 		if org is not None:
 			context['html_content'] = mark_safe(self.toHtml(self.get_org_list(org.id)))
-		
+
+		if can_create_organization(self.request.session['user_id']):
+			context['can_create_organization'] = 1
+
 		return context
 
 	def get_org_list(self, organization_id):
@@ -227,3 +231,11 @@ class OrganizationTreeView(TemplateView):
 		html += u'<li>\n'
 		html += objects.name + u'\n'
 		return html
+
+class OrganizationDetailView(DetailView):
+	template_name = 'v1/organization/organization_overview.html'
+
+	def get_object(self):
+		return get_organization(	self.request.session['user_id'],
+									self.kwargs['organization_id']
+								)

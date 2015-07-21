@@ -74,37 +74,36 @@
 						</div>
 					</div>
 				</div>
-			</div>
-			<div class="portlet-body">
-				<table class="table table-hover table-bordered" id="table">
-					<thead>
-						<tr>
-							{% if can_set_list %}
-							<th class="table-checkbox" width="2%">
-								<input type="checkbox" class="group-checkable" data-set="#table .checkboxes"/>
-							</th>
-							{% endif %}
-							{% for thead in theads %}
-							<th width="{{ thead.size }}">
-								{{ thead.name }}
-							</th>
+				<div class="portlet-body">
+					<table class="table table-hover table-bordered" id="table">
+						<thead>
+							<tr>
+								{% if can_set_list %}
+								<th class="table-checkbox" width="2%">
+									<input type="checkbox" class="group-checkable" data-set="#table .checkboxes"/>
+								</th>
+								{% endif %}
+								{% for thead in theads %}
+								<th width="{{ thead.size }}">
+									{{ thead.name }}
+								</th>
+								{% endfor %}
+							</tr>
+						</thead>
+						<tbody>
+							{% for object in object_list  %}
+							<tr class="odd gradeX">
+								{% for value in object %}
+								<td>{{ value }}</td>
+								{% endfor %}
+							</tr>
 							{% endfor %}
-						</tr>
-					</thead>
-					<tbody>
-						{% for object in object_list  %}
-						<tr class="odd gradeX">
-							{% for value in object %}
-							<td>{{ value }}</td>
-							{% endfor %}
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
+						</tbody>
+					</table>
 
 				{% include 'v1/pagination.html' %}
 				</div>
-			</div>
+			</div>			
 			<input type="submit">
 		</form>
 	</div>

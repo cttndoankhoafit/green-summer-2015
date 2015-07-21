@@ -9,21 +9,21 @@
 	</button>
 	<ul class="dropdown-menu pull-right" role="menu">
 		<li>
-			<a href="{% block user_update_link %}{% endblock %}">
+			<a href="{% block organization_update_link %}{% endblock %}">
 				<i class="fa fa-pencil"></i> Thay đổi thông tin
 			</a>
 		</li>
-		<li>
+		<!-- <li>
 			<a href="{% block user_reset_passwotd_link %}{% endblock %}">
 				<i class="fa fa-pencil"></i> Đặt lại mật khẩu
 			</a>
-		</li>
+		</li> -->
 	</ul>
 	{% endif %}
 {% endblock %}
 
 {% block page_title %}
-	{{ object.get_full_name }}	
+	{{ object.name }}	
 {% endblock %}
 
 {% block page_content %}
@@ -37,8 +37,12 @@
 					Tổng quan </a>
 				</li>
 				<li>
-					<a href="{% block recent_link %}{% endblock %}">
-					Hoạt động </a>
+					<a href="{% block activity_link %}{% endblock %}">
+					Các hoạt động </a>
+				</li>
+				<li>
+					<a href="{% block organization_under_link %}{% endblock %}">
+					Các tổ chức trực thuộc </a>
 				</li>
 			</ul>
 			<div class="tab-content">

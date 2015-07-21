@@ -124,3 +124,6 @@ def create_organization(user_manager_id, organization_object):
 	return False
 
 #endregion
+
+def get_organization(user_manager_id, organization_object):
+	return Organization.objects.get(id=organization_object)
