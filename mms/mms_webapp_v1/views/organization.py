@@ -273,6 +273,8 @@ class OrganizationMemberListView(ListView):
 
 		context['members_active'] ='active'
 
+		context['import_link'] = 'import/'
+
 		if self.can_set:
 			context['can_set_list'] = 'active'
 
@@ -294,31 +296,42 @@ class OrganizationMemberListView(ListView):
 			objects.append(values)
 		return objects
 
+
+
 class OrganizationMemberImportView(BaseImportView):
 	template_name = 'v1/import.html'
 
-	CONST_FIELDS = (	'organization_identify',
-						'member_identify'
-						)
+	CONST_FIELDS = ('user_identify')
+
+	def get_context_data(self, **kwargs):
+		context = super(OrganizationMemberImportView, self).get_context_data(**kwargs)
+		
+		org = get_organization_root()
+
+		context['organization_id'] = self.kwargs['organization_id']
+
+		context['members_active'] ='active'
+
+		context['organization_name'] = get_organization(self.request.session['user_id'], self.kwargs['organization_id']).name
+		return context
 
 	def get_success_url(self):
-		return reverse('organization_tree_view_v1')
+		return reverse('organization_member_list_view_v1', kwargs={ 'organization_id' : self.kwargs['organization_id']  })
 
 	def input_row(self, row):
-		try:
-			for field in self.CONST_FIELDS:
-				print row[field]
-		except Exception as e:
-			return e
+		# try:
+		# 	for field in self.CONST_FIELDS:
+		# 		print row[field]
+		# except Exception as e:
+		# 	print e
+		# 	return e
 		
-		identify = row['identify']
-		name = row['name']
-		organization_type = row['organization_type']
-
-		create_organization_by_infomation(	self.request.session['user_id'],
-											identify,
-											name,
-											organization_type	)
+		organization_identify = get_organization(self.request.session['user_id'], self.kwargs['organization_id']).identify
+		user_identify = row['user_identify']
+		
+		add_organization_user_by_identify(	self.request.session['user_id'],
+											organization_identify,
+											user_identify	)
 
 		print '-------------'
 		return 'ok'

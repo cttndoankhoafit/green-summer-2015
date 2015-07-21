@@ -84,12 +84,6 @@ def can_get_organization(user_id_access, organization_id):
 	return True
 
 
-
-
-#region can_get_organization_list
-
-#endregion
-
 #region can_set_user_list
 def can_set_organization_list(user_id):
 	#if user is super admin
@@ -228,6 +222,10 @@ def add_organization_user_by_identify(manager_id, organization_identify, user_id
 		user_id = User.objects.get(identify=user_identify).id
 		if is_super_administrator(user_id):
 			return
+			
+		organization_id = Organization.objects.get(identify=organization_identify)
+		user_id = User.objects.get(identify=user_identify)
+
 		organization_user_object = OrganizationUser(organization=organization_id, user=user_id, state=state)
 		organization_user_object.save()
 #endregion
@@ -257,19 +255,19 @@ def set_organization_user(manager_id, organization_id, user_id):
 #endregion
 
 #region get organizaton user list
-def get_organization_list(organization):
+def get_under_organization_list(organization):
 	organization_list = Organization.objects.filter(manager_organization=organization)
 
 	objects = []
 	objects.append(organization)
 	for obj in organization_list:
-		objects += get_organization_list(obj)
+		objects += get_under_organization_list(obj)
 
 	return objects
 
 def get_organization_user_list(user_id, organization_id):
 	if is_organization_manager(user_id, organization_id):
-		organization_user_list = OrganizationUser.objects.filter(organization__in=get_organization_list(Organization.objects.get(id=organization_id)))
+		organization_user_list = OrganizationUser.objects.filter(organization__in=get_under_organization_list(Organization.objects.get(id=organization_id)))
 
 		objects = []
 		for org_usr in organization_user_list:

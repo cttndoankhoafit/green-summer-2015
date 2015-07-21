@@ -57,7 +57,11 @@ urlpatterns = [
 	
 	url(r'^organization/(?P<organization_id>\d+)/$', login_required(OrganizationDetailView.as_view()), name='organization_detail_view_v1'),
 
-	url(r'^organization/(?P<organization_id>\d+)/member/$', OrganizationMemberListView.as_view(), name='organization_member_list_view_v1'),
+	url(r'^organization/(?P<organization_id>\d+)/member/$', login_required(OrganizationMemberListView.as_view()), name='organization_member_list_view_v1'),
+
+	url(r'^organization/(?P<organization_id>\d+)/member/import/$', login_required(OrganizationMemberImportView.as_view()), name='organization_member_import_view_v1'),
+
+
 
 	url(r'^organization_type/$', login_required(OrganizationTypeListView.as_view()), name='organization_type_list_view_v1'),
 
