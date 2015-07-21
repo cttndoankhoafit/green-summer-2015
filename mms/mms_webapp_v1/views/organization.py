@@ -11,6 +11,9 @@ from mms_controller.resources.organization import *
 
 from django.core.urlresolvers import reverse_lazy, reverse
 
+from mms_webapp_v1.views.bases.message import *
+from mms_webapp_v1.views.bases.file import *
+
 #region GET UNDER ORGANIZATION
 
 class OrganizationOrganizationView(TemplateView):
@@ -189,11 +192,9 @@ class OrganizationTreeView(TemplateView):
 	def get_context_data(self, **kwargs):
 		context = super(OrganizationTreeView, self).get_context_data(**kwargs)
 		
-		org = Organization.objects.get(name='root')
+		org = get_organization_root()
 
-
-		if org is not None:
-			context['html_content'] = mark_safe(self.toHtml(self.get_org_list(org.id)))
+		context['html_content'] = mark_safe(self.toHtml(self.get_org_list(org.id)))
 
 		if can_create_organization(self.request.session['user_id']):
 			context['can_create_organization'] = 1
@@ -201,7 +202,7 @@ class OrganizationTreeView(TemplateView):
 		return context
 
 	def get_org_list(self, organization_id):
-		managed_list = Organization.objects.filter(organization_manager=organization_id)
+		managed_list = Organization.objects.filter(manager_organization=organization_id)
 		res = []
 		if len(managed_list) == 0:
 			return res
@@ -239,3 +240,59 @@ class OrganizationDetailView(DetailView):
 		return get_organization(	self.request.session['user_id'],
 									self.kwargs['organization_id']
 								)
+
+class OrganizationImportView(BaseImportView):
+	template_name = 'v1/import.html'
+
+	CONST_FIELDS = (	'identify',
+						'name',
+						'organization_type'	)
+
+	def get_success_url(self):
+		return reverse('organization_tree_view_v1')
+
+	def input_row(self, row):
+		try:
+			for field in self.CONST_FIELDS:
+				print row[field]
+		except Exception as e:
+			return e
+		
+		identify = row['identify']
+		name = row['name']
+		organization_type = row['organization_type']
+
+		create_organization_by_infomation(	self.request.session['user_id'],
+											identify,
+											name,
+											organization_type	)
+
+		print '-------------'
+		return 'ok'
+
+
+class OrganizationManagementImportView(BaseImportView):
+	template_name = 'v1/import.html'
+
+	CONST_FIELDS = (	'manager_organization',
+						'managed_organization'	)
+
+	def get_success_url(self):
+		return reverse('organization_tree_view_v1')
+
+	def input_row(self, row):
+		try:
+			for field in self.CONST_FIELDS:
+				print row[field]
+		except Exception as e:
+			return e
+		
+		manager_organization = row['manager_organization']
+		managed_organization = row['managed_organization']
+		
+		create_organization_managerment_by_infomation(	self.request.session['user_id'],
+														manager_organization,
+														managed_organization	)
+
+		print '-------------'
+		return 'ok'

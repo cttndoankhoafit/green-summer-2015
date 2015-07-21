@@ -173,6 +173,9 @@
 							<i class="icon-user"></i>
 							Thông tin cá nhân</a>
 						</li>
+						{% block other_user_sidebar_item %}
+
+						{% endblock %}
 					</ul>
 				</li>
 
@@ -193,6 +196,9 @@
 							<i class="fa fa-tree"></i>
 							Cây quản lý tổ chức</a>
 						</li>
+						{% block other_organization_sidebar_item %}
+						
+						{% endblock %}
 						<!-- <li class="{{ user_search_active }}">
 							<a href="/user/search/">
 							<i class="fa fa-search"></i>

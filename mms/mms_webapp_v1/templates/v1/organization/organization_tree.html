@@ -1,5 +1,13 @@
 {% extends 'v1/tree.html' %}
 
+{% block other_organization_sidebar_item %}
+<li class="{{ organization_type_list_active }}">
+	<a href="{% url 'organization_type_list_view_v1' %}">
+	<i class="fa fa-tree"></i>
+	Các loại tổ chức</a>
+</li>
+{% endblock %}
+
 {% block page_content %}
 <div class="row">
 	<div class="col-md-12">
@@ -37,10 +45,13 @@
 								<li class="divider">
 								</li>
 								<li>
-									<a href="{{ import_link }}">
-									<i class="icon-login"></i> Nhập danh sách</a>
+									<a href="{% url 'organization_import_view_v1' %}">
+									<i class="icon-login"></i> Nhập danh sách tổ chức</a>
 								</li>
-								
+								<li>
+									<a href="{% url 'organization_management_import_view_v1' %}">
+									<i class="icon-login"></i> Nhập danh sách quản lý tổ chức</a>
+								</li>
 								<li>
 									<a href="{{ export_link }}">
 									<i class="icon-logout"></i> Xuất danh sách</a>

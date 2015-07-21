@@ -315,8 +315,6 @@ class UserListView(ListView, FormView):
 #region ImportView
 class UserImportView(BaseImportView):
 	template_name = 'v1/import.html'
-	success_url = 'user_list_view_v1'
-	resource_class = None
 
 	CONST_FIELDS = (	'identify',
 						'first_name',

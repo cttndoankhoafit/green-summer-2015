@@ -108,7 +108,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 #region Organization
 
 class OrganizationType(models.Model):
+	identify =models.CharField(max_length=50, unique=True, db_index=True)
+
 	name = models.CharField(u'Loại tổ chức', max_length=128)
+
+	management_level = models.IntegerField()
+	
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
 	def __unicode__(self):
@@ -116,9 +121,10 @@ class OrganizationType(models.Model):
 
 	
 class Organization(models.Model):
+	identify = models.CharField(max_length=50, unique=True, db_index=True)
 	name = models.CharField(u'Tên tổ chức', max_length=128)
 	organization_type = models.ForeignKey(OrganizationType, null=True, default=None)
-	organization_manager = models.ForeignKey('self', null=True, blank=True, default=None)
+	manager_organization = models.ForeignKey('self', null=True, blank=True, default=None)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
 	def __unicode__(self):

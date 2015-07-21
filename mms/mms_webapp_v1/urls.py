@@ -36,8 +36,6 @@ urlpatterns = [
 
 	url(r'^user/list/', login_required(UserListView.as_view()), name='user_list_view_v1'),
 
-	url(r'^user/list/(?P<slug>[\w-]+)/$', login_required(UserListView.as_view()), name='user_create_suceess_list_view_v1'),
-
 	url(r'^user/import/', login_required(UserImportView.as_view()), name='user_import_view_v1'),
 
 	# url(r'^user/import/', login_required(UserProcessImportView.as_view()), name='user_process_import_view_v1'),
@@ -54,13 +52,21 @@ urlpatterns = [
 	url(r'^organization/tree/$', login_required(OrganizationTreeView.as_view()), name='organization_tree_view_v1'),
 
 	url(r'^organization/create/$', login_required(OrganizationCreateView.as_view()), name='organization_create_view_v1'),
+
+	url(r'^organization/import/$', login_required(OrganizationImportView.as_view()), name='organization_import_view_v1'),
+
+	url(r'^organization/management_import/$', login_required(OrganizationManagementImportView.as_view()), name='organization_management_import_view_v1'),
 	
 	# url(r'^member/', MemberListView.as_view(), name='member_list_view_v1'),
 
 	url(r'^organization/(?P<organization_id>\d+)/$', login_required(OrganizationDetailView.as_view()), name='organization_detail_view_v1'),
 
 
-	url(r'^organization_type/$', OrganizationTypeListView.as_view(), name='organization_type_list_view_v1'),
+
+	url(r'^organization_type/$', login_required(OrganizationTypeListView.as_view()), name='organization_type_list_view_v1'),
+
+	url(r'^organization_type/import/$', login_required(OrganizationTypeImportView.as_view()), name='organization_type_import_view_v1'),
+
 	url(r'^organization_type/create/', OrganizationTypeCreateView.as_view(), name='organization_type_create_view_v1'),
 
 	url(r'^organization/(?P<organization_id>\d+)/under_organization/$', OrganizationOrganizationView.as_view(), name='organization_organization_view_v1'),
