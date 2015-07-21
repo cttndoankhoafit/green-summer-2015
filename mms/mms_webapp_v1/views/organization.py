@@ -14,105 +14,6 @@ from django.core.urlresolvers import reverse_lazy, reverse
 from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
 
-#region GET UNDER ORGANIZATION
-
-class OrganizationOrganizationView(TemplateView):
-	template_name = 'v1/tree.html'
-
-	def get_context_data(self, **kwargs):
-		context = super(OrganizationOrganizationView, self).get_context_data(**kwargs)
-		
-		identify = self.kwargs['organization_id']
-
-		org =  Organization.objects.get(id=identify)
-
-		if org is not None:
-			context['html_content'] = mark_safe('<ul><li>' + org.name + self.toHtml(self.get_org_list(identify)) + '</li></ul>')
-		
-		# print context['html_content']
-
-		return context
-
-	def get_org_list(self, organization_id):
-		managed_list = Organization.objects.filter(organization_manager=organization_id)
-		res = []
-		if len(managed_list) == 0:
-			return res
-
-		# for i in managed_list:
-		# 	res.append((i.organization_managed, i.organization_manager.id, ))
-		# 	res.append(self.get_org_list(i.organization_managed.id))
-
-		for i in managed_list:
-			res.append(i)
-			res.append(self.get_org_list(i.id))
-
-		return res
-
-	def toHtml(self, objects):
-		html = u''
-		if (type(objects) is list) and (len(objects) == 0):
-			return html
-
-		if type(objects) is list:
-			html += u'<ul>\n'
-			for o in objects:
-				html += self.toHtml(o)
-			html += u'</ul>\n'
-			return html
-
-		html += u'<li>\n'
-		html += objects.name + u'\n'
-		return html
-
-#endregion
-
-#region GET ALL ORGANIZATIONS THAT USER user_id MANAGE
-
-class UserOrganizationView(TemplateView):
-	template_name = 'v1/tree.html'
-
-	def get_context_data(self, **kwargs):
-		context = super(UserOrganizationView, self).get_context_data(**kwargs)
-		identify = self.kwargs['user_id']
-		orgs = OrganizationUser.objects.filter(user__id=identify, state=0)
-		res = []
-		for i in orgs:
-			res.append(i.organization)
-			res.append(self.get_org_list(i.organization.id))
-
-		context['html_content'] = self.toHtml(res)
-
-		return context
-
-	def get_org_list(self, organization_id):
-		managed_list = Organization.objects.filter(organization_manager=organization_id)
-		res = []
-		if len(managed_list) == 0:
-			return res
-
-		for i in managed_list:
-			res.append(i)
-			res.append(self.get_org_list(i.id))
-
-		return res
-
-	def toHtml(self, objects):
-		html = ""
-		if (type(objects) is list) and (len(objects) == 0):
-			return html
-
-		if type(objects) is list:
-			html += "<ul>\n"
-			for o in objects:
-				html += self.toHtml(o)
-			html += "</ul>\n"
-			return html
-
-		html += "<li>\n"
-		html += objects.name + "\n"
-		return html
-
 class OrganizationFormView(BaseSuccessMessageMixin, FormView):
 	def get_form(self, form_class):
 		form = super(OrganizationFormView, self).get_form(form_class)
@@ -155,7 +56,7 @@ class OrganizationCreateView(CreateView, OrganizationFormView):
 		print self.object
 		if create_organization(self.request.session['user_id'], self.object):
 			return HttpResponse(reverse('organization_list_view_v1'))
-#nedregion
+
 
 
 class OrganizationListView(ListView):
@@ -219,52 +120,28 @@ class OrganizationTreeView(TemplateView):
 		context['organization_active'] = 'active'
 		context['organization_tree_active'] = 'active'
 
-		context['html_content'] = mark_safe(self.toHtml(self.get_org_list(org.id)))
+		context['tree_content'] = mark_safe(self.toHtml(get_organization_tuple_table(self.request.session['user_id'], get_organization_root()))
+		)
 
 		if can_manage_organization(self.request.session['user_id']):
 			context['can_manage_organization'] = 1
 
 		return context
 
-	def get_org_list(self, organization_id):
-		managed_list = Organization.objects.filter(manager_organization=organization_id)
-		res = []
-		if len(managed_list) == 0:
-			return res
-
-		# for i in managed_list:
-		# 	res.append((i.organization_managed, i.organization_manager.id, ))
-		# 	res.append(self.get_org_list(i.organization_managed.id))
-
-		for i in managed_list:
-			res.append(i)
-			res.append(self.get_org_list(i.id))
-
-		return res
-
-	def toHtml(self, objects):
-		html = u''
-		if (type(objects) is list) and (len(objects) == 0):
-			return html
-
-		if type(objects) is list:
-			html += u'<ul>\n'
-			for o in objects:
-				html += self.toHtml(o)
-			html += u'</ul>\n'
-			return html
-
-		html += u'<li>\n'
-		html += objects.name + u'\n'
+	def toHtml(self, table):
+		html = ''
+		if len(table[1]) > 0:
+			html += '<ul>'
+			for obj in table[1]:
+				html += '<li><a href="/organization/%s/">' % obj[0].id
+				html += obj[0].name
+				html += '</a>'
+				html += self.toHtml(obj)
+				html += '</li>'
+			html += '</ul>'
 		return html
 
-class OrganizationDetailView(DetailView):
-	template_name = 'v1/organization/organization_overview.html'
 
-	def get_object(self):
-		return get_organization(	self.request.session['user_id'],
-									self.kwargs['organization_id']
-								)
 
 class OrganizationImportView(BaseImportView):
 	template_name = 'v1/import.html'
@@ -295,7 +172,6 @@ class OrganizationImportView(BaseImportView):
 		print '-------------'
 		return 'ok'
 
-
 class OrganizationManagementImportView(BaseImportView):
 	template_name = 'v1/import.html'
 
@@ -322,25 +198,127 @@ class OrganizationManagementImportView(BaseImportView):
 		print '-------------'
 		return 'ok'
 
+
+
+class OrganizationDetailView(DetailView):
+	template_name = 'v1/organization/organization_overview.html'
+
+	def get_context_data(self, **kwargs):
+		context = super(OrganizationDetailView, self).get_context_data(**kwargs)
+		
+		context['organization_id'] = self.kwargs['organization_id']
+
+		context['overview_active'] ='active'
+
+		context['organization_name'] = self.object.name
+
+		return context
+
+	def get_object(self):
+		return get_organization(	self.request.session['user_id'],
+									self.kwargs['organization_id']
+								)
+
+class UnderOrganizationTreeView(TemplateView):
+	template_name = 'v1/organization/organization_under.html'
+
+	def get_context_data(self, **kwargs):
+		context = super(UnderOrganizationTreeView, self).get_context_data(**kwargs)
+		
+		org = get_organization_root()
+
+		context['organization_active'] = 'active'
+		
+		context['organization_name'] = get_organization(self.request.session['user_id'], self.kwargs['organization_id']).name
+
+		context['tree_content'] = mark_safe(self.toHtml(get_organization_tuple_table_by_id(self.request.session['user_id'],  self.kwargs['organization_id']))
+		)
+
+		context['under_organizations_active'] = 'active'
+		
+		if can_manage_organization(self.request.session['user_id']):
+			context['can_manage_organization'] = 1
+
+		return context
+
+	def toHtml(self, table):
+		html = ''
+		if len(table[1]) > 0:
+			html += '<ul>'
+			for obj in table[1]:
+				html += '<li><a href="/organization/%s/">' % obj[0].id
+				html += obj[0].name
+				html += '</a>'
+				html += self.toHtml(obj)
+				html += '</li>'
+			html += '</ul>'
+		return html
+
 class OrganizationMemberListView(ListView):
 	template_name = 'v1/organization/organization_member.html'
-	paginate_by = '10'
+	paginate_by = '20'
+
+	can_set = False
 
 	def get_context_data(self, **kwargs):
 		context = super(OrganizationMemberListView, self).get_context_data(**kwargs)
 		
 		org = get_organization_root()
 
-		context['organization_active'] = 'active'
-		context['organization_tree_active'] = 'active'
+		context['organization_id'] = self.kwargs['organization_id']
 
-		context['html_content'] = mark_safe(self.toHtml(self.get_org_list(org.id)))
+		context['theads'] = [	{'name': u'Mã số', 'size' : '20%'},
+								{'name': u'Họ và Tên', 'size' : 'auto'},
+								{'name': '', 'size' : '8%'},	]
 
-		if can_manage_organization(self.request.session['user_id']):
-			context['can_manage_organization'] = 1
+		context['members_active'] ='active'
+
+		if self.can_set:
+			context['can_set_list'] = 'active'
+
+		context['organization_name'] = get_organization(self.request.session['user_id'], self.kwargs['organization_id']).name
+		return context
 
 	def get_queryset(self):
-		
-		objects = []
+		user_list = get_organization_user_list(self.request.session['user_id'], self.kwargs['organization_id'])
 
+		self.can_set = is_organization_administrator(self.request.session['user_id'], self.kwargs['organization_id'])
+		objects = []
+		for obj in user_list:
+			values = []
+			if self.can_set:
+				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="%s" name="list"/>' % obj.id))
+			values.append(obj.identify)
+			values.append(obj.get_full_name())
+			values.append(mark_safe(u'<a href="/user/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
+			objects.append(values)
 		return objects
+
+class OrganizationMemberImportView(BaseImportView):
+	template_name = 'v1/import.html'
+
+	CONST_FIELDS = (	'organization_identify',
+						'member_identify'
+						)
+
+	def get_success_url(self):
+		return reverse('organization_tree_view_v1')
+
+	def input_row(self, row):
+		try:
+			for field in self.CONST_FIELDS:
+				print row[field]
+		except Exception as e:
+			return e
+		
+		identify = row['identify']
+		name = row['name']
+		organization_type = row['organization_type']
+
+		create_organization_by_infomation(	self.request.session['user_id'],
+											identify,
+											name,
+											organization_type	)
+
+		print '-------------'
+		return 'ok'

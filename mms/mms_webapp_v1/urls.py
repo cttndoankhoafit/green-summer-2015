@@ -38,8 +38,6 @@ urlpatterns = [
 
 	url(r'^user/import/', login_required(UserImportView.as_view()), name='user_import_view_v1'),
 
-	# url(r'^user/import/', login_required(UserProcessImportView.as_view()), name='user_process_import_view_v1'),
-
 	url(r'^user/create/', login_required(UserCreateView.as_view()), name='user_create_view_v1'),
 
 	url(r'^activity/list/', login_required(ActivityListView.as_view()), name='activity_list_view_v1'),
@@ -57,25 +55,22 @@ urlpatterns = [
 
 	url(r'^organization/management_import/$', login_required(OrganizationManagementImportView.as_view()), name='organization_management_import_view_v1'),
 	
-	# url(r'^member/', MemberListView.as_view(), name='member_list_view_v1'),
-
 	url(r'^organization/(?P<organization_id>\d+)/$', login_required(OrganizationDetailView.as_view()), name='organization_detail_view_v1'),
 
-	url(r'^organization/(?P<organization_id>\d+)/member/$', OrganizationMemberListView.as_view(), name='organization_member_list_view_v1'
-		
+	url(r'^organization/(?P<organization_id>\d+)/member/$', OrganizationMemberListView.as_view(), name='organization_member_list_view_v1'),
 
 	url(r'^organization_type/$', login_required(OrganizationTypeListView.as_view()), name='organization_type_list_view_v1'),
 
 	url(r'^organization_type/import/$', login_required(OrganizationTypeImportView.as_view()), name='organization_type_import_view_v1'),
 
+	url(r'^organization/(?P<organization_id>\d+)/under_organization/$', login_required(UnderOrganizationTreeView.as_view()), name='under_organization_tree_view_v1'),
+	
+
 	url(r'^organization_type/create/', OrganizationTypeCreateView.as_view(), name='organization_type_create_view_v1'),
 
-	url(r'^organization/(?P<organization_id>\d+)/under_organization/$', OrganizationOrganizationView.as_view(), name='organization_organization_view_v1'),
-	url(r'^user/(?P<user_id>[0-9]+)/organization/$', UserOrganizationView.as_view(), name='user_organization_view_v1'),
+	# url(r'^user/(?P<user_id>[0-9]+)/organization/$', UserOrganizationView.as_view(), name='user_organization_view_v1'),
 	url(r'^user/(?P<user_id>[0-9]+)/member/$', UserMemberListView.as_view(), name='user_member_list_view'),
 	url(r'^user/(?P<user_id>[0-9]+)/activity/$', UserActivityListView.as_view(), name='user_activity_list_view'),
 	url(r'^user/create/$', UserCreateView.as_view(), name='user_create_view'),
-	),
-
 
 ]

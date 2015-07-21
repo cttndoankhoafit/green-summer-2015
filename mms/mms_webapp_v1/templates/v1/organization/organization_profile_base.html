@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block page_title %}
-	{{ object.name }}	
+	{{ organization_name }}	
 {% endblock %}
 
 {% block page_content %}
@@ -32,20 +32,20 @@
 		<!--BEGIN TABS-->
 		<div class="tabbable tabbable-custom tabbable-full-width">
 			<ul class="nav nav-tabs">
-				<li class="active">
+				<li class="{{ overview_active }}">
 					<a href="{% url 'organization_detail_view_v1' organization_id %}">
 					Tổng quan </a>
 				</li>
-				<li>
+				<li class="{{ actvities_active }}">
 					<a href="{% block activity_link %}{% endblock %}">
 					Các hoạt động </a>
 				</li>
-				<li>
+				<li class="{{ members_active }}">
 					<a href="{% url 'organization_member_list_view_v1' organization_id %}">
 					Các thành viên </a>
 				</li>
-				<li>
-					<a href="{% block organization_under_link %}{% endblock %}">
+				<li class="{{ under_organizations_active }}">
+					<a href="{% url 'under_organization_tree_view_v1' organization_id %}">
 					Các tổ chức trực thuộc </a>
 				</li>
 			</ul>
