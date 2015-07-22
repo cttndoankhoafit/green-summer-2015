@@ -2,19 +2,20 @@
 
 from django.utils.html import mark_safe
 
-from django.views.generic import ListView, UpdateView, TemplateView
+from django.views.generic import ListView, UpdateView, TemplateView, DetailView
 
 from mms_backoffice.models import Activity, ActivityUser, ActivityOrganization
 
-class ActivityUpdateView(TemplateView):
-	template_name = 'v1/activity/lish.html'
+from mms_webapp_v1.views.bases.message import *
+from mms_webapp_v1.views.bases.file import *
+
+from mms_controller.resources.activity import *
 
 class ActivityListView(ListView):
-	# template v1/activity/list.html cần anh sửa, 
-	# hiện h em đang chạy template v1/list.html
-	# template_name = 'v1/activity/list.html'
 	template_name = 'v1/list.html'
 	paginate_by = '20'
+
+	can_set = True
 
 	def get_context_data(self, **kwargs):
 		context = super(ActivityListView, self).get_context_data(**kwargs)
@@ -26,12 +27,14 @@ class ActivityListView(ListView):
 		context['user_list_active'] = 'active'
 
 		context['theads'] = [	{'name': u'Tên hoạt động', 'size' : 'auto'},
-								{'name': u'Tổ chức', 'size' : 'auto'},
-								{'name': u'Loại', 'size' : 'auto'},
-								{'name': u'Bắt đầu', 'size' : 'auto'},
-								{'name': u'Kết thúc', 'size' : 'auto'},
-								{'name': u'Mô tả', 'size' : 'auto'}
+								{'name': u'Loại hoạt động', 'size' : '15%'},
+								{'name': u'Thời gian tổ chức', 'size' : '15%'},
+								# {'name': u'Trạng thái', 'size' : 'auto'},
+								{'name': u'', 'size' : '15%'},
 							]
+
+		if self.can_set:
+			context['can_set_list'] = 1
 
 		return context
 
@@ -44,38 +47,69 @@ class ActivityListView(ListView):
 			return 'purple'
 
 	def get_queryset(self):
-		user_list = Activity.objects.all()
+		activity_list = get_activity_list(self.request.session['user_id'])
 
 		objects = []
-		for obj in user_list:
+		for obj in activity_list:
 			values = []
-			#Tên hoạt động
+			if self.can_set:
+				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.id))
 			values.append(obj.name)
-			#Đơn vị tổ chức
-			org = ActivityOrganization.objects.filter(activity=obj.id)
-			state_string = ''
-			for s in org:
-				state_string += s.organization.name
-			values.append(mark_safe(state_string))
-			#Loại hoạt động
-			org = ActivityOrganization.objects.filter(activity=obj.id)
-			state_string = ''
-			state_string += '<div class="margin-bottom-5"><span class="btn label label-sm %s margin-bottom">%s</span></div>' % (self.get_color(obj.activity_type), obj.get_activity_type_display())
-			values.append(mark_safe(state_string))
-			#Thời gian bắt đầu - kết thúc
+			values.append(obj.activity_type)
 			values.append(obj.start_time)
-			values.append(obj.end_time)
-			#Mô tả hoạt động
-			values.append(obj.details)
-			objects.append(values)
+			buttons = ''
+			if obj.register_state < 3:
+				buttons += u'<a class="btn default btn-xs green-stripe">Đăng ký</a>'
+			buttons += u'<a href="/user/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % obj.id
+			values.append(mark_safe(buttons))
 
+			objects.append(values)
 		return objects
 
 class UserActivityListView(ListView):
 	template_name = 'temporary/member/list.html'
 	paginate_by = '10'
 
+	
+
 	def get_queryset(self): 
 		identify = self.kwargs['user_id']
 		user_activity = ActivityUser.objects.filter(user__id=identify)
 		return list(user_activity)
+
+class ActivityDetailView(DetailView):
+	template_name = 'v1/activity/activity_overview.html'
+
+
+class ActivityMemberListView(ListView):
+	template_name = 'v1/activity/activity_member.html'
+	paginate_by = '20'
+
+class ActivityImportView(BaseImportView):
+	template_name = 'v1/import.html'
+
+	# CONST_FIELDS = (	'identify',
+	# 					'name',
+	# 					'organization_type'	)
+
+	# def get_success_url(self):
+	# 	return reverse('organization_tree_view_v1')
+
+	# def input_row(self, row):
+	# 	try:
+	# 		for field in self.CONST_FIELDS:
+	# 			print row[field]
+	# 	except Exception as e:
+	# 		return e
+		
+	# 	identify = row['identify']
+	# 	name = row['name']
+	# 	organization_type = row['organization_type']
+
+	# 	create_organization_by_infomation(	self.request.session['user_id'],
+	# 										identify,
+	# 										name,
+	# 										organization_type	)
+
+	# 	print '-------------'
+	# 	return 'ok'

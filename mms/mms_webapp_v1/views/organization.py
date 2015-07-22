@@ -25,7 +25,8 @@ class OrganizationFormView(BaseSuccessMessageMixin, FormView):
 		return form
 
 class OrganizationCreateView(CreateView, OrganizationFormView):
-	model = Organization
+	model = get_organization_model()
+
 	fields = [	'identify',
 				'name',
 				'organization_type',
@@ -33,6 +34,10 @@ class OrganizationCreateView(CreateView, OrganizationFormView):
 
 	template_name = 'v1/organization/organization_editor.html'# template of OrganizationCreateView is the same as UserCreateView
 
+	success_message = u'Thêm tổ chức thành công'
+
+	def get_success_url(self):
+		return reverse('organization_list_view_v1')
 
 	def get_context_data(self, **kwargs):
 		context = super(OrganizationCreateView, self).get_context_data(**kwargs)
@@ -47,17 +52,11 @@ class OrganizationCreateView(CreateView, OrganizationFormView):
 
 		return context
 
- 	def get_form(self, form_class):
-		form = super(OrganizationCreateView, self).get_form(form_class)
-		return form
-
-	def form_valid(self,form):
+	def form_valid(self, form):
 		self.object = form.save(commit=False)
-		print self.object
 		if create_organization(self.request.session['user_id'], self.object):
-			return HttpResponse(reverse('organization_list_view_v1'))
-
-
+			self.clear_messages()
+			return super(OrganizationCreateView, self).form_valid(form)
 
 class OrganizationListView(ListView):
 	template_name = 'v1/list.html'
@@ -99,7 +98,6 @@ class OrganizationListView(ListView):
 		objects = []
 		if organization_list is not None:
 			for obj in organization_list:
-				print obj
 				values = []
 				if self.can_set:
 					values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.id))

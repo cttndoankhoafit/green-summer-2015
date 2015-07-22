@@ -7,6 +7,7 @@ from mms_webapp_v1.views.member_temporary.views import *
 
 from mms_webapp_v1.views.user import *
 from mms_webapp_v1.views.activity import *
+from mms_webapp_v1.views.activity_type import *
 
 from mms_webapp_v1.views.auth import LoginView, LogoutView
 from mms_webapp_v1.views.dashboard import DashboardView
@@ -22,6 +23,7 @@ urlpatterns = [
 
 	url(r'^$', login_required(DashboardView.as_view()), name='dashboard_v1'),
 	
+	# Users management
 	url(r'^profile/$', login_required(UserProfileView.as_view()), name='user_profile_view_v1'),
 
 	url(r'^edit-profile/$', login_required(UserProfileUpdateView.as_view()), name='user_profile_update_view_v1'),
@@ -40,11 +42,7 @@ urlpatterns = [
 
 	url(r'^user/create/', login_required(UserCreateView.as_view()), name='user_create_view_v1'),
 
-	url(r'^activity/list/', login_required(ActivityListView.as_view()), name='activity_list_view_v1'),
-
-	url(r'^activity/(?P<activity_id>\d+)/', login_required(ActivityUpdateView.as_view()), name='activity_update_view_v1'),
-
-
+	#Organization management
 	url(r'^organization/list/$', login_required(OrganizationListView.as_view()), name='organization_list_view_v1'),
 
 	url(r'^organization/tree/$', login_required(OrganizationTreeView.as_view()), name='organization_tree_view_v1'),
@@ -61,20 +59,33 @@ urlpatterns = [
 
 	url(r'^organization/(?P<organization_id>\d+)/member/import/$', login_required(OrganizationMemberImportView.as_view()), name='organization_member_import_view_v1'),
 
-
-
 	url(r'^organization_type/$', login_required(OrganizationTypeListView.as_view()), name='organization_type_list_view_v1'),
 
 	url(r'^organization_type/import/$', login_required(OrganizationTypeImportView.as_view()), name='organization_type_import_view_v1'),
 
-	url(r'^organization/(?P<organization_id>\d+)/under_organization/$', login_required(UnderOrganizationTreeView.as_view()), name='under_organization_tree_view_v1'),
-	
+	url(r'^organization/(?P<organization_id>\d+)/under_organization/$', login_required(UnderOrganizationTreeView.as_view()), name='under_organization_tree_view_v1'),	
+
+
+	# Activity management
+	url(r'^activity_type/$', login_required(ActivityTypeListView.as_view()), name='activity_type_list_view_v1'),
+
+	url(r'^activity_type/import/$', login_required(ActivityTypeImportView.as_view()), name='activity_type_import_view_v1'),
+
+	url(r'^activity/list/', login_required(ActivityListView.as_view()), name='activity_list_view_v1'),
+
+	url(r'^activity/(?P<activity_id>\d+)/$', login_required(ActivityDetailView.as_view()), name='activity_detail_view_v1'),
+
+	url(r'^activity/(?P<activity_id>\d+)/member/$', login_required(ActivityMemberListView.as_view()), name='activity_member_list_view_v1'),
+
+	url(r'^activity/import/$', login_required(ActivityImportView.as_view()), name='activity_import_view_v1'),
 
 	url(r'^organization_type/create/', OrganizationTypeCreateView.as_view(), name='organization_type_create_view_v1'),
 
+
+	# url(r'^activity/(?P<activity_id>\d+)/', login_required(ActivityUpdateView.as_view()), name='activity_update_view_v1'),
+
 	# url(r'^user/(?P<user_id>[0-9]+)/organization/$', UserOrganizationView.as_view(), name='user_organization_view_v1'),
-	url(r'^user/(?P<user_id>[0-9]+)/member/$', UserMemberListView.as_view(), name='user_member_list_view'),
-	url(r'^user/(?P<user_id>[0-9]+)/activity/$', UserActivityListView.as_view(), name='user_activity_list_view'),
-	url(r'^user/create/$', UserCreateView.as_view(), name='user_create_view'),
+	# url(r'^user/(?P<user_id>[0-9]+)/member/$', UserMemberListView.as_view(), name='user_member_list_view'),
+	# url(r'^user/(?P<user_id>[0-9]+)/activity/$', UserActivityListView.as_view(), name='user_activity_list_view'),
 
 ]

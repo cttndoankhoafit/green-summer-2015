@@ -6,26 +6,30 @@
 
 <div class="row profile">
 	<div class="col-md-12">
-		<form method="post">
+		<form role="form" method="post">
 			{% csrf_token %}
 			<div class="row">
 				<div class="form-group col-md-6">
 					<label class="control-label">Mã tổ chức</label>
 					{{ form.identify }}
+					{{ form.identify.errors }}
 				</div>
 				<div class="form-group col-md-6">
 					<label class="control-label">Tên tổ chức</label>
 					{{ form.name }}
+					{{ form.name.errors }}
 				</div>
 			</div>
 			<div class="row">
 				<div class="form-group col-md-6">
 					<label class="control-label">Loại tổ chức</label>			
 					{{ form.organization_type }}
+					{{ form.organization_type.errors }}
 				</div>
 				<div class="form-group col-md-6">
 					<label class="control-label">Tổ chức quản lý</label>							
-					{{form.manager_organization }}
+					{{ form.manager_organization }}
+					{{ form.manager_organization.errors }}
 				</div>			
 			</div>
 			<div class="margin-top-10">

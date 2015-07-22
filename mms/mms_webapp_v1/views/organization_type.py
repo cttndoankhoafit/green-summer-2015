@@ -26,6 +26,7 @@ class OrganizationTypeListView(ListView):
 		context['organization_active'] = 'active'
 		context['organization_type_list_active'] = 'active'
 
+		context['import_link'] = 'import/'
 		context['theads'] = []
 
 		if self.can_set:

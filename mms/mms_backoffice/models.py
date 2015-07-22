@@ -112,7 +112,7 @@ class OrganizationType(models.Model):
 
 	name = models.CharField(u'Loại tổ chức', max_length=128)
 
-	management_level = models.IntegerField()
+	management_level = models.PositiveIntegerField()
 	
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
@@ -132,9 +132,9 @@ class Organization(models.Model):
 
 class OrganizationUser(models.Model):
 	CONST_STATES = (
-		(0, u'Quản trị'),
-		(1, u'Cán bộ chủ chốt'),
-		(2, u'Cán bộ'),
+		(0, u'Quản trị chính'),
+		(1, u'Quản trị'),
+		(2, u'Điều hành'),
 		(3, u'Thành viên'),
 	)
 
@@ -143,8 +143,8 @@ class OrganizationUser(models.Model):
 	state =  models.PositiveSmallIntegerField(null=True, choices=CONST_STATES, default=3)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 	
-	# def __unicode__(self):
-	# 	return unicode(self.organization.name + ' - ' + self.user.last_name + ' ' +self.user.first_name) or u''
+	def __unicode__(self):
+		return self.organization.name + ' - ' + self.user.last_name + ' ' +self.user.first_name
 
 	class Meta:
 		unique_together = ('organization', 'user')
@@ -152,19 +152,34 @@ class OrganizationUser(models.Model):
 #endregion
 
 #region Activity
+class ActivityType(models.Model):
+	identify = models.CharField(max_length=50, unique=True, db_index=True)
+	name = models.CharField(u'Tên loại hoạt động', max_length=128, null=True, blank=True, default=None)
 
+	def __unicode__(self):
+		return self.name
+		
 class Activity(models.Model):
-	CONST_TYPES = (
-		(0, u'Nhận thức'),
-		(1, u'Hành động'),
-		(2, u'Khác'),
-	)
+	CONST_REGISTER_STATES = (
+			(0, u'Đăng ký tham gia'),
+			(1, u'Đăng ký rèn luyện Đoàn viên'),
+			(2, u'Đăng ký rèn luyện Hội viên'),
+			(3, u'Hoãn đăng ký'),
+		)
 
 	name = models.CharField(u'Tên hoạt động', max_length=128)
-	activity_type =  models.PositiveSmallIntegerField(u'Loại hoạt động', null=True, choices=CONST_TYPES, default=2)
+	
+	activity_type =  models.ForeignKey(ActivityType)
+	
 	start_time = models.DateTimeField(null=True, blank=True, default=None)
 	end_time = models.DateTimeField(null=True, blank=True, default=None)
-	published_time = models.DateTimeField(null=True, blank=True, default=None)
+	
+	register_start_time = models.DateTimeField(null=True, blank=True, default=None)
+	register_end_time = models.DateTimeField(null=True, blank=True, default=None)
+	
+	register_state = models.PositiveSmallIntegerField(null=True, choices=CONST_REGISTER_STATES, default=3)
+
+	published = models.BooleanField(default=False)
 
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
@@ -184,12 +199,16 @@ class ActivityOrganization(models.Model):
 class ActivityUser(models.Model):
 	CONST_STATES = (
 		(0, u'Quản trị'),
-		(1, u'Ban tổ chức'),
+		(1, u'Điều hành'),
 		(2, u'Cộng tác viên'),
+
 		(3, u'Đã tham gia'),
+
 		(4, u'Đã đăng ký'),
+		
 		(5, u'Rèn luyện Đoàn viên'),
 		(6, u'Rèn luyện Hội viên'),
+
 		(7, u'Không tham gia'),
 	)
 
@@ -202,12 +221,6 @@ class ActivityUser(models.Model):
 
 	class Meta:
 		unique_together = ('user', 'activity', 'state')
-
-class ActivityUserAdmin(admin.ModelAdmin):
-	def save_model(self, request, obj, form, change):
-		f = ActivityUser.objects.filter(user=request.user, activity=obj.activity, state=0)
-		if request.user.is_superuser or len(f) != 0:
-			obj.save()
 
 #endregion
 

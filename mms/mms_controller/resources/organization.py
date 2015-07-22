@@ -72,7 +72,7 @@ def can_set_organization(user_id, organization_id):
 		return True
 
 	#case 1: if user is the administrator of organization
-	if is_super_administrator(user_id, organization_id):
+	if is_organization_administrator(user_id, organization_id):
 		return True
 
 	return False
@@ -175,10 +175,11 @@ def create_organization_by_infomation(user_manager_id, identify, name, organizat
 #region create organization management by information
 def create_organization_managerment_by_infomation(user_id, manager_organization_identify, managed_organization_identify):
 	try:
-		if can_set_organization(user_id, manager_organization_identify) and can_set_organization(user_id, managed_organization_identify):
-			manager = Organization.objects.get(identify=manager_organization_identify)
-			managed = Organization.objects.get(identify=managed_organization_identify)
+		manager = Organization.objects.get(identify=manager_organization_identify)
+		managed = Organization.objects.get(identify=managed_organization_identify)
 
+		if can_set_organization(user_id, manager.id) and can_set_organization(user_id, managed.id):
+			
 			if (manager.organization_type.management_level < managed.organization_type.management_level):
 				managed.manager_organization = manager
 				managed.save()
@@ -291,3 +292,6 @@ def get_organization_tuple_table_by_id(user_id, organization_id):
 	organization = Organization.objects.get(id=organization_id)
 	return get_organization_tuple_table(user_id, organization_id)
 #endregion
+
+def get_organization_model():
+	return Organization
