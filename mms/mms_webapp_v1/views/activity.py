@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from django.utils.html import mark_safe
-
-from django.views.generic import ListView, UpdateView, TemplateView, DetailView
+from django.core.urlresolvers import reverse
+from django.views.generic import ListView, UpdateView, TemplateView, DetailView, CreateView
 
 from mms_backoffice.models import Activity, ActivityUser, ActivityOrganization
 
@@ -32,6 +32,7 @@ class ActivityListView(ListView):
 								# {'name': u'Trạng thái', 'size' : 'auto'},
 								{'name': u'', 'size' : '15%'},
 							]
+		context['add_link'] = '/activity/create/'
 
 		if self.can_set:
 			context['can_set_list'] = 1
@@ -113,3 +114,56 @@ class ActivityImportView(BaseImportView):
 
 	# 	print '-------------'
 	# 	return 'ok'
+class ActivityFormView(BaseSuccessMessageMixin, FormView):
+	def get_form(self, form_class):
+		form = super(ActivityFormView, self).get_form(form_class)
+		form.fields['name'].widget.attrs['class'] = 'form-control'
+		form.fields['activity_type'].widget.attrs['class'] = 'form-control'
+		form.fields['start_time'].widget.attrs['class'] = 'form-control'
+
+		form.fields['start_time'].widget.attrs['class'] = 'form-control'
+		form.fields['start_time'].widget.attrs['readonly'] = '1'
+		
+		form.fields['end_time'].widget.attrs['class'] = 'form-control'
+		form.fields['end_time'].widget.attrs['readonly'] = '1'
+
+		form.fields['register_start_time'].widget.attrs['class'] = 'form-control'
+		form.fields['register_start_time'].widget.attrs['readonly'] = '1'
+
+		form.fields['register_end_time'].widget.attrs['class'] = 'form-control'
+		form.fields['register_end_time'].widget.attrs['readonly'] = '1'
+
+		form.fields['register_state'].widget.attrs['class'] = 'form-control'
+		form.fields['published'].widget.attrs['class'] = 'form-control'
+		form.fields['details'].widget.attrs['class'] = 'form-control'
+
+		return form
+
+class ActivityCreateView(CreateView, ActivityFormView):
+	model = Activity
+
+	fields =[	'name',
+				'activity_type',
+				'start_time',
+				'end_time',
+				'register_start_time',
+				'register_end_time',
+				'register_state',
+				'published',
+				'details',
+			]
+
+	template_name = 'v1/activity/activity_create.html'
+
+	success_message = u'Thêm hoạt động thành công'
+
+	def get_success_url(self):
+		return reverse('activity_list_view_v1')
+
+ 	def get_form(self, form_class):
+		form = super(ActivityCreateView, self).get_form(form_class)
+		return form
+
+	def form_valid(self, form):
+		self.object = form.save(commit=False)
+		return super(ActivityCreateView, self).form_valid(form)

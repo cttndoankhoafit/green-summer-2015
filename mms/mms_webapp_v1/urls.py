@@ -79,6 +79,8 @@ urlpatterns = [
 
 	url(r'^activity/import/$', login_required(ActivityImportView.as_view()), name='activity_import_view_v1'),
 
+	url(r'^activity/create/$', login_required(ActivityCreateView.as_view()), name='activity_create_view_v1'),
+
 	url(r'^organization_type/create/', OrganizationTypeCreateView.as_view(), name='organization_type_create_view_v1'),
 
 
