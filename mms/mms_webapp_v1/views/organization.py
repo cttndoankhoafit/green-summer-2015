@@ -5,7 +5,7 @@ from django.utils.html import mark_safe
 from mms_backoffice.models import *
 from django.views.generic import TemplateView, CreateView, ListView, DetailView
 
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 
 from mms_controller.resources.organization import *
 
@@ -213,9 +213,12 @@ class OrganizationDetailView(DetailView):
 		return context
 
 	def get_object(self):
-		return get_organization(	self.request.session['user_id'],
+		try:
+			return get_organization(	self.request.session['user_id'],
 									self.kwargs['organization_id']
 								)
+		except:
+			raise Http404('Organization does not exist!')
 
 class UnderOrganizationTreeView(TemplateView):
 	template_name = 'v1/organization/organization_under.html'
@@ -276,7 +279,10 @@ class OrganizationMemberListView(ListView):
 		if self.can_set:
 			context['can_set_list'] = 'active'
 
-		context['organization_name'] = get_organization(self.request.session['user_id'], self.kwargs['organization_id']).name
+		try:
+			context['organization_name'] = get_organization(self.request.session['user_id'], self.kwargs['organization_id']).name
+		except:
+			raise Http404('Organization does not exist!')
 		return context
 
 	def get_queryset(self):
@@ -310,7 +316,10 @@ class OrganizationMemberImportView(BaseImportView):
 
 		context['members_active'] ='active'
 
-		context['organization_name'] = get_organization(self.request.session['user_id'], self.kwargs['organization_id']).name
+		try:
+			context['organization_name'] = get_organization(self.request.session['user_id'], self.kwargs['organization_id']).name
+		except:
+			raise Http404('Organization does not exist!')
 		return context
 
 	def get_success_url(self):
