@@ -169,7 +169,6 @@ class ActivityCreateView(CreateView, ActivityFormView):
 		self.object = form.save(commit=False)
 		return super(ActivityCreateView, self).form_valid(form)
 #####################################################
-# Thiên Tứ
 class BaseActivityUpdateView(UpdateView, ActivityFormView):
 	model = get_activity_model()
 	fields= '__all__'
