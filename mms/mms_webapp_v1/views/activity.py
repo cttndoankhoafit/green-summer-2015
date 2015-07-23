@@ -3,6 +3,7 @@
 from django.utils.html import mark_safe
 from django.core.urlresolvers import reverse
 from django.views.generic import ListView, UpdateView, TemplateView, DetailView, CreateView
+from django.http import HttpResponseRedirect, Http404
 
 from mms_backoffice.models import Activity, ActivityUser, ActivityOrganization
 
@@ -167,3 +168,55 @@ class ActivityCreateView(CreateView, ActivityFormView):
 	def form_valid(self, form):
 		self.object = form.save(commit=False)
 		return super(ActivityCreateView, self).form_valid(form)
+#####################################################
+# Thiên Tứ
+class BaseActivityUpdateView(UpdateView, ActivityFormView):
+	model = get_activity_model()
+	fields= '__all__'
+	success_message = u'Cập nhật thông tin thành công'
+
+	def get_context_data(self, **kwargs):
+		context = super(BaseActivityUpdateView, self).get_context_data(**kwargs)
+
+		context['title'] = u'Thông tin hoạt động'
+		context['page_title'] = u'Thông tin hoạt động'
+		
+		context['activity_active'] = 'active'
+
+		context['member_full_name'] = self.object.get_full_name()
+
+		return context
+
+class ActivityUpdateView(BaseActivityUpdateView):
+	template_name = 'v1/user/user_update.html'
+
+	def get_success_url(self):
+		return reverse('activity_update_view_v1', kwargs={'activity_id' : self.kwargs['activity_id'] })
+
+	def form_valid(self,form):
+		self.object = form.save(commit=False)
+		self.object.creator = self.request.activity
+		self.object.status = 0
+
+		activity_id = self.request.session['activity_id']
+		user = self.kwargs['activity_id']
+
+		# if int(activity) == user_id:
+		# 	self.request.session['activity_full_name'] = self.object.get_full_name()
+		
+		self.object.save()
+
+		self.clear_messages()
+
+		return super(ActivityUpdateView, self).form_valid(form)
+
+	def get_object(self):
+		try:
+			return set_activity(	self.request.session['activity_id'],
+							self.kwargs['activity_id']
+						)
+
+		except:
+			raise Http404('Activity does not exist!')
+
+######################################################

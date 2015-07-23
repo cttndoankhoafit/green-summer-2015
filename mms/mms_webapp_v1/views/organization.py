@@ -342,3 +342,52 @@ class OrganizationMemberImportView(BaseImportView):
 
 		print '-------------'
 		return 'ok'
+#########################################
+class BaseOrganizationUpdateView(UpdateView, OrganizationFormView):
+	model = get_organization_model
+	fields = '__all__'
+	success_message = u'Cập nhật thành công'
+
+	def get_context_data(self, **kwargs):
+		context = super(BaseOrganizationUpdateView, self).get_context_data(**kwargs)
+
+		context['title'] = u'Thông tin tổ chức'
+		context['page_title'] = u'Thông tin tổ chức'
+		
+		context['organization_active'] = 'active'
+
+		context['member_full_name'] = self.object.get_full_name()
+
+		return context
+class OrganizationUpdateView(BaseOrganizationUpdateView):
+	template_name = 'v1/user/user_update.html'
+	template_name = 'v1/user/user_update.html'
+
+	def get_success_url(self):
+		return reverse('organization_update_view_v1', kwargs={'organization_id' : self.kwargs['organization_id'] })
+
+	def form_valid(self,form):
+		self.object = form.save(commit=False)
+		self.object.creator = self.request.user
+		self.object.status = 0
+
+		organization__id = self.request.session['organization__id']
+		user = self.kwargs['organization__id']
+
+		# if int(user) == user_id:
+		# 	self.request.session['user_full_name'] = self.object.get_full_name()
+		
+		self.object.save()
+
+		self.clear_messages()
+
+		return super(OrganizationUpdateView, self).form_valid(form)
+
+	def get_object(self):
+		try:
+			return set_user(	self.request.session['organization__id'],
+							self.kwargs['organization__id']
+						)
+
+		except:
+			raise Http404('Organization does not exist!')
