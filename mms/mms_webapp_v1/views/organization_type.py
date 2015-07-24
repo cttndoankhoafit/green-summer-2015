@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.views.generic import CreateView, ListView,TemplateView,DetailView, UpdateView
+from django.views.generic import CreateView, ListView,TemplateView,DetailView, UpdateView, FormView
 
 from django.utils.html import mark_safe
 
@@ -37,7 +37,7 @@ class OrganizationTypeListView(ListView):
 		context['theads'].append({'name': u'Tên loại tổ chức', 'size' : 'auto'})
 		context['theads'].append({'name': '', 'size' : '8%'})
 			
-		# context['add_link'] = '/organization/create/'
+		context['add_link'] = '/organization_type/create/'
 		# context['import_link'] = '/organization/import/'
 
 		return context
@@ -99,15 +99,15 @@ class OrganizationTypeUpdateView(BaseOrganizationTypeUpdateView):
 		except:
 			raise Http404('Organization Type does not exist!')
 
-class OrganizationTypeCreateView(CreateView):
-	template_name = 'temporary/organization_type/editor.html'
-	#form_class = OrganizationTypeForm
-	model = get_organization_type_model()	
-	fields = ['name']
+# class OrganizationTypeCreateView(CreateView):
+# 	template_name = 'temporary/organization_type/editor.html'
+# 	#form_class = OrganizationTypeForm
+# 	model = get_organization_type_model()	
+# 	fields = ['name']
 	
-	# def form_valid(self, form):
-	# 	form.submit()
-	# 	return super(OrganizationTypeCreateView, self).form_valid(form)
+# 	# def form_valid(self, form):
+# 	# 	form.submit()
+# 	# 	return super(OrganizationTypeCreateView, self).form_valid(form)
 
 
 class OrganizationTypeImportView(BaseImportView):
@@ -139,5 +139,36 @@ class OrganizationTypeImportView(BaseImportView):
 		print '-------------'
 		return 'ok'
 
+class OrganizationTypeFormView(BaseSuccessMessageMixin, FormView):
+	def get_form(self, form_class):
+		form = super(OrganizationTypeFormView, self).get_form(form_class)
+		form.fields['identify'].widget.attrs['class'] = 'form-control'
+		form.fields['name'].widget.attrs['class'] = 'form-control'
+		form.fields['management_level'].widget.attrs['class'] = 'form-control'
+		form.fields['details'].widget.attrs['class'] = 'form-control'
 
+		return form
+class OrganizationTypeCreateView(CreateView, OrganizationTypeFormView):
+	model = OrganizationType
+
+	fields =[	'identify',
+				'name',
+				'management_level',
+				'details',
+			]
+
+	template_name = 'v1/organization_type_create.html'
+
+	success_message = u'Thêm loại tổ chức thành công'
+
+	def get_success_url(self):
+		return reverse('organization_type_list_view_v1')
+
+ 	def get_form(self, form_class):
+		form = super(OrganizationTypeCreateView, self).get_form(form_class)
+		return form
+
+	def form_valid(self, form):
+		self.object = form.save(commit=False)
+		return super(OrganizationTypeCreateView, self).form_valid(form)
 	
