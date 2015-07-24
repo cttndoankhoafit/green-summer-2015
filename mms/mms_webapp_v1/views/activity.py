@@ -24,8 +24,8 @@ class ActivityListView(ListView):
 		context['title'] = u'Danh sách hoạt động'
 		context['page_title'] = u'Danh sách hoạt động'
 
-		context['user_active'] = 'active'
-		context['user_list_active'] = 'active'
+		context['activity_active'] = 'active'
+		context['activity_list_active'] = 'active'
 
 		context['theads'] = [	{'name': u'Tên hoạt động', 'size' : 'auto'},
 								{'name': u'Loại hoạt động', 'size' : '15%'},

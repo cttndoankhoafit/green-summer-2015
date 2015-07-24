@@ -1,0 +1,59 @@
+{% extends 'v1/webapp_base.html' %}
+
+{% load staticfiles %}
+
+{% block page_level_styles %}
+	{{ block.super }}
+	<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/bootstrap-datepicker/css/datepicker3.css" %}"/>
+	<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/bootstrap-datepicker/css/datepicker.css" %}"/>
+	<link href="{% static "v1/assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.css" %}" rel="stylesheet" type="text/css"/>
+	<link href="{% static "v1/assets/admin/pages/css/profile.css" %}" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+{% block page_level_plugins_scripts %}
+	{{ block.super }}
+	<script type="text/javascript" src="{% static "v1/assets/global/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js" %}"></script>
+{% endblock %}
+
+{% block page_level_scripts %}
+{{ block.super }}
+<script src="{% static "v1/assets/admin/pages/scripts/date-picker.js" %}"></script>
+{% endblock %}
+
+{% block init_scripts %}
+		DatePicker.init();
+{% endblock %}
+
+{% block page_content %}
+<div class="row profile">
+	<div class="col-md-12">
+		<form role="form" method="post">
+			{% csrf_token %}
+			
+			<h3>Tạo loại hoạt động mới</h3>
+				<hr>
+				<div class="row">
+					<div class="form-group col-md-6">
+						<label class="control-label">Identify</label>
+						{{ form.identify }}
+						{{ form.identify.errors }}
+					</div>
+				</div>
+				<div class="row">
+					<div class="form-group col-md-6">
+						<label class="control-label">Tên loại hoạt động</label>
+						{{ form.name }}
+						{{ form.name.errors }}
+					</div>
+				</div>
+				
+				<hr>
+			
+			<div class="margin-top-10">
+				<input type="submit" class="btn green" data-loading-text="Đang lưu dữ liệu..." value="Thêm loại hoạt động">
+			</div>
+		</form>
+	</div>
+</div>
+
+{% endblock %}

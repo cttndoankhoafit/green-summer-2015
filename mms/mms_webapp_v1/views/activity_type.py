@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.views.generic import ListView
+from django.views.generic import ListView, CreateView
 
 from django.utils.html import mark_safe
 
@@ -26,6 +26,7 @@ class ActivityTypeListView(ListView):
 		context['activity_active'] = 'active'
 		context['activity_type_list_active'] = 'active'
 
+		context['add_link'] = '/activity_type/create/'
 		context['import_link'] = 'import/'
 		context['theads'] = []
 
@@ -92,3 +93,32 @@ class ActivityTypeImportView(BaseImportView):
 
 		print '-------------'
 		return 'ok'
+
+class ActivityTypeFormView(BaseSuccessMessageMixin, FormView):
+	def get_form(self, form_class):
+		form = super(ActivityTypeFormView, self).get_form(form_class)
+		form.fields['identify'].widget.attrs['class'] = 'form-control'
+		form.fields['name'].widget.attrs['class'] = 'form-control'
+
+		return form
+class ActivityTypeCreateView(CreateView, ActivityTypeFormView):
+	model = ActivityType
+
+	fields =[	'identify',
+				'name',
+			]
+
+	template_name = 'v1/activity_type_create.html'
+
+	success_message = u'Thêm loại hoạt động thành công'
+
+	def get_success_url(self):
+		return reverse('activity_type_list_view_v1')
+
+ 	def get_form(self, form_class):
+		form = super(ActivityTypeCreateView, self).get_form(form_class)
+		return form
+
+	def form_valid(self, form):
+		self.object = form.save(commit=False)
+		return super(ActivityTypeCreateView, self).form_valid(form)

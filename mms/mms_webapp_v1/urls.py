@@ -69,6 +69,8 @@ urlpatterns = [
 	# Activity management
 	url(r'^activity_type/$', login_required(ActivityTypeListView.as_view()), name='activity_type_list_view_v1'),
 
+	url(r'^activity_type/create/$', login_required(ActivityTypeCreateView.as_view()), name='activity_type_create_view_v1'),
+
 	url(r'^activity_type/import/$', login_required(ActivityTypeImportView.as_view()), name='activity_type_import_view_v1'),
 
 	url(r'^activity/list/', login_required(ActivityListView.as_view()), name='activity_list_view_v1'),
