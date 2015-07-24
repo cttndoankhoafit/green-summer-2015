@@ -5,7 +5,7 @@ from django.utils.html import mark_safe
 from mms_backoffice.models import *
 from django.views.generic import TemplateView, CreateView, ListView, DetailView, UpdateView
 
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.http import *
 
 from mms_controller.resources.organization import *
 
@@ -13,6 +13,8 @@ from django.core.urlresolvers import reverse_lazy, reverse
 
 from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
+
+error_organization_not_exist_message = u'Tổ chức này không tồn tại'
 
 class OrganizationFormView(BaseSuccessMessageMixin, FormView):
 	def get_form(self, form_class):
@@ -218,7 +220,7 @@ class OrganizationDetailView(DetailView):
 									self.kwargs['organization_id']
 								)
 		except:
-			raise Http404('Organization does not exist!')
+			raise Http404(error_organization_not_exist_message)
 
 class UnderOrganizationTreeView(TemplateView):
 	template_name = 'v1/organization/organization_under.html'
@@ -282,7 +284,7 @@ class OrganizationMemberListView(ListView):
 		try:
 			context['organization_name'] = get_organization(self.request.session['user_id'], self.kwargs['organization_id']).name
 		except:
-			raise Http404('Organization does not exist!')
+			raise Http404(error_organization_not_exist_message)
 		return context
 
 	def get_queryset(self):
@@ -319,7 +321,7 @@ class OrganizationMemberImportView(BaseImportView):
 		try:
 			context['organization_name'] = get_organization(self.request.session['user_id'], self.kwargs['organization_id']).name
 		except:
-			raise Http404('Organization does not exist!')
+			raise Http404(error_organization_not_exist_message)
 		return context
 
 	def get_success_url(self):
@@ -390,4 +392,4 @@ class OrganizationUpdateView(BaseOrganizationUpdateView):
 						)
 
 		except:
-			raise Http404('Organization does not exist!')
+			raise Http404(error_organization_not_exist_message)

@@ -2,7 +2,7 @@
 
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404
+from django.http import *
 from django.utils.html import mark_safe
 from django.views.generic import ListView, UpdateView, CreateView, DetailView, View, FormView
 
@@ -17,6 +17,7 @@ from mms_webapp_v1.views.bases.file import *
 success_create_user_message = u'Thêm người dùng thành công'
 success_update_user_message = u'Cập nhật thông tin thành công'
 success_reset_password_message = u'Đặt lại mật khẩu thành công'
+error_user_not_exist_message = u'Tài khoản này không tồn tại'
 
 class UserDetailView(DetailView):
 	template_name = 'v1/user/user_profile.html'
@@ -40,7 +41,7 @@ class UserDetailView(DetailView):
 						)
 
 		except:
-			raise Http404("User is not exist!")
+			raise Http404(error_user_not_exist_message)
 
 
 class UserProfileView(UserDetailView):
@@ -65,7 +66,7 @@ class UserProfileView(UserDetailView):
 						)
 
 		except:
-			raise Http404("User does not exist!")
+			raise Http404(error_user_not_exist_message)
 		
 class UserFormView(BaseSuccessMessageMixin, FormView):
 	def get_form(self, form_class):
@@ -152,7 +153,7 @@ class UserUpdateView(BaseUserUpdateView):
 						)
 
 		except:
-			raise Http404('User does not exist!')
+			raise Http404(error_user_not_exist_message)
 
 class UserProfileUpdateView(BaseUserUpdateView):
 	template_name = 'v1/user/user_edit_profile.html'
@@ -177,7 +178,7 @@ class UserProfileUpdateView(BaseUserUpdateView):
 							self.request.session['user_id']
 						)
 		except:
-			raise Http404('User does not exist')
+			raise Http404(error_user_not_exist_message)
 
 class UserResetPasswordView(BaseSuccessMessageMixin, UpdateView):
 	template_name = 'v1/user/user_reset_password.html'
@@ -203,7 +204,7 @@ class UserResetPasswordView(BaseSuccessMessageMixin, UpdateView):
 		try:
 			return reset_user_password(self.request.session['user_id'], self.kwargs['user_id'])
 		except:
-			raise Http404('User does not exist!')
+			raise Http404(error_user_not_exist_message)
 
 class UserPasswordChangeView(BaseSuccessMessageMixin, FormView):
 	template_name = 'v1/user/user_change_password.html'
