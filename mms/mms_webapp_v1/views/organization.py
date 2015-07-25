@@ -3,7 +3,7 @@
 from django.utils.html import mark_safe
 
 from mms_backoffice.models import *
-from django.views.generic import TemplateView, CreateView, ListView, DetailView
+from django.views.generic import TemplateView, CreateView, ListView, DetailView, UpdateView
 
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 
