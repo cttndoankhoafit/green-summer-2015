@@ -8,6 +8,12 @@ from django.contrib import admin
 
 # Create your models here.
 
+CONST_PERMISSIONS = (
+		(0, u'Chỉnh sửa thông tin'),
+		(1, u'Xem thông tin'),
+		(2, u'Không có quyền truy cập'),
+	)
+
 #region User
 
 class UserManager(BaseUserManager):
@@ -106,20 +112,28 @@ class User(AbstractBaseUser, PermissionsMixin):
 #endregion
 
 #region Organization
-
+		
 class OrganizationType(models.Model):
 	identify =models.CharField(max_length=50, unique=True, db_index=True)
-
 	name = models.CharField(u'Loại tổ chức', max_length=128)
-
 	management_level = models.PositiveIntegerField()
-	
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
 	def __unicode__(self):
 		return self.name
 
-	
+
+
+class OrganizationPosition(models.Model):
+	organization_type = models.ForeignKey(OrganizationType)
+	position_name = models.CharField(max_length=100, null=True, blank=True, default=None)
+	quantity = models.PositiveIntegerField(default=0)
+
+	def __unicode__(self):
+		return self.organization_type.name + ' - ' + self.name
+
+
+
 class Organization(models.Model):
 	identify = models.CharField(max_length=50, unique=True, db_index=True)
 	name = models.CharField(u'Tên tổ chức', max_length=128)
@@ -130,21 +144,18 @@ class Organization(models.Model):
 	def __unicode__(self):
 		return self.name
 
+
+
 class OrganizationUser(models.Model):
-	CONST_STATES = (
-		(0, u'Quản trị chính'),
-		(1, u'Quản trị'),
-		(2, u'Điều hành'),
-		(3, u'Thành viên'),
-	)
 
 	organization = models.ForeignKey(Organization)
 	user = models.ForeignKey(User)
-	state =  models.PositiveSmallIntegerField(null=True, choices=CONST_STATES, default=3)
+	permission =  models.PositiveSmallIntegerField(null=True, choices=CONST_PERMISSIONS, default=2)
+	position = models.ForeignKey(OrganizationPosition, null=True, blank=True, default=None)
 	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
 	
-	def __unicode__(self):
-		return self.organization.name + ' - ' + self.user.last_name + ' ' +self.user.first_name
+	# def __unicode__(self):
+	# 	return self.organization.name + ' - ' + self.user.last_name + ' ' +self.user.first_name
 
 	class Meta:
 		unique_together = ('organization', 'user')
@@ -167,10 +178,13 @@ class Activity(models.Model):
 			(3, u'Hoãn đăng ký'),
 		)
 
+	identify = models.CharField(max_length=50, unique=True, db_index=True)
 	name = models.CharField(u'Tên hoạt động', max_length=128)
 	
-	activity_type =  models.ForeignKey(ActivityType)
+	activity_type = models.ForeignKey(ActivityType)
 	
+	organization = models.ForeignKey(Organization)
+
 	start_time = models.DateTimeField(null=True, blank=True, default=None)
 	end_time = models.DateTimeField(null=True, blank=True, default=None)
 	
@@ -180,47 +194,54 @@ class Activity(models.Model):
 	register_state = models.PositiveSmallIntegerField(null=True, choices=CONST_REGISTER_STATES, default=3)
 
 	published = models.BooleanField(default=False)
+	credits = models.DecimalField(max_digits=8, decimal_places=4, default=0)
+	score = models.DecimalField(max_digits=8, decimal_places=4, default=0)
 
-	details = models.CharField(max_length=2048, null=True, blank=True, default=None)
+	description = models.CharField(max_length=2048, null=True, blank=True, default=None)
 
 	def __unicode__(self):
 		return self.name
 
-class ActivityOrganization(models.Model):
+# class OrganizationActivity(models.Model):
+# 	activity = models.ForeignKey(Activity)
+# 	organization = models.ForeignKey(Organization)
+
+# 	def __unicode__(self):
+# 		return self.activity.name + ' - ' + self.organization.name
+
+# 	class Meta:
+# 		unique_together = ('activity', 'organization')
+
+class ActivityUserPermission(models.Model):
+	user = models.ForeignKey(User)
 	activity = models.ForeignKey(Activity)
-	organization = models.ForeignKey(Organization)
+	permission = models.PositiveSmallIntegerField(null=True, choices=CONST_PERMISSIONS, default=2)
 
 	def __unicode__(self):
-		return self.activity.name + ' - ' + self.organization.name
+		return self.activity.name + ' - ' + self.user.identify + ' - ' + self.CONST_PERMISSIONS[self.permission][1]
 
-	class Meta:
-		unique_together = ('activity', 'organization')
 
 class ActivityUser(models.Model):
 	CONST_STATES = (
-		(0, u'Quản trị'),
-		(1, u'Điều hành'),
-		(2, u'Cộng tác viên'),
+		(0, u'Ban tổ chức'),
+		(1, u'Cộng tác viên'),
 
-		(3, u'Đã tham gia'),
+		(2, u'Đã tham gia'),
 
-		(4, u'Đã đăng ký'),
+		(3, u'Đã đăng ký'),
 		
-		(5, u'Rèn luyện Đoàn viên'),
-		(6, u'Rèn luyện Hội viên'),
+		(4, u'Rèn luyện Đoàn viên'),
+		(5, u'Rèn luyện Hội viên'),
 
-		(7, u'Không tham gia'),
+		(6, u'Không tham gia'),
 	)
 
 	user = models.ForeignKey(User)
 	activity = models.ForeignKey(Activity)
-	state =  models.PositiveSmallIntegerField(u'Trạng thái', null=True, choices=CONST_STATES, default=7)
+	state = models.PositiveSmallIntegerField(u'Trạng thái', null=True, choices=CONST_STATES, default=6)
 
 	def __unicode__(self):
 		return self.activity.name + ' - ' + self.user.identify + ' - ' + self.CONST_STATES[self.state][1]
-
-	class Meta:
-		unique_together = ('user', 'activity', 'state')
 
 #endregion
 

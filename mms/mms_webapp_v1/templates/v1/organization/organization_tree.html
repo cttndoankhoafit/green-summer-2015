@@ -1,26 +1,45 @@
-{% extends 'v1/webapp_base.html' %}
+<div class="row">
+	<div class="col-md-12">
+		{% include 'v1/static_modules/message.html' %}
 
-{% load staticfiles %}
+		<form method="post">
+			{% csrf_token %}
+			<div class="portlet">
+				<div class="portlet-title">
+					<div class="actions">
+						{% if can_set_list %}
+						<a href="{% url 'organization_create_view_v1' %}" class="btn btn-default btn-sm">
+							<i class="fa fa-plus"></i> Thêm
+						</a>
+						<a href="#" class="btn btn-default btn-sm">
+							<i class="fa fa-trash-o"></i> Xóa
+						</a>
+						<div class="btn-group">
+							<a class="btn btn-default btn-sm" data-toggle="dropdown">
+							<i class="icon-login"></i> Nhập <i class="fa fa-angle-down"></i>
+							</a>
+							<ul class="dropdown-menu pull-right">
+								<li>
+									<a href="{% url 'organization_import_view_v1' %}">Nhập danh sách</a>
+								</li>
+								<li>
+									<a href="{% url 'organization_management_import_view_v1' %}">Nhập danh sách quản lý tổ chức</a>
+								</li>
+							</ul>
+						</div>
+						<a href="{{ export_link }}" class="btn btn-default btn-sm">
+							<i class="icon-logout"></i> Xuất
+						</a>
+						{% endif %}
+					</div>
+				</div>
+				<div class="portlet-body">
+					<div id="tree" class="tree-demo">
+					{{ tree_content }}
+					</div>
+				</div>
+			</div>
+		</form>
 
-{% block page_level_styles %}
-{{ block.super }}
-<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/jstree/dist/themes/default/style.min.css" %}"/>
-{% endblock %}
-
-{% block page_level_plugins_scripts %}
-{{ block.super }}
-<script src="{% static "v1/assets/global/plugins/jstree/dist/jstree.min.js" %}"></script>
-{% endblock %}
-
-{% block page_level_scripts %}
-{{ block.super }}
-<script src="{% static "v1/assets/admin/pages/scripts/ui-tree.js" %}"></script>
-{% endblock %}
-
-{% block init_scripts %}
-	UITree.init();
-{% endblock %}
-
-{% block page_content %}
-{% include 'v1/organization/tree.html' %}
-{% endblock %}
+	</div>
+</div>

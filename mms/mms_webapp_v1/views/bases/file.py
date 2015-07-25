@@ -1,27 +1,34 @@
 # -*- coding: utf-8 -*-
 
-from mms_webapp_v1.forms.file import *
+from mms_webapp_v1.forms.file import ImportForm
 
-from django.views.generic import FormView, View
+from django.views.generic import FormView
 
-import os
 import tempfile
 
 import abc
 
 import csv
 
-from django.http import HttpResponse
-
-from django.shortcuts import render, redirect
-
 class BaseImportView(FormView):
 	form_class = ImportForm
-	errors = []
+
+	def check_input_row_valid(self, row):
+		row_string = ''
+		print 'Checking ...'
+		try:
+			for field in self.CONST_FIELDS:
+				row_string += row[field] + ' '
+			print 'Row \' ' + row_string + '\' is valid'
+			return True 
+		except Exception as e:
+			print e
+
+		return False
 
 	@abc.abstractmethod
 	def input_row(self, row):
-		return
+		return False
 		
 	def form_valid(self, form):
 		import_file = form.cleaned_data['import_file']
@@ -37,8 +44,7 @@ class BaseImportView(FormView):
 			i = 1
 			for row in reader:
 				result = self.input_row(row)
-				if result != 'ok':
-					self.errors.append({'line' : i, 'error' : result })
+				if not result:
+					print 'Row ' + str(i) + ' is invalid'
 				i += 1
-
 		return super(BaseImportView, self).form_valid(form)

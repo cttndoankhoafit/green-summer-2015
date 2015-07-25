@@ -1,73 +1,89 @@
 # -*- coding: utf-8 -*-
 
-
-from django.core.urlresolvers import reverse
-from django.http import *
-from django.utils.html import mark_safe
-from django.views.generic import ListView, UpdateView, CreateView, DetailView, View, FormView
-
 from django.contrib.auth.forms import PasswordChangeForm
+from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
+from django.utils.html import mark_safe
+from django.views.generic import ListView, UpdateView, CreateView, DetailView, FormView, View
 
-from django.template.response import TemplateResponse
+from mms_controller.resources_temp import *
 
-from mms_controller.resources.user import *
 from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
 
+from mms_webapp_v1.views.bases.base_view import *
+
+from django.http import HttpResponseRedirect
+
+# Tin nhắn gửi về
 success_create_user_message = u'Thêm người dùng thành công'
 success_update_user_message = u'Cập nhật thông tin thành công'
 success_reset_password_message = u'Đặt lại mật khẩu thành công'
-error_user_not_exist_message = u'Tài khoản này không tồn tại'
 
-class UserDetailView(DetailView):
-	template_name = 'v1/user/user_profile.html'
+
+
+# Hàm điều chỉnh truy cập người dùng vào một người dùng khác
+def access_user(user_id, accessed_user_id):
+	user = get_user(user_id, accessed_user_id)
+	if user is None:
+		raise PermissionDenied
+	return user
+
+
+
+# Khung nhìn chung cho việc xem thông tin của một tài khoản
+class BaseUserView(BaseView):
+
+	def get_user_account_id(self):
+		return self.kwargs['user_id']
 
 	def get_context_data(self, **kwargs):
+		context = super(BaseUserView, self).get_context_data(**kwargs)
+		context['page_title'] = get_user_model().objects.get(identify=self.get_user_account_id()).get_full_name()
+
+		context['identify'] = self.get_user_account_id()
+
+		return context
+
+
+
+# Khung nhìn xem thông tin của một người dùng bất kỳ
+# URL: user/user=<user_id>/
+class UserDetailView(BaseUserView, DetailView):
+	template_name = 'v1/user/profile/overview.html'
+
+	def get_context_data(self, **kwargs):
+		if not can_get_user(self.get_user_id(), self.get_user_account_id()):
+			raise PermissionDenied
+
 		context = super(UserDetailView, self).get_context_data(**kwargs)
 
-		context['title'] = u'Thông tin cá nhân'
-		context['page_title'] = u'Thông tin cá nhân'
-		
-		context['user_active'] = 'active'
-		context['profile_active'] = 'active'
-
-		context['page_breadcrumb'] = mark_safe(u'<li><i class="fa fa-user"></i><a>Quản lý tài khoản</a><i class="fa fa-angle-right"></i></li><li><i class="fa fa-user"></i><a>Thông tin cá nhân</a></li>')
 		return context
 
 	def get_object(self):
-		try:
-			return get_user(	self.request.session['user_id'],
-							self.kwargs['user_id']
-						)
-
-		except:
-			raise Http404(error_user_not_exist_message)
+		return get_user(self.get_user_id(), self.get_user_account_id())
 
 
-class UserProfileView(UserDetailView):
-	template_name = 'v1/user/user_profile.html'
+
+# Khung nhìn xem các hoạt động của một người dùng bất kỳ
+# URL: user/user=<user_id>/activity/
+class UserActivityListView(BaseUserView, ListView):
+	template_name = 'v1/user/profile/activity/list.html'
 
 	def get_context_data(self, **kwargs):
-		context = super(UserDetailView, self).get_context_data(**kwargs)
+		if not can_get_user(self.get_user_id(), self.get_user_account_id()):
+			raise PermissionDenied
+			
+		context = super(UserActivityListView, self).get_context_data(**kwargs)
 
-		context['title'] = u'Thông tin cá nhân'
-		context['page_title'] = u'Thông tin cá nhân'
-		
-		context['user_active'] = 'active'
-		context['profile_active'] = 'active'
-
-		context['page_breadcrumb'] = mark_safe(u'<li><i class="fa fa-user"></i><a>Quản lý tài khoản</a><i class="fa fa-angle-right"></i></li><li><i class="fa fa-user"></i><a>Thông tin cá nhân</a></li>')
 		return context
 
-	def get_object(self):
-		try:
-			return get_user(	self.request.session['user_id'],
-							self.request.session['user_id']
-						)
+	def get_queryset(self):
+		return get_user_activity_list(self.get_user_id(), self.get_user_account_id())
 
-		except:
-			raise Http404(error_user_not_exist_message)
-		
+
+
+# Khung nhìn chuẩn cho các khung nhìn có dạng mẫu (Form)
 class UserFormView(BaseSuccessMessageMixin, FormView):
 	def get_form(self, form_class):
 		form = super(UserFormView, self).get_form(form_class)
@@ -90,7 +106,13 @@ class UserFormView(BaseSuccessMessageMixin, FormView):
 
 		return form
 
-class BaseUserUpdateView(UpdateView, UserFormView):
+
+
+# Khung nhìn cập nhật thông tin người dùng
+# URL: user/user=<user_id>/edit/
+class UserUpdateView(BaseUserView, UpdateView, UserFormView):
+	template_name = 'v1/user/editor/update.html'
+
 	model = get_user_model()
 
 	fields =[	'first_name',
@@ -108,111 +130,60 @@ class BaseUserUpdateView(UpdateView, UserFormView):
 				'home_phone',
 				'mobile_phone',
 				'email' ]
-	
+
 	success_message = success_update_user_message
 
+	def get_success_url(self):
+		return reverse('user_update_view_v1', kwargs={'user_id' : self.get_user_account_id() })
+
 	def get_context_data(self, **kwargs):
-		context = super(BaseUserUpdateView, self).get_context_data(**kwargs)
+		if not can_set_user(self.get_user_id(), self.get_user_account_id()):
+			raise PermissionDenied
 
-		context['title'] = u'Thông tin cá nhân'
-		context['page_title'] = u'Thông tin cá nhân'
-		
-		context['user_active'] = 'active'
-
-		context['member_full_name'] = self.object.get_full_name()
+		context = super(UserUpdateView, self).get_context_data(**kwargs)
 
 		return context
-
-class UserUpdateView(BaseUserUpdateView):
-	template_name = 'v1/user/user_update.html'
-
-	def get_success_url(self):
-		return reverse('user_update_view_v1', kwargs={'user_id' : self.kwargs['user_id'] })
 
 	def form_valid(self,form):
 		self.object = form.save(commit=False)
-		self.object.creator = self.request.user
-		self.object.status = 0
-
-		user_id = self.request.session['user_id']
-		user = self.kwargs['user_id']
-
-		if int(user) == user_id:
-			self.request.session['user_full_name'] = self.object.get_full_name()
 		
-		self.object.save()
-
-		self.clear_messages()
-
-		return super(UserUpdateView, self).form_valid(form)
+		if set_user(self.get_user_id(), self.object):
+			if self.get_user_id() == self.object.identify:
+				self.request.session['user_full_name'] = self.object.get_full_name()
+			self.clear_messages()
+			return super(UserUpdateView, self).form_valid(form)			
 
 	def get_object(self):
-		try:
-			return set_user(	self.request.session['user_id'],
-							self.kwargs['user_id']
-						)
+		return get_user(self.get_user_id(), self.get_user_account_id())
 
-		except:
-			raise Http404(error_user_not_exist_message)
 
-class UserProfileUpdateView(BaseUserUpdateView):
-	template_name = 'v1/user/user_edit_profile.html'
 
-	def get_success_url(self):
-		return reverse('user_profile_update_view_v1')
+# Khung nhìn đặt lại mật khẩu
+class UserPasswordChangeView(BaseUserView, BaseSuccessMessageMixin, FormView):
+	template_name = 'v1/user/editor/change_password.html'
+	form_class = PasswordChangeForm
 
-	def form_valid(self, form):
-		self.object = form.save(commit=False)
-		self.object.creator = self.request.user
-		self.object.status = 0
-		
-		self.request.session['user_full_name'] = self.object.get_full_name()
-		
-		self.object.save()
-
-		return super(UserProfileUpdateView, self).form_valid(form)
-
-	def get_object(self):
-		try:
-			return set_user(	self.request.session['user_id'],
-							self.request.session['user_id']
-						)
-		except:
-			raise Http404(error_user_not_exist_message)
-
-class UserResetPasswordView(BaseSuccessMessageMixin, UpdateView):
-	template_name = 'v1/user/user_reset_password.html'
 	success_message = success_reset_password_message
 
-	fields = []
+	account_owner = 0
+
+	def get_success_url(self):
+		return reverse('user_password_change_view_v1', kwargs={'user_id' : self.get_user_account_id() })
 
 	def get_context_data(self, **kwargs):
-		context = super(UserResetPasswordView, self).get_context_data(**kwargs)
+		if not can_set_user(self.get_user_id(), self.get_user_account_id()):
+			raise PermissionDenied
+			
+		context = super(UserPasswordChangeView, self).get_context_data(**kwargs)
+
+		if self.get_user_id() == self.get_user_account_id():
+			self.account_owner = 1
+			context['account_owner'] = 1
 
 		return context
 
-	def get_success_url(self):
-		return reverse('user_reset_password_view_v1', kwargs={'user_id' : self.kwargs['user_id'] })
-
-	def form_valid(self, form):
-		
-		self.clear_messages()
-
-		return super(UserResetPasswordView, self).form_valid(form)
-
 	def get_object(self):
-		try:
-			return reset_user_password(self.request.session['user_id'], self.kwargs['user_id'])
-		except:
-			raise Http404(error_user_not_exist_message)
-
-class UserPasswordChangeView(BaseSuccessMessageMixin, FormView):
-	template_name = 'v1/user/user_change_password.html'
-	form_class = PasswordChangeForm
-	success_message = success_reset_password_message
-
-	def get_success_url(self):
-		return reverse('user_password_change_view_v1')
+		return self.request.user
 
 	def get_form_kwargs(self):
 		kwargs = super(UserPasswordChangeView, self).get_form_kwargs()
@@ -220,12 +191,21 @@ class UserPasswordChangeView(BaseSuccessMessageMixin, FormView):
 		return kwargs
 
 	def form_valid(self, form):
-		form.save()
+		if self.account_owner:
+			form.save()
+			self.clear_messages()
+			return super(UserPasswordChangeView, self).form_valid(form)
 
-		self.clear_messages()
+	def form_invalid(self, form):
+		if not self.account_owner:
+			reset_user_password(self.get_user_id(), self.get_user_account_id())
+			self.clear_messages()
+			return HttpResponseRedirect(self.get_success_url())
 
-		return super(UserPasswordChangeView, self).form_valid(form)
 
+
+# Khung nhìn tạo một người dùng dành cho người quản trị hệ thống
+# URL: user/create/
 class UserCreateView(CreateView, UserFormView):
 	model = get_user_model()
 
@@ -247,12 +227,22 @@ class UserCreateView(CreateView, UserFormView):
 				'mobile_phone',
 				'email' ]
 
-	template_name = 'v1/user/user_create.html'
+	template_name = 'v1/user/creator.html'
 
 	success_message = success_create_user_message
 
 	def get_success_url(self):
 		return reverse('user_list_view_v1')
+
+	def get_context_data(self, **kwargs):
+		if not is_super_administrator_id(self.request.session['user_id']):
+			raise PermissionDenied
+			
+		context = super(UserCreateView, self).get_context_data(**kwargs)
+
+		context['page_title'] = u'Tạo tài khoản mới'
+
+		return context
 
  	def get_form(self, form_class):
 		form = super(UserCreateView, self).get_form(form_class)
@@ -262,11 +252,14 @@ class UserCreateView(CreateView, UserFormView):
 
 	def form_valid(self, form):
 		self.object = form.save(commit=False)
-		
-		if create_user(self.request.session['user_id'], self.object):
-			self.clear_messages()
-			return super(UserCreateView, self).form_valid(form)
+		set_user(self.request.session['user_id'], self.object)
+		self.clear_messages()
+		return super(UserCreateView, self).form_valid(form)
 
+
+
+# Khung nhìn lấy danh sách người dùng dành cho người quản trị hệ thống
+# URL: user/list/
 class UserListView(ListView, FormView):
 	template_name = 'v1/list.html'
 	paginate_by = '20'
@@ -289,38 +282,24 @@ class UserListView(ListView, FormView):
 		context['add_link'] = '/user/create/'
 		context['import_link'] = '/user/import/'
 
-		if self.can_set:
-			context['can_set_list'] = 1
+		context['can_set_list'] = 1
 
 		return context
 
 	def get_queryset(self):
-		
-		user_list =None
-
-		self.can_set = can_set_user_list(self.request.session['user_id'])
-		
-		can_get = can_get_user_list(self.request.session['user_id'])
-
-		can_get_managed_user = can_get_managed_user_list(self.request.session['user_id'])
-
-		
-		if can_get:
-			user_list = get_user_list(self.request.session['user_id'])
-		else:
-			if can_get_managed_user:
-				user_list = get_managed_user_list(self.request.session['user_id'])
-	
+		if not is_super_administrator_id(self.request.session['user_id']):
+			raise PermissionDenied
+				
+		user_list = get_user_list(self.request.session['user_id'])
 
 		objects = []
 		if user_list is not None:
 			for obj in user_list:
 				values = []	
-				if self.can_set:
-					values.append(mark_safe('<input type="checkbox" class="checkboxes" value="%s" name="list"/>' % obj.id))
+				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="%s" name="list"/>' % obj.identify))
 				values.append(obj.identify)
 				values.append(obj.get_full_name())
-				values.append(mark_safe(u'<a href="/user/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
+				values.append(mark_safe(u'<a href="/user/user=%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.identify)))
 				objects.append(values)
 
 		return objects
@@ -332,8 +311,11 @@ class UserListView(ListView, FormView):
 			print todel
 		return self.get(self, *args, **kwargs) #HttpResponseRedirect(reverse('user_list_view_v1'))
 
-#region ImportView
-class UserImportView(BaseImportView):
+
+
+# Khung nhìn nhập danh sách người dùng bằng tập tin dành cho người quản trị hệ thống
+# URL: user/import/
+class UserImportView(BaseView, BaseImportView):
 	template_name = 'v1/import.html'
 
 	CONST_FIELDS = (	'identify',
@@ -356,12 +338,22 @@ class UserImportView(BaseImportView):
 	def get_success_url(self):
 		return reverse('user_list_view_v1')
 
+	def get_context_data(self, **kwargs):
+		if not is_super_administrator_id(self.get_user_id()):
+			raise PermissionDenied
+
+		context = super(UserImportView, self).get_context_data(**kwargs)
+		
+		context['title'] = u'Nhập danh sách tài khoản'
+		context['page_title'] =  u'Nhập danh sách tài khoản'
+
+		context['user_active'] = 'active'
+
+		return context
+		
 	def input_row(self, row):
-		try:
-			for field in self.CONST_FIELDS:
-				print row[field]
-		except Exception as e:
-			return e
+		if not self.check_input_row_valid(row):
+			return False
 		
 		identify = row['identify']
 		first_name = row['first_name']
@@ -380,34 +372,26 @@ class UserImportView(BaseImportView):
 		mobile_phone = row['mobile_phone']
 		email = row['email']
 
-		create_user_by_infomation(	self.request.session['user_id'],
-									identify,
-									first_name,
-									last_name,
-									gender,
-									date_of_birth,
-									place_of_birth,
-									folk,
-									religion,
-									address,
-									ward,
-									district,
-									province,
-									temporary_address,
-									home_phone,
-									mobile_phone,
-									email	)
+		if set_user(	
+			self.get_user_id(),
+			identify,
+			first_name,
+			last_name,
+			gender,
+			date_of_birth,
+			place_of_birth,
+			folk,
+			religion,
+			address,
+			ward,
+			district,
+			province,
+			temporary_address,
+			home_phone,
+			mobile_phone,
+			email	):
+			print 'Import user ' + identify + ' successfully'
+			print '----------'
+			return True
 
-		print '-------------'
-		return 'ok'
-
-	def get_context_data(self, **kwargs):
-		context = super(UserImportView, self).get_context_data(**kwargs)
-
-		context['title'] = u'Nhập danh sách tài khoản'
-		context['page_title'] =  u'Nhập danh sách tài khoản'
-
-		context['user_active'] = 'active'
-		
-		context['page_breadcrumb'] =  mark_safe(u'<li><i class="fa fa-user"></i><a>Quản lý tài khoản</a><i class="fa fa-angle-right"></i></li><li><i class="icon-login"></i><a> Nhập danh sách tài khoản</a></li>')
-		return context
+		return False

@@ -1,4 +1,4 @@
-{% extends 'v1/organization/organization_profile_base.html' %}
+{% extends 'v1/organization/organization_base.html' %}
 
 {% load staticfiles %}
 
@@ -14,13 +14,15 @@
 
 {% block page_level_scripts %}
 {{ block.super }}
-<script src="{% static "v1/assets/admin/pages/scripts/ui-tree.js" %}"></script>
+<script src="{% static "v1/assets/admin/pages/scripts/tree.js" %}"></script>
 {% endblock %}
 
 {% block init_scripts %}
-	UITree.init();
+	Tree.init();
 {% endblock %}
 
+
+
 {% block tab_content %}
-{% include 'v1/organization/tree.html' %}				
+{% include 'v1/organization/organization_tree.html' %}				
 {% endblock %}

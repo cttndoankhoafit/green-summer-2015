@@ -3,27 +3,23 @@
 {% load staticfiles %}
 
 {% block breadcrumb_button_group %}
-	{% if request.session.staff %}
+	{% if request.session.super_user %}
 	<button type="button" class="btn blue dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-delay="1000" data-close-others="true">
 		<span>Công cụ</span><i class="fa fa-angle-down"></i>
 	</button>
 	<ul class="dropdown-menu pull-right" role="menu">
 		<li>
-			<a href="{% block user_update_link %}{% endblock %}">
+			<a href="{% url 'user_update_view_v1' identify %}">
 				<i class="fa fa-pencil"></i> Thay đổi thông tin
 			</a>
 		</li>
 		<li>
-			<a href="{% block user_reset_passwotd_link %}{% endblock %}">
+			<a href="{% url 'user_password_change_view_v1' identify %}">
 				<i class="fa fa-pencil"></i> Đặt lại mật khẩu
 			</a>
 		</li>
 	</ul>
 	{% endif %}
-{% endblock %}
-
-{% block page_title %}
-	{{ object.get_full_name }}	
 {% endblock %}
 
 {% block page_content %}
@@ -32,12 +28,12 @@
 		<!--BEGIN TABS-->
 		<div class="tabbable tabbable-custom tabbable-full-width">
 			<ul class="nav nav-tabs">
-				<li class="active">
-					<a href="{% block overview_link %}{% endblock %}">
+				<li class="{% block overview_active %}{% endblock %}">
+					<a href="{% url 'user_detail_view_v1' identify %}">
 					Tổng quan </a>
 				</li>
-				<li>
-					<a href="{% block recent_link %}{% endblock %}">
+				<li class="{% block activity_active %}{% endblock %}">
+					<a href="{% url 'user_activity_list_view_v1' identify %}">
 					Hoạt động </a>
 				</li>
 			</ul>

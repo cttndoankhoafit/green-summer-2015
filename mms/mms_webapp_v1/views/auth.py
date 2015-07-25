@@ -47,9 +47,8 @@ class LoginView(FormView):
 	def form_valid(self, form):
 		login(self.request, form.get_user())
 
-		self.request.session['user_id'] = self.request.user.id
-		self.request.session['identify'] = self.request.user.identify
-		self.request.session['staff'] = int(self.request.user.is_staff)
+		self.request.session['user_id'] = self.request.user.identify
+		self.request.session['super_user'] = int(self.request.user.is_superuser)
 		self.request.session['user_full_name'] = self.request.user.get_full_name()
 		self.request.session['message'] = ''
 

@@ -62,11 +62,11 @@
 					</div>
 					<ul class="dropdown-menu">
 						<li>
-							<a href="{% url 'user_profile_view_v1' %}">
+							<a href="{% url 'user_detail_view_v1' request.session.user_id %}">
 							<i class="icon-user"></i> Thông tin cá nhân </a>
 						</li>
 						<li>
-							<a href="{% url 'user_profile_update_view_v1' %}">
+							<a href="{% url 'user_update_view_v1' request.session.user_id %}">
 							<i class="fa fa-cogs"></i> Thiết lập tài khoản </a>
 						</li>
 						<!-- <li>
@@ -151,6 +151,7 @@
 					</a>
 				</li>
 
+				{% if request.session.super_user %}
 				<li class="{{ user_active }} ">
 					<a>
 						<i class="icon-user"></i>
@@ -158,26 +159,15 @@
 						<span class="arrow "></span>
 					</a>
 					<ul class="sub-menu">
+						
 						<li class="{{ user_list_active }}">
 							<a href="{% url 'user_list_view_v1' %}">
 							<i class="icon-users"></i>
-							Tài khoản được quản lý</a>
+							Danh sách tài khoản</a>
 						</li>
-						<!-- <li class="{{ user_search_active }}">
-							<a href="/user/search/">
-							<i class="fa fa-search"></i>
-							Tìm kiếm</a>
-						</li> -->
-						<li class="{{ profile_active }}">
-							<a href="{% url 'user_profile_view_v1' %}">
-							<i class="icon-user"></i>
-							Thông tin cá nhân</a>
-						</li>
-						{% block other_user_sidebar_item %}
-
-						{% endblock %}
 					</ul>
 				</li>
+				{% endif %}
 
 				<li class="{{ organization_active }} ">
 					<a>
@@ -186,32 +176,25 @@
 					<span class="arrow"></span>
 					</a>
 					<ul class="sub-menu">
+						{% if request.session.super_user %}
 						<li class="{{ organization_type_list_active }}">
 							<a href="{% url 'organization_type_list_view_v1' %}">
 							<i class="fa fa-pagelines"></i>
 							Loại tổ chức</a>
 						</li>
+						{% endif %}
 						<li class="{{ organization_list_active }}">
 							<a href="{% url 'organization_list_view_v1' %}">
 							<i class="fa fa-pagelines"></i>
 							Tổ chức tham gia</a>
 						</li>
+						{% if request.session.super_user %}
 						<li class="{{ organization_tree_active }}">
 							<a href="{% url 'organization_tree_view_v1' %}">
 							<i class="fa fa-tree"></i>
 							Cây tổ chức</a>
 						</li>
-						
-						<!-- <li class="{{ user_search_active }}">
-							<a href="/user/search/">
-							<i class="fa fa-search"></i>
-							Tìm kiếm</a>
-						</li> -->
-						<!-- <li class="{{ profile_active }}">
-							<a href="/user/{{ request.session.user_id }}/">
-							<i class="icon-user"></i>
-							Thông tin cá nhân</a>
-						</li> -->
+						{% endif %}
 					</ul>
 				</li>
 
@@ -222,21 +205,17 @@
 					<span class="arrow "></span>
 					</a>
 					<ul class="sub-menu">
+						{% if request.session.super_user %}
 						<li class="{{ activity_type_list_active }}">
 							<a href="{% url 'activity_type_list_view_v1' %}">
 							<i class="fa fa-pagelines"></i>
 							Loại hoạt động</a>
 						</li>
+						{% endif %}
 						<li class="{{ activity_list_active }}">
 							<a href="/activity/list/">
 							<i class="icon-user"></i>
 								Danh sách hoạt động
-							</a>
-						</li>
-						<li class="">
-							<a href="">
-							<i class="fa fa-search"></i>
-								Hoạt động của tôi
 							</a>
 						</li>
 					</ul>

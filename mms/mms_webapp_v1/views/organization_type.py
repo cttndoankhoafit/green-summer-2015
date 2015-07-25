@@ -1,17 +1,32 @@
 # -*- coding: utf-8 -*-
 
-from django.views.generic import CreateView, ListView,TemplateView,DetailView, UpdateView, FormView
+from django.core.exceptions import PermissionDenied
+
+from django.views.generic import CreateView, ListView,TemplateView,DetailView, UpdateView
 
 from django.utils.html import mark_safe
-
-from mms_controller.resources.organization_type import *
 
 from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
 from django.http import HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
-success_update_organization_type_message = u'Thêm loại tổ chức thành công'
 
+from mms_controller.resources_temp import *
+
+
+success_add_organization_type_message = u'Thêm loại tổ chức thành công'
+success_update_organization_type_message = u'Cập nhật loại tổ chức thành công'
+
+
+
+# Khung nhìn xem thông tin của một loại tổ chức
+# URL: organization_type/organization_type=<organization_type_id>/
+class OrganizationTypeDetailView(TemplateView):
+	template_name = 'temporary/base.html'
+
+
+# Khung nhìn lấy danh sách các loại tổ chức
+# URL: organization-type/list/
 class OrganizationTypeListView(ListView):
 	template_name = 'v1/list.html'
 	paginate_by = '20'
@@ -37,79 +52,84 @@ class OrganizationTypeListView(ListView):
 		context['theads'].append({'name': u'Tên loại tổ chức', 'size' : 'auto'})
 		context['theads'].append({'name': '', 'size' : '8%'})
 			
-		context['add_link'] = '/organization_type/create/'
+		# context['add_link'] = '/organization/create/'
 		# context['import_link'] = '/organization/import/'
 
 		return context
 
 	def get_queryset(self):
-		organization_type_list = get_organization_type_list()
+		organization_type_list = get_organization_type_list(self.request.session['user_id'])
 
-		self.can_set = can_set_organization_type(self.request.session['user_id'])
+		self.can_set = False # can_set_organization_type(self.request.session['user_id'])
 		objects = []
 		for obj in organization_type_list:
 			values =[]
 			if self.can_set:
-				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.id))
+				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.identify))
 				values.append(obj.identify)
 			values.append(obj.name)
-			values.append(mark_safe(u'<a href="/organization_type/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.id)))
+			values.append(mark_safe(u'<a href="/organization_type/organization_type=%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.identify)))
 			objects.append(values)
 
 		return objects
 
-class BaseOrganizationTypeUpdateView(UpdateView,OrganizationTypeListView):
-	model = get_organization_type_model
-	field = '__all__'
+
+
+# Khung nhìn cập nhật loại tổ chức
+# URL: organization_type/organization_type=<organization_type_id>/
+class OrganizationTypeUpdateView(BaseSuccessMessageMixin, UpdateView):
+	template_name = 'temporary/editor.html'
+	fields = '__all__'
 
 	success_message = success_update_organization_type_message
 
-	def get_context_data(self, **kwargs):
-		context = super(BaseOrganizationTypeUpdateView, self).get_context_data(**kwargs)
-
-		context['title'] = u'Tên loại tổ chức'
-		context['page_title'] = u'Tên loại tổ chức'
-		context['organization_active'] = 'active'
-		#context['organization_'] =
-
-		return context
-class OrganizationTypeUpdateView(BaseOrganizationTypeUpdateView):
-	template_name = 'v1/import.html'
-
-	def get_sucess_url(self):
-		return reverse('organization_type_update_view_v1', kwargs={'organization_type_id' :self.kwargs['organization_type_id']})
+	def get_success_url(self):
+		return reverse('organization_type_update_view_v1', kwargs={'organization_type_id' : self.kwargs['organization_type_id']})
+	
 	def form_valid(self,form):
 		self.object = form.save(commit=False)
-		self.object.creator = self.request.user
-		self.object.status = 0
 
-		organization_type_id = self.request.session['organization_type_id']
-		organization_type = self.kwargs['organization_type_id']
-
-		self.object.save()
-		self.clear_messages()
-
-		return super(OrganizationTypeUpdateView,self).form_valid(form)
+		if set_organization_type(self.request.session['user_id'], self.object):
+			self.clear_messages()
+			return super(OrganizationTypeUpdateView, self).form_valid(form)
 
 	def get_object(self):
-		try:
-			return set_organization(self.request.session['organization_type_id'],
-								self.kwargs['organization_type_id'])
+		if not is_super_administrator_id(self.request.session['user_id']):
+			raise PermissionDenied
+		organization_type = get_organization_type(self.request.session['user_id'], self.kwargs['organization_type_id'])
+		return organization_type
 
-		except:
-			raise Http404('Organization Type does not exist!')
 
-# class OrganizationTypeCreateView(CreateView):
-# 	template_name = 'temporary/organization_type/editor.html'
-# 	#form_class = OrganizationTypeForm
-# 	model = get_organization_type_model()	
-# 	fields = ['name']
+
+# Khung nhìn tạo một loại tổ chức dành cho người quản trị hệ thống
+# URL: organization_type/create/
+class OrganizationTypeCreateView(BaseSuccessMessageMixin, CreateView):
+	template_name = 'temporary/editor.html'
+	#form_class = OrganizationTypeForm
+	model = get_organization_type_model()	
+	fields = '__all__'
 	
-# 	# def form_valid(self, form):
-# 	# 	form.submit()
-# 	# 	return super(OrganizationTypeCreateView, self).form_valid(form)
+	def get_success_url(self):
+		return reverse('organization_type_list_view_v1')
+
+	def get_context_data(self, **kwargs):
+		context = super(OrganizationTypeCreateView, self).get_context_data(**kwargs)
+		if not is_super_administrator_id(self.request.session['user_id']):
+			raise PermissionDenied
+
+		return context
+
+	def form_valid(self, form):
+		self.object = form.save(commit=False)
+		
+		if set_organization_type(self.request.session['user_id'], self.object):
+			self.clear_messages()
+			return super(OrganizationTypeCreateView, self).form_valid(form)
 
 
+
+# Khung nhìn nhập danh sách loại tổ chức dành cho người quản trị hệ thống
+# URL: organization_type/import/
 class OrganizationTypeImportView(BaseImportView):
 	template_name = 'v1/import.html'
 
@@ -139,36 +159,5 @@ class OrganizationTypeImportView(BaseImportView):
 		print '-------------'
 		return 'ok'
 
-class OrganizationTypeFormView(BaseSuccessMessageMixin, FormView):
-	def get_form(self, form_class):
-		form = super(OrganizationTypeFormView, self).get_form(form_class)
-		form.fields['identify'].widget.attrs['class'] = 'form-control'
-		form.fields['name'].widget.attrs['class'] = 'form-control'
-		form.fields['management_level'].widget.attrs['class'] = 'form-control'
-		form.fields['details'].widget.attrs['class'] = 'form-control'
 
-		return form
-class OrganizationTypeCreateView(CreateView, OrganizationTypeFormView):
-	model = OrganizationType
-
-	fields =[	'identify',
-				'name',
-				'management_level',
-				'details',
-			]
-
-	template_name = 'v1/organization_type_create.html'
-
-	success_message = u'Thêm loại tổ chức thành công'
-
-	def get_success_url(self):
-		return reverse('organization_type_list_view_v1')
-
- 	def get_form(self, form_class):
-		form = super(OrganizationTypeCreateView, self).get_form(form_class)
-		return form
-
-	def form_valid(self, form):
-		self.object = form.save(commit=False)
-		return super(OrganizationTypeCreateView, self).form_valid(form)
 	

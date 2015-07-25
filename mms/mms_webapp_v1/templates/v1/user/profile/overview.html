@@ -1,19 +1,15 @@
-{% extends 'v1/user/user_profile_base.html' %}
+{% extends 'v1/user/profile/base.html' %}
 
-{% load staticfiles %}
-
-{% block user_update_link %}
-/user/{{ object.id }}/edit/
-{% endblock %}
-
-{% block user_reset_passwotd_link %}
-/user/{{ object.id }}/reset-password/
+{% block overview_active %}
+active
 {% endblock %}
 
 {% block tab_content %}
 <div class="tab-pane active">
 	<div class="row">
 		<div class="col-md-12">
+			<h3>Thông tin cá nhân</h3>
+			<hr>
 			<div class="row">
 				<div class="fa-item col-md-4 col-sm-4">
 					<i class="fa fa-credit-card"></i> {{ object.identify }}  
@@ -38,6 +34,8 @@
 					<i class="fa fa-ge"></i> {{ object.religion }}
 				</div>
 			</div>
+			<h3>Thông tin liên lạc</h3>
+			<hr>
 			<div class="row">
 				<div class="fa-item col-md-4 col-sm-4">
 					<i class="fa fa-phone"></i> {{ object.home_phone }}
@@ -66,4 +64,3 @@
 </div>
 
 {% endblock %}
-

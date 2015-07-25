@@ -2,15 +2,28 @@
 
 from django.utils.html import mark_safe
 from django.core.urlresolvers import reverse
-from django.views.generic import ListView, UpdateView, TemplateView, DetailView, CreateView
+from django.views.generic import ListView, UpdateView, TemplateView, DetailView, CreateView, View
 from django.http import HttpResponseRedirect, Http404
 
-from mms_backoffice.models import Activity, ActivityUser, ActivityOrganization
+from mms_backoffice.models import Activity, ActivityUser
 
 from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
 
 from mms_controller.resources.activity import *
+from mms_controller.resources_temp import *
+
+from mms_webapp_v1.forms.activity import ActivityForm
+
+
+class BaseActivityView(View):
+	def get_context_data(self, **kwargs):
+		context = super(BaseActivityView, self).get_context_data(**kwargs)
+
+		context['activity_id'] = self.kwargs['activity_id']
+
+		return context
+		
 
 class ActivityListView(ListView):
 	template_name = 'v1/list.html'
@@ -55,37 +68,33 @@ class ActivityListView(ListView):
 		for obj in activity_list:
 			values = []
 			if self.can_set:
-				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.id))
+				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.identify))
 			values.append(obj.name)
 			values.append(obj.activity_type)
 			values.append(obj.start_time)
 			buttons = ''
 			if obj.register_state < 3:
 				buttons += u'<a class="btn default btn-xs green-stripe">Đăng ký</a>'
-			buttons += u'<a href="/user/%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % obj.id
+			buttons += u'<a href="/activity/activity=%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % obj.identify
 			values.append(mark_safe(buttons))
 
 			objects.append(values)
 		return objects
 
-class UserActivityListView(ListView):
-	template_name = 'temporary/member/list.html'
-	paginate_by = '10'
-
-	
-
-	def get_queryset(self): 
-		identify = self.kwargs['user_id']
-		user_activity = ActivityUser.objects.filter(user__id=identify)
-		return list(user_activity)
-
-class ActivityDetailView(DetailView):
+class ActivityDetailView(BaseActivityView, DetailView):
 	template_name = 'v1/activity/activity_overview.html'
 
+	def get_object(self):
+		return get_activity(self.kwargs['activity_id'])
 
-class ActivityMemberListView(ListView):
+class ActivityMemberListView(BaseActivityView, ListView):
 	template_name = 'v1/activity/activity_member.html'
 	paginate_by = '20'
+
+	def get_queryset(self):
+
+		return []
+
 
 class ActivityImportView(BaseImportView):
 	template_name = 'v1/import.html'
@@ -115,11 +124,20 @@ class ActivityImportView(BaseImportView):
 
 	# 	print '-------------'
 	# 	return 'ok'
-class ActivityFormView(BaseSuccessMessageMixin, FormView):
+
+
+
+# Khung nhìn chuẩn cho các khung nhìn có dạng mẫu (Form)
+class BaseActivityFormView(BaseSuccessMessageMixin, FormView):
 	def get_form(self, form_class):
-		form = super(ActivityFormView, self).get_form(form_class)
+		form = super(BaseActivityFormView, self).get_form(form_class)
+
+		form.fields['identify'].widget.attrs['class'] = 'form-control'
 		form.fields['name'].widget.attrs['class'] = 'form-control'
 		form.fields['activity_type'].widget.attrs['class'] = 'form-control'
+
+		form.fields['organization'].widget.attrs['class'] = 'form-control'
+		
 		form.fields['start_time'].widget.attrs['class'] = 'form-control'
 
 		form.fields['start_time'].widget.attrs['class'] = 'form-control'
@@ -136,23 +154,16 @@ class ActivityFormView(BaseSuccessMessageMixin, FormView):
 
 		form.fields['register_state'].widget.attrs['class'] = 'form-control'
 		form.fields['published'].widget.attrs['class'] = 'form-control'
-		form.fields['details'].widget.attrs['class'] = 'form-control'
-
+		
 		return form
 
-class ActivityCreateView(CreateView, ActivityFormView):
+
+
+# Khung nhìn tạo một hoạt động
+class ActivityCreateView(CreateView, BaseActivityFormView):
 	model = Activity
 
-	fields =[	'name',
-				'activity_type',
-				'start_time',
-				'end_time',
-				'register_start_time',
-				'register_end_time',
-				'register_state',
-				'published',
-				'details',
-			]
+	form_class = ActivityForm
 
 	template_name = 'v1/activity/activity_create.html'
 
@@ -161,15 +172,27 @@ class ActivityCreateView(CreateView, ActivityFormView):
 	def get_success_url(self):
 		return reverse('activity_list_view_v1')
 
- 	def get_form(self, form_class):
-		form = super(ActivityCreateView, self).get_form(form_class)
-		return form
+	def get_form(self, form_class):
+		kwargs = self.get_form_kwargs()
+
+		params = {}
+		params['user_id'] = self.request.session['user_id']
+		
+		return form_class(params, **kwargs)
+
 
 	def form_valid(self, form):
 		self.object = form.save(commit=False)
 		return super(ActivityCreateView, self).form_valid(form)
-#####################################################
-class BaseActivityUpdateView(UpdateView, ActivityFormView):
+
+
+
+
+
+
+
+
+class BaseActivityUpdateView(UpdateView, BaseActivityFormView):
 	model = get_activity_model()
 	fields= '__all__'
 	success_message = u'Cập nhật thông tin thành công'
@@ -217,5 +240,3 @@ class ActivityUpdateView(BaseActivityUpdateView):
 
 		except:
 			raise Http404('Activity does not exist!')
-
-######################################################

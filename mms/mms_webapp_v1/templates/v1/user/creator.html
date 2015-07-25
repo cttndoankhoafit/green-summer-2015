@@ -1,4 +1,4 @@
-{% extends 'v1/user/user_update_base.html' %}
+{% extends 'v1/webapp_base.html' %}
 
 {% load staticfiles %}
 
@@ -24,33 +24,32 @@
 		DatePicker.init();
 {% endblock %}
 
-{% block change_profile_active %}
-active
-{% endblock %}
-
-{% block change_password_link %}
-{% url 'user_reset_password_view_v1' object.id %}
-{% endblock %}
-
-{% block tab_content %}
-{% if messages %}
-	{% for message in messages %}
-		<div class="Metronic-alerts alert alert-success fade in">
-			{{ message }}
-		</div>
-	{% endfor %}
-{% endif %}
-
-<div class="tab-pane active">
-	<form role="form" method="post">
-		{% csrf_token %}
-		{% include 'v1/user/editor.html' %}
-		
-		<div class="margin-top-10">
-			<input type="submit" class="btn green" data-loading-text="Đang lưu dữ liệu..." value="Cập nhật">
-		</div>
-	</form>
+{% block page_content %}
+<div class="row profile">
+	<div class="col-md-12">
+		<form role="form" method="post">
+			{% csrf_token %}
+			<h3>Thông tin tài khoản</h3>
+			<hr>
+			<div class="row">
+				<div class="form-group col-md-6">
+					<label class="control-label">Tên tài khoản</label>
+					{{ form.identify }}
+					{{ form.identify.errors }}
+				</div>
+				<div class="form-group col-md-6">
+					<label class="control-label">Mật khẩu</label>
+					{{ form.password }}
+					{{ form.password.errors }}
+				</div>
+			</div>
+			{% include 'v1/user/editor/editor.html' %}
+			
+			<div class="margin-top-10">
+				<input type="submit" class="btn green" data-loading-text="Đang lưu dữ liệu..." value="Thêm người dùng">
+			</div>
+		</form>
+	</div>
 </div>
 
 {% endblock %}
-

@@ -3,27 +3,18 @@
 {% load staticfiles %}
 
 {% block breadcrumb_button_group %}
-	{% if request.session.staff %}
+	{% if organization_administrator %}
 	<button type="button" class="btn blue dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-delay="1000" data-close-others="true">
 		<span>Công cụ</span><i class="fa fa-angle-down"></i>
 	</button>
 	<ul class="dropdown-menu pull-right" role="menu">
 		<li>
-			<a href="{% block organization_update_link %}{% endblock %}">
+			<a href="{% url 'organization_update_view_v1' organization_id %}">
 				<i class="fa fa-pencil"></i> Thay đổi thông tin
 			</a>
 		</li>
-		<!-- <li>
-			<a href="{% block user_reset_passwotd_link %}{% endblock %}">
-				<i class="fa fa-pencil"></i> Đặt lại mật khẩu
-			</a>
-		</li> -->
 	</ul>
 	{% endif %}
-{% endblock %}
-
-{% block page_title %}
-	{{ organization_name }}	
 {% endblock %}
 
 {% block page_content %}
@@ -36,23 +27,27 @@
 					<a href="{% url 'organization_detail_view_v1' organization_id %}">
 					Tổng quan </a>
 				</li>
-				<li class="{{ actvities_active }}">
-					<a href="{% block activity_link %}{% endblock %}">
+				<li class="{{ activities_active }}">
+					<a href="{% url 'organization_activity_list_view_v1' organization_id %}">
 					Các hoạt động </a>
 				</li>
+				{% if organization_manager %}
 				<li class="{{ members_active }}">
 					<a href="{% url 'organization_member_list_view_v1' organization_id %}">
 					Các thành viên </a>
 				</li>
-				<li class="{{ under_organizations_active }}">
-					<a href="{% url 'under_organization_tree_view_v1' organization_id %}">
+				{% endif %}
+				<li class="{{ organization_tree_active }}">
+					<a href="{% url 'child_organization_tree_view_v1' organization_id %}">
 					Các tổ chức trực thuộc </a>
 				</li>
 			</ul>
 			<div class="tab-content">
-				{% block tab_content %}
-				
-				{% endblock %}
+				<div class="tab-pane active">
+					{% block tab_content %}
+					
+					{% endblock %}
+				</div>
 			</div>
 		</div>
 	</div>

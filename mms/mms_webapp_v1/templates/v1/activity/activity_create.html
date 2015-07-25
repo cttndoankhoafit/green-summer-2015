@@ -34,6 +34,13 @@
 				<hr>
 				<div class="row">
 					<div class="form-group col-md-6">
+						<label class="control-label">Mã hoạt động</label>
+						{{ form.identify }}
+						{{ form.identify.errors }}
+					</div>
+				</div>
+				<div class="row">
+					<div class="form-group col-md-6">
 						<label class="control-label">Tên hoạt động</label>
 						{{ form.name }}
 						{{ form.name.errors }}
@@ -48,11 +55,18 @@
 				</div>
 				<div class="row">
 					<div class="form-group col-md-6">
+						<label class="control-label">Tổ chức quản lý</label>
+						{{ form.organization }}
+						{{ form.organization.errors }}
+					</div>
+				</div>
+				<!-- <div class="row">
+					<div class="form-group col-md-6">
 						<label class="control-label">Mô tả hoạt động</label>
 						{{ form.details }}
 						{{ form.details.errors }}
 					</div>
-				</div>
+				</div> -->
 				<div class="row">
 					<div class="form-group col-md-6">
 						<label class="control-label">Ngày bắt đầu</label>
