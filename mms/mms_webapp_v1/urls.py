@@ -85,6 +85,7 @@ urlpatterns = [
 
 	url(r'^organization_type/create/', OrganizationTypeCreateView.as_view(), name='organization_type_create_view_v1'),
 
+	url(r'^organization_type/(?P<organization_type_id>\d+)/edit/$', OrganizationTypeUpdateView.as_view(),name='organization_type_update_view_v1'),
 
 	# url(r'^activity/(?P<activity_id>\d+)/', login_required(ActivityUpdateView.as_view()), name='activity_update_view_v1'),
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, ListView,TemplateView,DetailView, UpdateView
 
 from django.utils.html import mark_safe
 
@@ -8,8 +8,9 @@ from mms_controller.resources.organization_type import *
 
 from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
-
+from django.http import HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
+success_update_organization_type_message = u'Thêm loại tổ chức thành công'
 
 class OrganizationTypeListView(ListView):
 	template_name = 'v1/list.html'
@@ -56,6 +57,47 @@ class OrganizationTypeListView(ListView):
 			objects.append(values)
 
 		return objects
+
+class BaseOrganizationTypeUpdateView(UpdateView,OrganizationTypeListView):
+	model = get_organization_type_model
+	field = '__all__'
+
+	success_message = success_update_organization_type_message
+
+	def get_context_data(self, **kwargs):
+		context = super(BaseOrganizationTypeUpdateView, self).get_context_data(**kwargs)
+
+		context['title'] = u'Tên loại tổ chức'
+		context['page_title'] = u'Tên loại tổ chức'
+		context['organization_active'] = 'active'
+		#context['organization_'] =
+
+		return context
+class OrganizationTypeUpdateView(BaseOrganizationTypeUpdateView):
+	template_name = 'v1/import.html'
+
+	def get_sucess_url(self):
+		return reverse('organization_type_update_view_v1', kwargs={'organization_type_id' :self.kwargs['organization_type_id']})
+	def form_valid(self,form):
+		self.object = form.save(commit=False)
+		self.object.creator = self.request.user
+		self.object.status = 0
+
+		organization_type_id = self.request.session['organization_type_id']
+		organization_type = self.kwargs['organization_type_id']
+
+		self.object.save()
+		self.clear_messages()
+
+		return super(OrganizationTypeUpdateView,self).form_valid(form)
+
+	def get_object(self):
+		try:
+			return set_organization(self.request.session['organization_type_id'],
+								self.kwargs['organization_type_id'])
+
+		except:
+			raise Http404('Organization Type does not exist!')
 
 class OrganizationTypeCreateView(CreateView):
 	template_name = 'temporary/organization_type/editor.html'
