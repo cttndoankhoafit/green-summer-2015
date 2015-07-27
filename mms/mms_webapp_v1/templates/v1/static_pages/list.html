@@ -1,11 +1,11 @@
-{% extends 'v1/organization/member/base.html' %}
+{% extends 'v1/webapp_base.html' %}
 
 {% load staticfiles %}
 
 {% block page_level_styles %}
 {{ block.super }}
-<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/select2/select2.css" %}"/>
-<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.css" %}"/>
+<link rel="stylesheet" type="text/css" href="{% static "/assets/global/plugins/select2/select2.css" %}"/>
+<link rel="stylesheet" type="text/css" href="{% static "/assets/global/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.css" %}"/>
 {% endblock %}
 
 {% block page_level_scripts %}
@@ -24,11 +24,11 @@
 		Table.init();
 {% endblock %}
 
-{% block list_active %}
-active
-{% endblock %}
+{% block page_content %}
 
-{% block member_tab_content %}
-
-{% include 'v1/static_modules/list.html' %}
+<div class="row">
+	<div class="col-md-12">
+		{% include 'v1/static_modules/list.html' %}
+	</div>
+</div>
 {% endblock %}

@@ -1,61 +1,36 @@
 {% extends 'v1/organization/activity/base.html' %}
 
+{% load staticfiles %}
+
+{% block page_level_styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/select2/select2.css" %}"/>
+<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.css" %}"/>
+{% endblock %}
+
+{% block page_level_scripts %}
+{{ block.super }}
+<script src="{% static "v1/assets/admin/pages/scripts/table.js" %}"></script>
+{% endblock %}
+
+{% block page_level_plugins_scripts %}
+{{ block.super }}
+<script type="text/javascript" src="{% static "v1/assets/global/plugins/select2/select2.min.js" %}"></script>
+<script type="text/javascript" src="{% static "v1/assets/global/plugins/datatables/media/js/jquery.dataTables.min.js" %}"></script>
+<script type="text/javascript" src="{% static "v1/assets/global/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.js" %}"></script>
+{% endblock %}
+
+{% block init_scripts %}
+		Table.init();
+{% endblock %}
+
 {% block list_active %}
 active
 {% endblock %}
 
 {% block activity_tab_content %}
-{% include 'v1/static_modules/message.html' %}
-<div class="row">
-	{% for object in object_list %}
-	<div class="col-md-6">
-		<div class="portlet box blue">
-			<div class="portlet-title">
-				<div class="caption">
-					{{ object.name }}
-				</div>
-				<div class="actions">
-					<a href="{% url 'activity_detail_view_v1' object.identify %}" class="btn btn-default btn-sm">
-						<i class="icon-notebook"></i>
-					</a>
-					{% if object.is_administrator %}
-					<a href="{% url 'activity_update_view_v1' object.identify %}" class="btn btn-default btn-sm">
-						<i class="fa fa-pencil"></i>
-					</a>
-					{% endif %}
-				</div>
-			</div>
-			<div class="portlet-body">
-				<div class="row static-info">
-					<div class="col-md-5 name">
-						 Loại hoạt động:
-					</div>
-					<div class="col-md-7 value">
-						{{ object.activity_type }}
-					</div>
-				</div>
-				<div class="row static-info">
-					<div class="col-md-5 name">
-						 Thời gian bắt đầu:
-					</div>
-					<div class="col-md-7 value">
-						{{ object.start_time }}
-					</div>
-				</div>
-				<div class="row static-info">
-					<div class="col-md-5 name">
-						 Thời gian kết thúc:
-					</div>
-					<div class="col-md-7 value">
-						{{ object.end_time }}
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	{% endfor %}
+{% include 'v1/static_modules/list.html' %}
 </div>
-<div class="row">
-{% include 'v1/pagination.html' %}
-</div>
+
+
 {% endblock %}

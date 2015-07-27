@@ -33,14 +33,16 @@
 					Tổng quan </a>
 				</li>
 				<li class="{% block activity_active %}{% endblock %}">
-					<a href="{% url 'user_activity_list_view_v1' identify %}">
+					<a href="{% url 'user_activity_view_v1' identify %}">
 					Hoạt động </a>
 				</li>
 			</ul>
 			<div class="tab-content">
+				<div class="tab-pane active">
 				{% block tab_content %}
 				
 				{% endblock %}
+				</div>
 			</div>
 		</div>
 	</div>

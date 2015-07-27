@@ -1,0 +1,13 @@
+{% extends 'v1/organization_type/base.html' %}
+
+{% block activity_type_page_content %}
+<form method="post">
+	{% csrf_token %}
+	{% include 'v1/static_modules/message.html'  %}
+	{% include 'v1/organization_type/editor.html' %}
+	<div class="margin-top-10">
+		<input type="submit" class="btn green" value="Cập nhật">
+		<a class="btn default" href="{% url 'activity_type_list_view_v1' %}">Hủy bỏ</a>
+	</div>
+</form>
+{% endblock %}

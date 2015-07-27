@@ -1,0 +1,15 @@
+{% extends 'v1/organization_type/base.html' %}
+
+{% block organization_type_page_content %}
+<form role="form" method="post">
+	{% csrf_token %}
+	<div class="row">
+		<div class="form-group col-md-6">
+			<label class="control-label">Mã loại tổ chức</label>
+			{{ form.identify }}
+			{{ form.identify.errors }}
+		</div>
+	</div>
+	{% include 'v1/organization_type/editor.html' %}
+</form>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'v1/organization_type/base.html' %}
+
+{% block organization_type_page_content %}
+<form method="post">
+	{% csrf_token %}
+	{% include 'v1/static_modules/message.html'  %}
+	{% include 'v1/organization_type/editor.html' %}
+</form>
+{% endblock %}

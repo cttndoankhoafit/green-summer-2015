@@ -10,7 +10,7 @@
 				<i class="fa fa-cog"></i> Danh sách thành viên
 			</a>
 		</li>
-		{% if can_set_list %}
+		{% if can_set %}
 		<li class="{% block import_active %}{% endblock %}">
 			<a href="{% url 'organization_member_import_view_v1' organization_id %}">
 				<i class="fa fa-lock"></i> Nhập danh sách

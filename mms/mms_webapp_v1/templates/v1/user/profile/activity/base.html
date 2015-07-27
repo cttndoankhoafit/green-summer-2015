@@ -8,12 +8,12 @@ active
 <div class="col-md-3">
 	<ul class="ver-inline-menu tabbable margin-bottom-10">
 		<li class="{% block list_active %}{% endblock %}">
-			<a href="{% url 'organization_activity_list_view_v1' identify %}">
+			<a href="{% url 'user_activity_list_view_v1' identify %}">
 				<i class="fa fa-cog"></i> Danh sách hoạt động
 			</a>
 		</li>
-		<li>
-			<a>
+		<li class="{% block stastitics_active %}{% endblock %}">
+			<a href="{% url 'user_activity_stastitics_view_v1' identify %}">
 				<i class="fa fa-lock"></i> Thống kê
 			</a>
 		</li>

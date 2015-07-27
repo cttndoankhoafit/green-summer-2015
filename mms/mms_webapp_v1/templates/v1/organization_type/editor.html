@@ -1,0 +1,18 @@
+<div class="row">
+	<div class="form-group col-md-6">
+		<label class="control-label">Tên loại tổ chức</label>
+		{{ form.name }}
+		{{ form.name.errors }}
+	</div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6">
+		<label class="control-label">Mức độ quản lý</label>
+		{{ form.management_level }}
+		{{ form.management_level.errors }}
+	</div>
+</div>
+<div class="margin-top-10">
+	<input type="submit" class="btn green" value="Cập nhật">
+	<a class="btn default" href="{% url 'organization_type_list_view_v1' %}">Hủy bỏ</a>
+</div>

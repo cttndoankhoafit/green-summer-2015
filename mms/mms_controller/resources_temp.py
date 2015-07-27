@@ -46,13 +46,8 @@ def is_user_manage_by_organization(manager_id, user_id):
 		manager = __get_user_by_id(manager_id)
 		user = __get_user_by_id(user_id)
 
-		print manager
-		print user
-
 		# Lấy danh sách tổ chức mà người dùng manager quản lý bao gồm các tổ chức con
 		organization_user_list = get_all_manage_organizations(manager_id)
-
-		print organization_user_list
 
 		# Với mỗi tổ chức trong danh sách, xác định người dùng user có tham gia hay không
 		for obj in organization_user_list:
@@ -170,7 +165,6 @@ def set_user(
 
 	
 	identify_type = type(user_identify)	
-	print identify_type
 	try:
 		if identify_type is str or identify_type is unicode: 
 			user = __get_user_by_id(user_identify)
@@ -219,12 +213,10 @@ def set_user(
 			user = __get_user_by_id(user_identify.identify)
 			if user is None:
 				if is_super_administrator_id(user_id):
-					print user_identify.password
 					if user_identify.password is None or len(user_identify.password) == 0:
 						user_identify.set_password(user_identify.identify)
 					else:
 						user_identify.set_password(user_identify.password)
-						print user_identify.password
 					user_identify.save()
 					return True
 			else:
@@ -340,21 +332,28 @@ def delete_organization_type(user_id, organization_type_id):
 
 
 
-# QLLTC - Sửa loại tổ chức
-def set_organization_type(user_id, organization_type_id):
-	if is_super_administrator_id(user_id):
-
-		return __get_organization_type_by_id(organization_type_id)
-	return None
-
-
-
-
-# QLLTC - Sửa loại tổ chức
-def set_organization_type(user_id, organization_type_object):
-	if is_super_administrator_id(user_id):
-		organization_type_object.save()
-		return True
+# QLLTC - Thêm/sửa loại tổ chức
+def set_organization_type(user_id, object_identify, name=None, management_level=None):
+	if not is_super_administrator_id(user_id):
+		return False
+	object_type = type(object_identify)
+	try:
+		if object_type is str or object_type is unicode:
+			organization_type_object = __get_organization_type_by_id(object_type)
+			if organization_type_object is None:
+				organization_type_object = OrganizationType(identify=object_identify, name=name, management_level=management_level)
+				organization_type_object.save()
+				return True				
+			else:
+				organization_type_object.name = name
+				organization_type_object.management_level = management_level
+				organization_type_object.save()
+				return True
+		else:
+			object_identify.save()
+			return True
+	except Exception, e:
+		print e
 	return False
 
 
@@ -389,11 +388,6 @@ def get_organization_type_model():
 
 # QLTC - Lấy một tổ chức
 def __get_organization_by_id(organization_id):
-	# try:
-	# 	return Organization.objects.get(id=int(organization_id))
-	# except Exception, e:
-	# 	print e
-	# if type(organization_id) is str or type(organization_id) is unicode:
 	try:
 		return Organization.objects.get(identify=organization_id)
 	except:
@@ -441,7 +435,6 @@ def __scan_is_organization_manager(user, organization):
 def is_organization_administrator(user_id, organization_id=None):
 	if is_super_administrator_id(user_id):
 		return True
-	print user_id
 	if organization_id is None:
 		try:
 			user = __get_user_by_id(user_id)
@@ -524,16 +517,6 @@ def get_organization(organization_id):
 	return __get_organization_by_id(organization_id)
 
 
-
-# QLTC - Sửa thông tin của một tổ chức
-def set_organization(user_id, organization_id):
-	if can_set_organization(user_id, organization_id):
-		return __get_organization_by_id(organization_id)
-
-	return None
-
-
-
 # QLTC - Lấy thông tin của tổ chức gốc
 def get_organization_root():
 	organization_object = None
@@ -544,6 +527,70 @@ def get_organization_root():
 	return organization_object
 
 
+
+# QLTC - Thêm/Sửa thông tin của một tổ chức
+def set_organization(user_id, organization_identify, name=None, organization_type_id=None, manager_organization=None):
+	if not is_organization_administrator(user_id):
+		return False
+	try:
+		organization_type = type(organization_identify)
+		user = __get_user_by_id(user_id)
+		if organization_type is str or organization_type is unicode:
+			organization_object = __get_organization_by_id(organization_identify)
+			organization_type_object = __get_organization_type_by_id(organization_type_id)
+
+			if manager_organization is not None and not is_organization_administrator(user_id, manager_organization):
+				return False
+
+			manager_organization_object = __get_organization_by_id(manager_organization)
+			if manager_organization_object is None:
+				manager_organization_object = get_organization_root()
+
+			if organization_object is None:
+				organization_object = Organization(identify=organization_identify, name=name, organization_type=organization_type_object, manager_organization=manager_organization_object)
+				organization_object.save()
+				organization_user_object = OrganizationUser(organization=organization_object, user=user, permission=0)
+				organization_user_object.save()
+				return True
+			else:
+				if not is_organization_administrator(user_id, organization_object.identify):
+					return False
+				organization_object.name = name
+				organization_object.organization_type = organization_type_object
+				organization_object.manager_organization = manager_organization_object
+				return True
+		else:
+			organization_object = __get_organization_by_id(organization_identify.identify)
+			
+			if organization_object is None:
+				if organization_identify.manager_organization is not None and not is_organization_administrator(user_id, organization_identify.manager_organization.identify):
+					return False
+
+				manager_organization_object = __get_organization_by_id(organization_identify.manager_organization)
+				if manager_organization_object is None:
+					manager_organization_object = get_organization_root()
+
+				organization_identify.manager_organization = manager_organization_object
+				organization_identify.save()
+				organization_user_object = OrganizationUser(organization=organization_identify, user=user, permission=0)
+				organization_user_object.save()
+				return True
+			else:
+				if not is_organization_administrator(user_id, organization_identify.identify):
+					return False
+				if organization_identify.manager_organization is not None and not is_organization_administrator(user_id, organization_identify.manager_organization.identify):
+					return False
+
+				manager_organization_object = __get_organization_by_id(organization_identify.manager_organization)
+				if manager_organization_object is None:
+					manager_organization_object = get_organization_root()
+
+				organization_identify.manager_organization = manager_organization_object
+				organization_identify.save()
+				return True
+	except Exception, e:
+		print e
+	return False
 
 # QLTC - Tạo một tổ chức
 def create_organization(user_id, identify, name, organization_type_id):
@@ -628,6 +675,7 @@ def get_all_manage_organizations(user_id):
 	try: 
 		user = __get_user_by_id(user_id)
 		organization_user_list = OrganizationUser.objects.filter(user=user, permission__lte=1)
+
 		identifies = []
 		for obj in organization_user_list:
 			identifies += __scan_get_all_manage_organizations_by_id(obj.organization.identify)
@@ -720,12 +768,20 @@ def get_all_user_in_user_managed_organization(user_id, organization_id):
 	if not is_organization_manager(user_id, organization_id):
 		return None
 	organization = __get_organization_by_id(organization_id)
+
 	organization_list = get_all_manage_organizations(organization.identify)
+
 	organization_user_list = OrganizationUser.objects.filter(organization__in=organization_list)
 
 	ids = []
 	for obj in organization_user_list:
 		ids.append(obj.user.identify)
+
+	organization_user_list = OrganizationUser.objects.filter(organization=organization)
+
+	for obj in organization_user_list:
+		ids.append(obj.user.identify)
+
 
 	user_list = User.objects.filter(identify__in=ids)
 
@@ -757,8 +813,19 @@ def add_organization_user(manager_id, organization_id, user_id, permission=2):
 
 	user = __get_user_by_id(user_id)
 	if user is not None:
-		organization_user_object = OrganizationUser(organization=organization_id, user=user, permission=permission)
-		organization_user_object.save()
+		organization = __get_organization_by_id(organization_id)
+	
+
+
+		try:
+			organization_user_object = OrganizationUser(organization=organization, user=user, permission=permission)
+			organization_user_object.save()
+		except:
+			pass
+
+
+
+
 		return True
 
 	return False
@@ -785,7 +852,7 @@ def __get_organization_tuple_table(organization):
 
 
 
-# QLTC - Thêm một hoạt động vào tổ chức
+# QLTC - Thêm một hoạt động trong tổ chức
 def set_organization_activity(	
 	user_id,
 	organization_id,
@@ -807,73 +874,62 @@ def set_organization_activity(
 		organization = __get_organization_by_id(organization_id)
 		user = __get_user_by_id(user_id)
 
-		activity_object = __get_activity_by_id(identify)
+		activity_object = __get_activity_by_id(activity_identify)
 		activity_type = __get_activity_type_by_id(activity_type)
 
-		if activity_object is None:
-			activity_object = Activity(	
-				identify=activity_identify, 
-				name=activity_name,
-				activity_type=activity_type,
-				organization=organization,
-				description=description,
-				start_time=start_time,
-				end_time=end_time,
-				register_start_time=register_start_time,
-				register_end_time=register_end_time,
-				register_state=register_state,
-				published=published)
-			activity_object.save()
-			activity_user_permisstion_object = ActivityUserPermission(user=user, activity=activity_object, permission=0)
-			activity_user_permisstion_object.save()
-			return True
-		else:
-			if is_activity_administrator(user_id, activity_id):
-				activity_object.name = activity_name
-				activity_object.activity_type = activity_type
-				activity_object.organization = description
-				activity_object.description = details
-				activity_object.start_time = start_time
-				activity_object.end_time = end_time
-				activity_object.register_start_time = register_start_time
-				activity_object.register_end_time = register_end_time
-				activity_object.register_state = register_state
-				activity_object.published = published
+		object_type = type(activity_identify)
+		if object_type is str or object_type is unicode:
+			if activity_object is None:
+				activity_object = Activity(	
+					identify=activity_identify, 
+					name=activity_name,
+					activity_type=activity_type,
+					organization=organization,
+					description=description,
+					start_time=start_time,
+					end_time=end_time,
+					register_start_time=register_start_time,
+					register_end_time=register_end_time,
+					register_state=register_state,
+					published=published)
 				activity_object.save()
+				activity_user_permisstion_object = ActivityUserPermission(user=user, activity=activity_object, permission=0)
+				activity_user_permisstion_object.save()
 				return True
+			else:
+				if is_activity_administrator(user_id, activity_id):
+					activity_object.name = activity_name
+					activity_object.activity_type = activity_type
+					activity_object.organization = description
+					activity_object.description = details
+					activity_object.start_time = start_time
+					activity_object.end_time = end_time
+					activity_object.register_start_time = register_start_time
+					activity_object.register_end_time = register_end_time
+					activity_object.register_state = register_state
+					activity_object.published = published
+					activity_object.save()
+					return True
+		else:
+			organization = __get_organization_by_id(organization_id)
+			activity_object = __get_activity_by_id(activity_identify.identify)
+
+			if activity_object is None:
+				activity_identify.organization = organization
+				activity_identify.save()
+
+				user = __get_user_by_id(user_id)
+				activity_user_permisstion_object = ActivityUserPermission(user=user, activity=activity_identify, permission=0)
+				activity_user_permisstion_object.save()
+				return True
+			else:
+				if is_activity_administrator(user_id, activity_id):
+					activity_identify.save()
+					return True
 	except Exception, e:
 		print e
 		
 	return False
-
-
-
-# QLTC - Thêm một hoạt động vào tổ chức
-def set_organization_activity(user_id, organization_id, activity_object):
-	if not is_organization_manager(user_id, organization_id):
-		return False
-
-	try:
-		organization = __get_organization_by_id(organization_id)
-		activity_object = __get_activity_by_id(activity_object.identify)
-
-		if activity_object is None:
-			activity_object.organization = organization
-			activity_object.save()
-
-			user = __get_user_by_id(user_id)
-			activity_user_permisstion_object = ActivityUserPermission(user=user, activity=activity_object, permission=0)
-			activity_user_permisstion_object.save()
-			return True
-		else:
-			if is_activity_administrator(user_id, activity_id):
-				activity_object.save()
-				return True
-	except Exception, e:
-		print e
-		
-	return False
-
 
 
 # QLTC - Lấy Organization model
@@ -884,12 +940,8 @@ def get_organization_model():
 
 # Lấy danh sách hoạt động trong một tổ chức
 def get_organization_activity_list(user_id, organization_id):
-	organization_activity_list = None
 	organization = __get_organization_by_id(organization_id)
-	return Activity.objects.filter(organization=organization)
-
-	return objects
-
+	return Activity.objects.all().filter(organization=organization)
 #endregion
 
 
@@ -915,7 +967,41 @@ def __get_activity_type_by_id(activity_type_id):
 
 
 
-# QLLTC - Tạo một loại tổ chức
+# QLLTC - Lấy một loại tổ chức
+def get_organization_type(user_id, organization_type_id):
+	if is_super_administrator_id(user_id):
+		return __get_organization_type_by_id(organization_type_id)
+	return None
+
+
+
+# QLLTC - Tạo/Sửa một loại tổ chức
+def set_activity_type(user_id, activity_type_identify, name=None):
+	if not is_super_administrator_id(user_id):
+		return False
+	try:
+		object_type = type(activity_type_identify)
+		if object_type is str or object_type is unicode:
+			activity_type_object = __get_activity_type_by_id(activity_type_identify)
+			if activity_type_object is None:
+				activity_type_object = ActivityType(identify=activity_type_identify, name=name)
+				activity_type_object.save()
+				return True
+			else:
+				return False
+		else:
+			activity_type_object = __get_activity_type_by_id(activity_type_identify.identify)
+			if activity_type_object is None:
+				activity_type_object.save()
+				return True
+		
+	except Exception, e:
+		print e
+
+	return False
+
+
+
 def create_activity_type(user_id, identify, name, management_level):
 	if is_super_administrator_id(user_id):
 		try:
@@ -928,10 +1014,6 @@ def create_activity_type(user_id, identify, name, management_level):
 
 
 
-# QLLTC - Lấy một loại tổ chức
-def get_organization_type(activity_type_id):
-
-	return __get_activity_type_by_id(activity_type_id)
 
 
 
@@ -951,21 +1033,26 @@ def delete_organization_type(user_id, organization_type_id):
 #endregion
 
 
+
+# region QLLHD - Quản lý loại hoạt động
+
+
+
+# QLLHD - Lấy ActivityType model
+def get_activity_type_model():
+	return ActivityType
+
+	
+#endregion
+
+
+
 #region QLHD - Quản lý hoạt động
 
 
 
 # QLHD - Lấy một hoạt đông 
 def __get_activity_by_id(activity_id):
-	# if type(activity_id) is int:
-	# 	# Trường hợp 1: Nếu mã là mã số dòng trên CSDL của người dùng
-	# 	try:
-	# 		return Activity.objects.get(id=activity_id)
-	# 	except:
-	# 		pass
-	# else:
-	# if type(activity_id) is str or type(activity_id) is unicode:
-	# Trường hợp 2: Nếu mã là mã định danh của người dùng
 	try:
 		return Activity.objects.get(identify=activity_id)
 	except:

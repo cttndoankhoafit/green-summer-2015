@@ -240,3 +240,31 @@ class ActivityUpdateView(BaseActivityUpdateView):
 
 		except:
 			raise Http404('Activity does not exist!')
+
+
+class ActivityMemberImportView(BaseImportView):
+	template_name = 'v1/import.html'
+
+	CONST_FIELDS = ['activity_identify', 'user_identify']
+	
+	def get_success_url(self):
+		return reverse('organization_tree_view_v1')
+
+	def input_row(self, row):
+		try:
+			for field in self.CONST_FIELDS:
+				print row[field]
+		except Exception as e:
+			return e
+		
+		identify = row['identify']
+		name = row['name']
+		organization_type = row['organization_type']
+
+		create_organization_by_infomation(	self.request.session['user_id'],
+											identify,
+											name,
+											organization_type	)
+
+		print '-------------'
+		return 'ok'

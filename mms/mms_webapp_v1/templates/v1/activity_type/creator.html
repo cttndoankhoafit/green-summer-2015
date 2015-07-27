@@ -1,0 +1,19 @@
+{% extends 'v1/organization_type/base.html' %}
+
+{% block activity_type_page_content %}
+<form role="form" method="post">
+	{% csrf_token %}
+	<div class="row">
+		<div class="form-group col-md-6">
+			<label class="control-label">Mã loại hoạt động</label>
+			{{ form.identify }}
+			{{ form.identify.errors }}
+		</div>
+	</div>
+	{% include 'v1/activity_type/editor.html' %}
+	<div class="margin-top-10">
+		<input type="submit" class="btn green" value="Thêm">
+		<a class="btn default" href="{% url 'activity_type_list_view_v1' %}">Hủy bỏ</a>
+	</div>
+</form>
+{% endblock %}

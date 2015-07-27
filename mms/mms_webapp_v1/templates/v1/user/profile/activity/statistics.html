@@ -1,0 +1,120 @@
+{% extends 'v1/user/profile/activity/base.html' %}
+
+{% load staticfiles %}
+
+{% block page_level_styles %}
+	{{ block.super }}
+	<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/bootstrap-datepicker/css/datepicker3.css" %}"/>
+	<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/bootstrap-datepicker/css/datepicker.css" %}"/>
+	<link href="{% static "v1/assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.css" %}" rel="stylesheet" type="text/css"/>
+	<link href="{% static "v1/assets/admin/pages/css/profile.css" %}" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+{% block page_level_plugins_scripts %}
+	{{ block.super }}
+	<script type="text/javascript" src="{% static "v1/assets/global/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js" %}"></script>
+	<script type="text/javascript" src="{% static "v1/assets/global/plugins/flot/jquery.flot.min.js" %}"></script>
+	<script type="text/javascript" src="{% static "v1/assets/global/plugins/flot/jquery.flot.resize.min.js" %}"></script>
+	<script type="text/javascript" src="{% static "v1/assets/global/plugins/flot/jquery.flot.pie.min.js" %}"></script>
+	<script type="text/javascript" src="{% static "v1/assets/global/plugins/flot/jquery.flot.stack.min.js" %}"></script>
+	<script type="text/javascript" src="{% static "v1/assets/global/plugins/flot/jquery.flot.crosshair.min.js" %}"></script>
+	<script type="text/javascript" src="{% static "v1/assets/global/plugins/flot/jquery.flot.categories.min.js" %}"></script>
+{% endblock %}
+
+
+{% block page_level_scripts %}
+{{ block.super }}
+<script src="{% static "v1/assets/admin/pages/scripts/date-picker.js" %}"></script>
+{% endblock %}
+
+{% block init_scripts %}
+	DatePicker.init();
+{% endblock %}
+
+
+{% block other_scripts %}
+{{ block.super }}
+<script type="text/javascript">
+
+	var data = [
+		{ label: "Nhận thức",  data: 11},
+		{ label: "Hành động",  data: 6},
+	];
+
+	$.plot($("#pie_chart"), data, {
+		series: {
+			pie: {
+				show: true
+			}
+		}
+	});
+
+	var data1 = [
+		[1, 2], [2, 3], [3, 1], [4, 2], [5, 4]
+	];
+
+	var options = {
+		series:{
+			bars:{show: true}
+		},
+		bars:{
+			horizontal:false,
+			barWidth:1,
+			lineWidth: 0, // in pixels
+			shadowSize: 0,
+			align: 'left'
+		},
+		grid:{
+			tickColor: "#eee",
+			borderColor: "#eee",
+			borderWidth: 1
+		}
+	};
+
+	$.plot($("#chart_1_2"), [data1], options);
+</script>
+{% endblock %}
+
+
+{% block stastitics_active %}
+active
+{% endblock %}
+
+{% block activity_tab_content %}
+<form>
+	<div class="row">
+		<div class="form-group col-md-4">
+			<div class="input-group date date-picker margin-bottom-5" data-date-format="mm/dd/yyyy">
+				<input class="form-control" id="id_date_from" name="date_from" readonly="1" type="text" placeholder="Từ ngày:">
+				<span class="input-group-btn">
+					<button class="btn default" type="button"><i class="fa fa-calendar"></i></button>
+				</span>
+			</div>
+			<div class="input-group date date-picker margin-bottom-5" data-date-format="mm/dd/yyyy">
+				<input class="form-control" id="id_date_to" name="date_to" readonly="1" type="text" placeholder="Đến ngày">
+				<span class="input-group-btn">
+					<button class="btn default" type="button"><i class="fa fa-calendar"></i></button>
+				</span>
+			</div>
+		</div>
+		<div class="form-group col-md-4">
+			<input type="submit" class="btn green" value="Xem">
+		</div>		
+	</div>
+	<div class="row">
+																								
+		<div class="col-md-6">
+			<h3>Tỉ lệ tham gia hoạt động</h3>
+			<hr>
+			<div id="pie_chart" class="chart">
+			</div>
+		</div>							
+		<div class="col-md-6">
+			<h3>Tần suất tham gia hoạt động</h3>
+			<hr>
+			<div id="chart_1_2" class="chart">
+			</div>
+		</div>
+	</div>
+</form>
+{% endblock %}

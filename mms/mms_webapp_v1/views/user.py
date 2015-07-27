@@ -4,7 +4,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.utils.html import mark_safe
-from django.views.generic import ListView, UpdateView, CreateView, DetailView, FormView, View
+from django.views.generic import ListView, UpdateView, CreateView, DetailView, FormView, View, TemplateView
 
 from mms_controller.resources_temp import *
 
@@ -67,19 +67,32 @@ class UserDetailView(BaseUserView, DetailView):
 
 # Khung nhìn xem các hoạt động của một người dùng bất kỳ
 # URL: user/user=<user_id>/activity/
-class UserActivityListView(BaseUserView, ListView):
-	template_name = 'v1/user/profile/activity/list.html'
+class UserActivityView(BaseUserView, ListView):
+	template_name = 'v1/user/profile/activity.html'
 
 	def get_context_data(self, **kwargs):
 		if not can_get_user(self.get_user_id(), self.get_user_account_id()):
 			raise PermissionDenied
 			
-		context = super(UserActivityListView, self).get_context_data(**kwargs)
+		context = super(UserActivityView, self).get_context_data(**kwargs)
 
 		return context
 
 	def get_queryset(self):
 		return get_user_activity_list(self.get_user_id(), self.get_user_account_id())
+
+
+
+class UserActivityStatisticsView(BaseUserView, TemplateView):
+	template_name = 'v1/user/profile/activity/statistics.html'
+
+	def get_context_data(self, **kwargs):
+		if not can_get_user(self.get_user_id(), self.get_user_account_id()):
+			raise PermissionDenied
+			
+		context = super(UserActivityStatisticsView, self).get_context_data(**kwargs)
+
+		return context
 
 
 
@@ -261,12 +274,15 @@ class UserCreateView(CreateView, UserFormView):
 # Khung nhìn lấy danh sách người dùng dành cho người quản trị hệ thống
 # URL: user/list/
 class UserListView(ListView, FormView):
-	template_name = 'v1/list.html'
+	template_name = 'v1/static_pages/list.html'
 	paginate_by = '20'
 
 	can_set = False
 	
 	def get_context_data(self, **kwargs):
+		if not is_super_administrator_id(self.request.session['user_id']):
+			raise PermissionDenied
+
 		context = super(UserListView, self).get_context_data(**kwargs)
 
 		context['title'] = u'Danh sách tài khoản'
@@ -275,21 +291,20 @@ class UserListView(ListView, FormView):
 		context['user_active'] = 'active'
 		context['user_list_active'] = 'active'
 
-		context['theads'] = [	{'name': u'Mã số', 'size' : '20%'},
-								{'name': u'Họ và Tên', 'size' : 'auto'},
-								{'name': '', 'size' : '8%'},	]
+		context['theads'] = [	{'name': u'#', 'size' : '10%'},
+								{'name': u'Họ và Tên', 'size' : 'auto'},	]
 
 		context['add_link'] = '/user/create/'
 		context['import_link'] = '/user/import/'
 
-		context['can_set_list'] = 1
+		context['show_add_button'] = 1
+		context['show_delete_button'] = 1
+		context['show_import_button'] = 1
+		context['show_checkbox'] = 1
 
 		return context
 
-	def get_queryset(self):
-		if not is_super_administrator_id(self.request.session['user_id']):
-			raise PermissionDenied
-				
+	def get_queryset(self):				
 		user_list = get_user_list(self.request.session['user_id'])
 
 		objects = []
@@ -298,10 +313,8 @@ class UserListView(ListView, FormView):
 				values = []	
 				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="%s" name="list"/>' % obj.identify))
 				values.append(obj.identify)
-				values.append(obj.get_full_name())
-				values.append(mark_safe(u'<a href="/user/user=%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.identify)))
+				values.append(mark_safe(u'<a href="/user/user=%s">%s</a>' % (obj.identify, obj.get_full_name())))
 				objects.append(values)
-
 		return objects
 
 	def post(self, request, *args, **kwargs):
