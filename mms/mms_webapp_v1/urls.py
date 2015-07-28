@@ -7,6 +7,7 @@ from mms_webapp_v1.views.organization_temporary.views import *
 from mms_webapp_v1.views.user import *
 from mms_webapp_v1.views.activity import *
 from mms_webapp_v1.views.activity_type import *
+from mms_webapp_v1.views.renluyendoanvien import *
 
 from mms_webapp_v1.views.auth import LoginView, LogoutView
 from mms_webapp_v1.views.dashboard import DashboardView
@@ -119,5 +120,9 @@ urlpatterns = [
 	# url(r'^user/(?P<user_id>[0-9]+)/organization/$', UserOrganizationView.as_view(), name='user_organization_view_v1'),
 	# url(r'^user/(?P<user_id>[0-9]+)/member/$', UserMemberListView.as_view(), name='user_member_list_view'),
 	# url(r'^user/(?P<user_id>[0-9]+)/activity/$', UserActivityListView.as_view(), name='user_activity_list_view'),
+
+	url(r'^renluyendoanvien/tudanhgia/$', login_required(RenLuyenDoanVien_TuDanhGia_ListView.as_view()), name='renluyendoanvien_tudanhgia_view_v1'),
+	url(r'^renluyendoanvien/ketquadanhgia/$', login_required(RenLuyenDoanVien_KetquaDanhGia_ListView.as_view()), name='renluyendoanvien_ketquadanhgia_view_v1'),
+	url(r'^renluyendoanvien/danhgiadoanvien/user=(?P<user_id>\w+)$', login_required(RenLuyenDoanVien_DanhGiaDoanVien_ListView.as_view()), name='renluyendoanvien_danhgiadoanvien_view_v1'),
 
 ]

@@ -208,7 +208,7 @@
 					</ul>
 				</li>
 
-				<li>
+				<li class="{{ renluyendoanvien_active }}">
 					<a href="javascript:;">
 					<i class="icon-basket"></i>
 					<span class="title">Rèn luyện Đoàn viên</span>
@@ -230,14 +230,14 @@
 							<i class="icon-tag"></i>
 							Lịch sử đăng ký</a>
 						</li>
-						<li>
-							<a href="ecommerce_products.html">
+						<li class="{{ renluyendoanvien_tudanhgia_active }}">
+							<a href="{% url 'renluyendoanvien_tudanhgia_view_v1' %}">
 							<i class="icon-handbag"></i>
 							Tự đánh giá</a>
 						</li>
-						<li>
-							<a href="ecommerce_products_edit.html">
-							<i class="icon-pencil"></i>
+						<li class="{{ renluyendoanvien_ketquadanhgia_active }}">
+							<a href="{% url 'renluyendoanvien_ketquadanhgia_view_v1' %}">
+							<i class="icon-handbag"></i>
 							Kết quả đánh giá</a>
 						</li>
 					</ul>
