@@ -307,6 +307,9 @@ class ActivityUser(models.Model):
 	state = models.PositiveSmallIntegerField(u'Trạng thái', null=True, choices=CONST_STATES, default=3)
 	note = models.CharField(max_length=200, null=True, blank=True, default=None)
 
+	class Meta:
+		unique_together = ('user', 'activity')
+	
 	def __unicode__(self):
 		return self.activity.name + ' - ' + self.user.identify + ' - ' + self.CONST_STATES[self.state][1]
 
