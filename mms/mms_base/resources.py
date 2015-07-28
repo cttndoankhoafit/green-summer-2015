@@ -107,7 +107,7 @@ def	get_user(user_identify, accessed_user_identify):
 # - Người dùng truy cập là người dùng bị truy cập
 def set_user(
 		user_identify,
-		identify,
+		obj,
 		first_name=None,
 		last_name=None,
 		gender=None,
@@ -146,13 +146,13 @@ def set_user(
 		contact_person_note=None
 	):
 
-	identify_type = type(identify)	
+	identify_type = type(obj)	
 	try:
 		if identify_type is str or identify_type is unicode: 
-			user = __get_user(identify)
+			user = __get_user(obj)
 			if user is None and is_super_administrator(user_identify):
 				user = User(
-						identify=identify,
+						identify = obj,
 						first_name = first_name,
 						last_name = last_name,
 						gender = gender,
@@ -193,7 +193,7 @@ def set_user(
 				user.set_password(user.identify)
 				user.save()
 				return True
-			elif can_get_user(user_identify, identify):
+			elif can_get_user(user_identify, obj.identify):
 				user.first_name = first_name
 				user.last_name = last_name
 				user.gender = gender
@@ -527,7 +527,7 @@ def get_organization(organization_identify):
 # - Người dùng phải là một quản trị tổ chức
 def set_organization(
 		user_identify,
-		identify,
+		obj,
 		name = None,
 		organization_type_identify = None,
 		management_organization_identify = None
@@ -536,7 +536,7 @@ def set_organization(
 	if not is_organization_administrator(user_identify):
 		return False
 	try:
-		object_type = type(identify)
+		object_type = type(obj)
 		user = __get_user(user_identify)
 		if object_type is str or object_type is unicode:
 			organization_type_object = __get_organization_type(organization_type_identify)
@@ -548,11 +548,11 @@ def set_organization(
 			if management_organization_object is None:
 				management_organization_object = get_organization_root()
 			
-			organization_object = __get_organization(identify)
+			organization_object = __get_organization(obj)
 
 			if organization_object is None:
 				organization_object = Organization(
-											identify = identify,
+											identify = obj,
 											name = name,
 											organization_type = organization_type_object,
 											management_organization = management_organization_object
@@ -573,37 +573,37 @@ def set_organization(
 				organization_object.save()
 				return True
 		else:
-			organization_object = __get_organization(identify.identify)
+			organization_object = __get_organization(obj.identify)
 			
 			if organization_object is None:
 
-				management_organization_object = identify.management_organization
+				management_organization_object = obj.management_organization
 
-				if management_organization_object is not None and not is_organization_administrator(user_identify, management_organization_object.identify) and not is_child_organization_type(management_organization_object.organization_type.identify, identify.organization_type.identify):
+				if management_organization_object is not None and not is_organization_administrator(user_identify, management_organization_object.identify) and not is_child_organization_type(management_organization_object.organization_type.identify, obj.organization_type.identify):
 					return False
 
 				if management_organization_object is None:
 					management_organization_object = get_organization_root()
 
-				identify.management_organization = management_organization_object
-				identify.save()
+				obj.management_organization = management_organization_object
+				obj.save()
 
-				organization_user_object = OrganizationUser(organization=identify, user=user, permission=0)
+				organization_user_object = OrganizationUser(organization=obj, user=user, permission=0)
 				organization_user_object.save()
 
 				return True
-			elif is_organization_administrator(user_identify, identify.identify):
+			elif is_organization_administrator(user_identify, obj.identify):
 
-				management_organization_object = identify.management_organization
+				management_organization_object = obj.management_organization
 
-				if management_organization_object is not None and not is_organization_administrator(user_identify, management_organization_object.identify) and not is_child_organization_type(management_organization_object.organization_type.identify, identify.organization_type.identify):
+				if management_organization_object is not None and not is_organization_administrator(user_identify, management_organization_object.identify) and not is_child_organization_type(management_organization_object.organization_type.identify, obj.organization_type.identify):
 					return False
 
 				if management_organization_object is None:
 					management_organization_object = get_organization_root()
 
-				identify.management_organization = management_organization_object
-				identify.save()
+				obj.management_organization = management_organization_object
+				obj.save()
 				return True
 	except Exception, e:
 		print e
@@ -812,6 +812,12 @@ def set_organization_user(
 
 	return False
 
+
+
+#endregion
+
+
+#region Quản lý loại hoạt động
 
 
 #endregion
