@@ -49,6 +49,7 @@ class Migration(migrations.Migration):
             name='Activity',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('identify', models.CharField(unique=True, max_length=50, db_index=True)),
                 ('name', models.CharField(max_length=128, verbose_name='T\xean ho\u1ea1t \u0111\u1ed9ng')),
                 ('start_time', models.DateTimeField(default=None, null=True, blank=True)),
                 ('end_time', models.DateTimeField(default=None, null=True, blank=True)),
@@ -56,14 +57,9 @@ class Migration(migrations.Migration):
                 ('register_end_time', models.DateTimeField(default=None, null=True, blank=True)),
                 ('register_state', models.PositiveSmallIntegerField(default=3, null=True, choices=[(0, '\u0110\u0103ng k\xfd tham gia'), (1, '\u0110\u0103ng k\xfd r\xe8n luy\u1ec7n \u0110o\xe0n vi\xean'), (2, '\u0110\u0103ng k\xfd r\xe8n luy\u1ec7n H\u1ed9i vi\xean'), (3, 'Ho\xe3n \u0111\u0103ng k\xfd')])),
                 ('published', models.BooleanField(default=False)),
-                ('details', models.CharField(default=None, max_length=2048, null=True, blank=True)),
-            ],
-        ),
-        migrations.CreateModel(
-            name='ActivityOrganization',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('activity', models.ForeignKey(to='mms_backoffice.Activity')),
+                ('credits', models.DecimalField(default=0, max_digits=8, decimal_places=4)),
+                ('score', models.DecimalField(default=0, max_digits=8, decimal_places=4)),
+                ('description', models.CharField(default=None, max_length=2048, null=True, blank=True)),
             ],
         ),
         migrations.CreateModel(
@@ -78,7 +74,16 @@ class Migration(migrations.Migration):
             name='ActivityUser',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('state', models.PositiveSmallIntegerField(default=7, null=True, verbose_name='Tr\u1ea1ng th\xe1i', choices=[(0, 'Qu\u1ea3n tr\u1ecb'), (1, '\u0110i\u1ec1u h\xe0nh'), (2, 'C\u1ed9ng t\xe1c vi\xean'), (3, '\u0110\xe3 tham gia'), (4, '\u0110\xe3 \u0111\u0103ng k\xfd'), (5, 'R\xe8n luy\u1ec7n \u0110o\xe0n vi\xean'), (6, 'R\xe8n luy\u1ec7n H\u1ed9i vi\xean'), (7, 'Kh\xf4ng tham gia')])),
+                ('state', models.PositiveSmallIntegerField(default=6, null=True, verbose_name='Tr\u1ea1ng th\xe1i', choices=[(0, 'Ban t\u1ed5 ch\u1ee9c'), (1, 'C\u1ed9ng t\xe1c vi\xean'), (2, '\u0110\xe3 tham gia'), (3, '\u0110\xe3 \u0111\u0103ng k\xfd'), (4, 'R\xe8n luy\u1ec7n \u0110o\xe0n vi\xean'), (5, 'R\xe8n luy\u1ec7n H\u1ed9i vi\xean'), (6, 'Kh\xf4ng tham gia')])),
+                ('activity', models.ForeignKey(to='mms_backoffice.Activity')),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ActivityUserPermission',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('permission', models.PositiveSmallIntegerField(default=2, null=True, choices=[(0, 'Ch\u1ec9nh s\u1eeda th\xf4ng tin'), (1, 'Xem th\xf4ng tin'), (2, 'Kh\xf4ng c\xf3 quy\u1ec1n truy c\u1eadp')])),
                 ('activity', models.ForeignKey(to='mms_backoffice.Activity')),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
@@ -91,6 +96,14 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=128, verbose_name='T\xean t\u1ed5 ch\u1ee9c')),
                 ('details', models.CharField(default=None, max_length=2048, null=True, blank=True)),
                 ('manager_organization', models.ForeignKey(default=None, blank=True, to='mms_backoffice.Organization', null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='OrganizationPosition',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('position_name', models.CharField(default=None, max_length=100, null=True, blank=True)),
+                ('quantity', models.PositiveIntegerField(default=0)),
             ],
         ),
         migrations.CreateModel(
@@ -107,11 +120,17 @@ class Migration(migrations.Migration):
             name='OrganizationUser',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('state', models.PositiveSmallIntegerField(default=3, null=True, choices=[(0, 'Qu\u1ea3n tr\u1ecb ch\xednh'), (1, 'Qu\u1ea3n tr\u1ecb'), (2, '\u0110i\u1ec1u h\xe0nh'), (3, 'Th\xe0nh vi\xean')])),
+                ('permission', models.PositiveSmallIntegerField(default=2, null=True, choices=[(0, 'Ch\u1ec9nh s\u1eeda th\xf4ng tin'), (1, 'Xem th\xf4ng tin'), (2, 'Kh\xf4ng c\xf3 quy\u1ec1n truy c\u1eadp')])),
                 ('details', models.CharField(default=None, max_length=2048, null=True, blank=True)),
                 ('organization', models.ForeignKey(to='mms_backoffice.Organization')),
+                ('position', models.ForeignKey(default=None, blank=True, to='mms_backoffice.OrganizationPosition', null=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
+        ),
+        migrations.AddField(
+            model_name='organizationposition',
+            name='organization_type',
+            field=models.ForeignKey(to='mms_backoffice.OrganizationType'),
         ),
         migrations.AddField(
             model_name='organization',
@@ -119,25 +138,17 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(default=None, to='mms_backoffice.OrganizationType', null=True),
         ),
         migrations.AddField(
-            model_name='activityorganization',
-            name='organization',
-            field=models.ForeignKey(to='mms_backoffice.Organization'),
-        ),
-        migrations.AddField(
             model_name='activity',
             name='activity_type',
             field=models.ForeignKey(to='mms_backoffice.ActivityType'),
         ),
+        migrations.AddField(
+            model_name='activity',
+            name='organization',
+            field=models.ForeignKey(to='mms_backoffice.Organization'),
+        ),
         migrations.AlterUniqueTogether(
             name='organizationuser',
             unique_together=set([('organization', 'user')]),
-        ),
-        migrations.AlterUniqueTogether(
-            name='activityuser',
-            unique_together=set([('user', 'activity', 'state')]),
-        ),
-        migrations.AlterUniqueTogether(
-            name='activityorganization',
-            unique_together=set([('activity', 'organization')]),
         ),
     ]

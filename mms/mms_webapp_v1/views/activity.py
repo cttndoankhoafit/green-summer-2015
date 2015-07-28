@@ -13,7 +13,7 @@ from mms_webapp_v1.views.bases.file import *
 from mms_controller.resources.activity import *
 from mms_controller.resources_temp import *
 
-from mms_webapp_v1.forms.activity import ActivityForm
+#from mms_webapp_v1.forms.activity import ActivityForm
 
 
 class BaseActivityView(View):
@@ -163,7 +163,7 @@ class BaseActivityFormView(BaseSuccessMessageMixin, FormView):
 class ActivityCreateView(CreateView, BaseActivityFormView):
 	model = Activity
 
-	form_class = ActivityForm
+#	form_class = ActivityForm
 
 	template_name = 'v1/activity/activity_create.html'
 
