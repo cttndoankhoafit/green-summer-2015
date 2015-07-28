@@ -373,7 +373,12 @@ def get_organization_type_model():
 
 
 #region Quản lý chức vụ theo loại tổ chức (OrganizationTypePosition model)
-
+def __get_organization_type_position(organization_type_position_identify):
+	try:
+		return OrganizationTypePosition.objects.get(identify=organization_type_position_identify)
+	except Exception, e:
+		print e
+	return None
 #endregion
 
 
@@ -622,7 +627,7 @@ def get_paticipate_organizations(user_identify):
 
 # Duyệt lấy tất cả các tổ chức được quản lý (Khai báo cơ bản, không sử dụng)
 def __scan_get_all_manage_organizations(organization_identify):
-	organization = __get_organization_by_id(organization_identify)
+	organization = __get_organization(organization_identify)
 	organization_list = Organization.objects.filter(management_organization=organization)
 	objects = []
 	for obj in organization_list:
@@ -646,20 +651,6 @@ def get_all_manage_organizations(user_identify):
 	return None
 
 
-# Lấy danh sách tất cả các tổ chức mà một người dùng quản trị
-def get_all_administrate_organizations(user_identify):
-	try: 
-		organization_user_list = __get_organization_user(user_identify, None, 0)
-
-		identifies = []
-		for obj in organization_user_list:
-			identifies += __scan_get_all_manage_organizations(obj.organization.identify)
-		return Organization.objects.all().filter(identify__in=identifies)
-	except Exception, e:
-		print e
-	return None
-
-
 # Lấy danh sách tất cả các tổ chức
 def get_organization_list():
 
@@ -667,9 +658,9 @@ def get_organization_list():
 
 
 # Lấy một bảng danh sách tổ chức dưới dạng cây (bao gồm các tổ chức con)
-def get_organization_tuple_table(user_identify, organization_identify=None):
+def get_organization_tuple_table(organization_identify=None):
 	organization = None
-	if organization_id is None:
+	if organization_identify is None:
 		organization = get_organization_root()
 	else:	
 		organization = __get_organization(organization_identify)
@@ -696,17 +687,131 @@ def get_organization_model():
 
 
 #region Quản lý thành viên trong tổ chức
+
+
+# Lấy thông tin thành viên trong tổ chức (Khai báo cơ bản, không sử dụng)
+# Kết quả trả về:
+# - Không có mã tổ chức:
+# 	+ Quyền hạn không hợp lệ: Danh sách tổ chức mà thành viên tham gia (OrganizationUser)
+#	+ Quyền hạn hợp lệ: Danh sách tổ chức mà thành viên tham gia với quyền hạn được cấp (OrganizationUser)
+# - Có mã tổ chức:
+#	+ Quyền hạn không hợp lệ: Một đối tượng kiểu OrganizationModel phù hợp với truy vấn với 2 giá trị thành viên và tổ chức
+#	+ Quyền hạn hợp lệ: Một đối tượng kiểu OrganizationModel phù hợp với truy vấn với 3 giá trị: thành viên, tổ chức và quyền hạn
 def __get_organization_user(user_identify, organization_identify = None, permission=3):
-	if user_identify is None:
-		return None
-	if organization_identify is None:
+	try:
+		if user_identify is None:
+			if organization_identify is None:
+				return None
+			return OrganizationUser.objects.filter(organization=__get_organization(organization_identify))
+
+		if organization_identify is None:
+			if permission > 2:
+				return OrganizationUser.objects.filter(user=__get_user(user_identify))
+			else:
+				return OrganizationUser.objects.filter(user=__get_user(user_identify), permission=permission)
+
 		if permission > 2:
-			return OrganizationUser.objects.filter(user=__get_user(user_identify))
+			return OrganizationUser.objects.get(user=__get_user(user_identify), organization=__get_organization(organization_identify))	
+		
+		return OrganizationUser.objects.get(user=__get_user(user_identify), organization=__get_organization(organization_identify), permission=permission)
+	except Exception, e:
+		print e
+	return None
+
+
+# Lấy danh sách tất cả các thành viên trong tổ chức (bao gồm các tổ chức con)
+# Điều kiện:
+# - Người truy cập phải là người quản lý tổ chức
+def get_organization_user_list(user_identify, organization_identify):
+	if not is_organization_manager(user_identify, organization_identify):
+		return None
+
+	organization_list = get_all_manage_organizations(organization_identify)
+	organization_user_list = OrganizationUser.objects.filter(organization__in=organization_list)
+
+	ids = []
+	for obj in organization_user_list:
+		ids.append(obj.user.identify)
+
+	organization_user_list = __get_organization_user(None, organization_identify)
+
+	for obj in organization_user_list:
+		ids.append(obj.user.identify)
+
+	user_list = User.objects.filter(identify__in=ids)
+
+	return user_list
+
+
+# Thêm/sửa thông tin tham gia tổ chức của các thành viên
+# Điều kiện thực hiện:
+# - Người truy cập phải là quản trị của tổ chức
+# Đầu vào:
+# - Mã người dùng truy cập
+# - obj:
+#	+ obj là một chuỗi: Hàm có 5 giá trị đầu vào
+#	+ obj là một đối tượng kiểu OrganizationUser: Hàm có 2 giá trị đầu vào
+def set_organization_user(
+		user_identify,
+		obj, 
+		member_identify = None,
+		permission = 2,
+		position_identify = None
+	):
+	if not is_organization_administrator(user_identify):
+		return False
+	objects_type = type(obj)
+	try:
+		if objects_type is str or objects_type is unicode:
+			organization_object = __get_organization(obj)
+			if organization_object is None:
+				return False
+
+			if not is_organization_administrator(user_identify, obj):
+				return False
+
+			user = __get_user(member_identify)
+			if user is None:
+				return False
+
+			position_object = __get_organization_type_position(position_identify)
+
+			if position_object is not None and position_object.organization_type.identify != organization_object.organization_type.identify:
+				return False
+
+			organization_user_object = __get_organization_user(member_identify, obj)
+
+			if organization_user_object is None:
+				organization_user_object = OrganizationUser(
+												organization = organization_object,
+												user = user,
+												permission = permission,
+												position = position_object
+											)
+				organization_user_object.save()
+				return True
+			else:
+				organization_user_object.permission = permission
+				organization_user_object.user = position_object
+				organization_user_object.save()
+				return True
 		else:
-			return OrganizationUser.objects.filter(user=__get_user(user_identify), permission=permission)
-	if permission > 2:
-		return OrganizationUser.objects.get(user=__get_user(user_identify), organization=__get_organization(organization_identify))	
-	return OrganizationUser.objects.get(user=__get_user(user_identify), organization=__get_organization(organization_identify), permission=permission)
+			if not is_organization_administrator(user_identify, obj.organization.identify):
+				return False
+
+			position_object = obj.position
+			if position_object is not None and position_object.organization_type.identify != obj.organization.organization_type.identify:
+				return False
+
+			# organization_user_object = __get_organization_user(obj.user.identify, obj.organization.identify)
+
+			obj.save()
+			return True
+	except Exception, e:
+		print e
+
+	return False
+
 
 
 #endregion

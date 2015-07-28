@@ -216,7 +216,8 @@ class OrganizationType(models.Model):
 
 
 # Các chức vụ có trong một loại tổ chức
-class OrganizationPosition(models.Model):
+class OrganizationTypePosition(models.Model):
+	identify =models.CharField(max_length=50, unique=True, db_index=True)
 	organization_type = models.ForeignKey(OrganizationType)
 	position_name = models.CharField(max_length=100, null=True, blank=True, default=None)
 	quantity = models.PositiveIntegerField(default=0)
@@ -241,7 +242,7 @@ class OrganizationUser(models.Model):
 	organization = models.ForeignKey(Organization)
 	user = models.ForeignKey(User)
 	permission =  models.PositiveSmallIntegerField(null=True, choices=CONST_PERMISSIONS, default=2)
-	position = models.ForeignKey(OrganizationPosition, null=True, blank=True, default=None)
+	position = models.ForeignKey(OrganizationTypePosition, null=True, blank=True, default=None)
 
 	def __unicode__(self):
 		return self.organization.name + ' - ' + self.user.get_full_name()
