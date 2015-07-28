@@ -1101,14 +1101,40 @@ def get_activity_user_list(user_identify, activity_identify):
 
 # Thêm/sửa thành viên tham gia hoạt động
 def set_activity_user(
-		user_identify,
 		obj,
-		member_identify = None,
+		activity_identify = None,
 		permission = 2,
 		state = 3
 	):
+	object_type = type(obj)
 	try:
-		
+		if object_type is str or object_type is unicode:
+			user_object = __get_user(obj)
+			if user_object is None:
+				return False
+
+			activity_object = __get_activity(activity_identify)
+			if activity_object is None:
+				return False
+
+			activity_user_object = __get_activity_user(obj, activity_identify)
+			if activity_user_object is None:
+				activity_user_object = ActivityUser(
+											user = user_object,
+											activity = activity_object,
+											permission = permission,
+											state = state
+										)
+				activity_user_object.save()
+				return True
+			else:
+				activity_user_object.permission = permission
+				activity_user_object.state = state
+				activity_user_object.save()
+				return True
+		else:
+			obj.save()
+			return True
 	except Exception, e:
 		print e
 	return False
