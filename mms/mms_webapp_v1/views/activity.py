@@ -13,6 +13,9 @@ from mms_webapp_v1.views.bases.file import *
 from mms_controller.resources.activity import *
 from mms_controller.resources_temp import *
 
+from mms_base.resources import *
+from datetime import date
+
 #from mms_webapp_v1.forms.activity import ActivityForm
 
 
@@ -79,7 +82,9 @@ class ActivityListView(ListView):
 			values.append(mark_safe(buttons))
 
 			objects.append(values)
+
 		return objects
+
 
 class ActivityDetailView(BaseActivityView, DetailView):
 	template_name = 'v1/activity/activity_overview.html'
@@ -268,3 +273,44 @@ class ActivityMemberImportView(BaseImportView):
 
 		print '-------------'
 		return 'ok'
+
+
+class ActivityListViewWeek(ActivityListView):
+	def get_context_data(self, **kwargs):
+		context = super(ActivityListViewWeek, self).get_context_data(**kwargs)
+		context['title'] = u'Danh sách hoạt động của tuần'
+		context['page_title'] = u'Danh sách hoạt động của tuần'
+		return context
+
+	def get_activity_list(organization):
+		return Activity.objects.filter(organization = organization)	
+
+	def get_query_set(self):
+		organization_list = get_organization_list()
+		activity_list = []
+
+		timenow = datetime.timenow()
+		datetime.timedelta(7)
+
+		for org in organization_list:
+			act = get_activity_list(org)
+			daynow = timenow.days
+			endday =  act.end_time.days
+			startday = act.start_time.days 
+			print daynow
+			if endday-daynow >= 0 or (startday-daynow <=7 and startday-daynow >=0):	
+				activity_list.append(act)
+
+
+		objects = []
+		for obj in activity_list:
+			values = []
+			values.append(obj.name)
+			values.append(obj.activity_type)
+			values.append(obj.start_time)
+
+			objects.append(values)
+		return objects
+
+
+

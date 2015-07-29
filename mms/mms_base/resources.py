@@ -1069,7 +1069,7 @@ def __get_activity_user(user_identify, activity_identify=None, permission=3, sta
 			return Activity.objects.filter(activity=activity, permission=permission, state=state)
 
 		if activity is None:
-			if permission > 2;
+			if permission > 2:
 				if state > 3:
 					return ActivityUser.objects.filter(user=user)
 				return ActivityUser.objects.filter(user=user, state=state)

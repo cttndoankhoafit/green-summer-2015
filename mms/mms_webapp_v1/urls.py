@@ -110,6 +110,9 @@ urlpatterns = [
 
 	url(r'^activity/create/$', login_required(ActivityCreateView.as_view()), name='activity_create_view_v1'),
 
+	url(r'^activity/listonweek/$', login_required(ActivityListViewWeek.as_view()), name='activity_listonweek_view_v1'),
+
+	url(r'^activity/filter/$', login_required(ActivityFilter.as_view()), name='activity_filter_view_v1'),
 	#url(r'^activity/(?P<activity>\d+)/edit/$', login_required(ActivityUpdateView.as_view()), name='user_update_view_v1'), #phan moi
 
 	# url(r'^organization_type/create/', OrganizationTypeCreateView.as_view(), name='organization_type_create_view_v1'),
