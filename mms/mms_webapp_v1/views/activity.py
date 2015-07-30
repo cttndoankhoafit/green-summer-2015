@@ -11,7 +11,7 @@ from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
 
 from mms_controller.resources.activity import *
-from mms_controller.resources_temp import *
+#from mms_controller.resources_temp import *
 
 from mms_base.resources import *
 from datetime import date
@@ -278,8 +278,8 @@ class ActivityMemberImportView(BaseImportView):
 class ActivityListViewWeek(ActivityListView):
 	def get_context_data(self, **kwargs):
 		context = super(ActivityListViewWeek, self).get_context_data(**kwargs)
-		context['title'] = u'Danh sách hoạt động của tuần'
-		context['page_title'] = u'Danh sách hoạt động của tuần'
+		context['title'] = u'Danh sách hoạt động trong tuần'
+		context['page_title'] = u'Danh sách hoạt động trong tuần'
 		return context
 
 	def get_activity_list(organization):
@@ -293,13 +293,13 @@ class ActivityListViewWeek(ActivityListView):
 		datetime.timedelta(7)
 
 		for org in organization_list:
-			act = get_activity_list(org)
+			activitys = get_activity_list(org)
 			daynow = timenow.days
-			endday =  act.end_time.days
-			startday = act.start_time.days 
-			print daynow
-			if endday-daynow >= 0 or (startday-daynow <=7 and startday-daynow >=0):	
-				activity_list.append(act)
+			for act in acts:
+				endday =  act.end_time.days
+				startday = act.start_time.days 
+				if (endday-daynow >= 0 and endday-daynow <=7) or (startday-daynow <=7 and startday-daynow >=0) or (daynow-startday <=0 and endday-daynow >= 0):	
+					activity_list.append(act)
 
 
 		objects = []
@@ -308,6 +308,7 @@ class ActivityListViewWeek(ActivityListView):
 			values.append(obj.name)
 			values.append(obj.activity_type)
 			values.append(obj.start_time)
+
 
 			objects.append(values)
 		return objects
