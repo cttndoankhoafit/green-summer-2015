@@ -26,6 +26,26 @@ class BaseRenluyendoanvienView(View):
 
 		return context
 		
+#Hiển thị các hoạt động cho đoàn viên đăng ký rèn luyện đoàn viên
+class Dang_Ky_RLDV(ListView):
+	template_name = 'v1/renluyendoanvien/layout_dangky.html'
+
+	def get_context_data(self, **kwargs):
+		context = super(Dang_Ky_RLDV, self).get_context_data(**kwargs)
+
+		context['title'] = u'Đăng ký rèn luyện Đoàn viên'
+		context['page_title'] = u'Đăng ký rèn luyện Đoàn viên'
+
+		context['renluyendoanvien_active'] = 'active'
+		context['renluyendoanvien_dangky_active'] = 'active'
+
+		return context
+	def get_queryset(self):
+			#Lấy các dòng dữ liệu từ bảng Đánh giá rèn luyện đoàn viên của người dùng session['user_id']
+
+		objects = []
+		return objects
+
 
 #Hiển thị danh sách tự đánh giá rèn luyện đoàn viên của người dùng
 class RenLuyenDoanVien_TuDanhGia_ListView(ListView):

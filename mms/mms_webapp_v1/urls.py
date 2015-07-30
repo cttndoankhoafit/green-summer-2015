@@ -122,7 +122,8 @@ urlpatterns = [
 	# url(r'^user/(?P<user_id>[0-9]+)/organization/$', UserOrganizationView.as_view(), name='user_organization_view_v1'),
 	# url(r'^user/(?P<user_id>[0-9]+)/member/$', UserMemberListView.as_view(), name='user_member_list_view'),
 	# url(r'^user/(?P<user_id>[0-9]+)/activity/$', UserActivityListView.as_view(), name='user_activity_list_view'),
-
+	
+	url(r'^renluyendoanvien/dangky/$', login_required(Dang_Ky_RLDV.as_view()), name='renluyendoanvien_dangky_view_v1'),
 	url(r'^renluyendoanvien/tudanhgia/$', login_required(RenLuyenDoanVien_TuDanhGia_ListView.as_view()), name='renluyendoanvien_tudanhgia_view_v1'),
 	url(r'^renluyendoanvien/ketquadanhgia/$', login_required(RenLuyenDoanVien_KetquaDanhGia_ListView.as_view()), name='renluyendoanvien_ketquadanhgia_view_v1'),
 	url(r'^renluyendoanvien/danhgiadoanvien/user=(?P<user_id>\w+)$', login_required(RenLuyenDoanVien_DanhGiaDoanVien_ListView.as_view()), name='renluyendoanvien_danhgiadoanvien_view_v1'),
