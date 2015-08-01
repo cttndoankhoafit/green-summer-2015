@@ -32,6 +32,8 @@ class BaseOrganizationView(BaseView):
 		context['page_title'] = get_organization_model().objects.get(identify=self.get_organization_id()).name
 		context['organization_id'] = self.get_organization_id()
 
+		context['organization_active'] = 'active'
+
 		if is_organization_administrator(self.get_user_id(), self.get_organization_id()):
 			context['organization_administrator'] = 1
 
@@ -102,6 +104,7 @@ class OrganizationActivityListView(BaseOrganizationActivityView, ListView):
 
 		context['activities_active'] ='active'
 
+		context['add_link'] = 'create/'
 		context['import_link'] = 'import/'
 
 		if self.can_set:
@@ -170,7 +173,7 @@ class OrganizationActivityImportView(BaseOrganizationActivityView, BaseImportVie
 
 # Khung nhìn tạo hoạt động cho một tổ chức
 class OrganizationActivityCreateView(BaseOrganizationActivityView, BaseSuccessMessageMixin, CreateView):
-	model = Activity
+	model = get_activity_model()
 
 	template_name = 'v1/organization/profile/activity/create.html'
 
@@ -179,15 +182,15 @@ class OrganizationActivityCreateView(BaseOrganizationActivityView, BaseSuccessMe
 	fields =[	'identify',
 				'name',
 				'activity_type',
-				'description',
 				'start_time',
 				'end_time',
-				'credits',
-				'score',
+				'position',
 				'register_start_time',
 				'register_end_time',
-				'register_state',
-				'published'	]
+				'published',
+				'credits',
+				'score',
+				'description',	]
 
 	def get_form(self, form_class):
 		form = super(OrganizationActivityCreateView, self).get_form(form_class)
@@ -213,7 +216,8 @@ class OrganizationActivityCreateView(BaseOrganizationActivityView, BaseSuccessMe
 		form.fields['register_end_time'].widget.attrs['class'] = 'form-control'
 		form.fields['register_end_time'].widget.attrs['readonly'] = '1'
 
-		form.fields['register_state'].widget.attrs['class'] = 'form-control'
+		form.fields['description'].widget.attrs['class'] = 'form-control'
+		form.fields['position'].widget.attrs['class'] = 'form-control'
 
 		return form
 
@@ -233,7 +237,7 @@ class OrganizationActivityCreateView(BaseOrganizationActivityView, BaseSuccessMe
 	def form_valid(self, form):
 		self.object = form.save(commit=False)
 		self.object.organization = get_organization(self.get_organization_id())
-		set_organization_activity(self.get_user_id(), self.get_organization_id(), self.object)
+		set_activity(self.get_user_id(), self.object)
 		self.clear_messages()
 		return super(OrganizationActivityCreateView, self).form_valid(form)		
 
@@ -399,8 +403,6 @@ class OrganizationCreateView(CreateView, OrganizationFormView):
 
 		context['page_title'] = u'Thêm tổ chức'
 
-		context['organization_active'] = 'active'
-		
 		context['button_value'] = u'Thêm'
 
 		return context
@@ -461,6 +463,9 @@ class OrganizationPermissionListView(BaseOrganizationUpdateView, ListView):
 	template_name = 'v1/organization/editor/permission/list.html'
 
 	def get_context_data(self, **kwargs):
+		if not is_organization_administrator(self.get_user_id()):
+			raise PermissionDenied
+
 		context = super(OrganizationPermissionListView, self).get_context_data(**kwargs)
 
 		context['theads'] = [	{'name': u'Họ và tên', 'size' : 'auto'},
@@ -480,16 +485,31 @@ class OrganizationPermissionListView(BaseOrganizationUpdateView, ListView):
 		objects = []
 		for obj in organization_staff_list:
 			values = []
-			values.append(obj.user.get_full_name())
+			values.append(mark_safe('<a href="/organization/organization=%s/permission/user=%s/">%s</a>' % (self.get_organization_id(), obj.user.identify, obj.user.get_full_name())))
 			values.append(obj.position.name)
-			values.append(obj.permission)
+			values.append(obj.get_permission_display())
 			objects.append(values)
 
 		return objects
 
 
+class  BaseOrganizationPermissionView(BaseOrganizationUpdateView, BaseSuccessMessageMixin, FormView):
 
-class OrganizationPermissionCreateView(BaseOrganizationUpdateView, BaseSuccessMessageMixin, CreateView):
+	def get_context_data(self, **kwargs):
+		context = super(BaseOrganizationPermissionView, self).get_context_data(**kwargs)
+
+		return context
+
+	def get_form(self, form_class):
+		form = super(BaseOrganizationPermissionView, self).get_form(form_class)
+		
+		form.fields['permission'].widget.attrs['class'] = 'form-control'
+		form.fields['position'].widget.attrs['class'] = 'form-control'
+
+		return form
+		
+
+class OrganizationPermissionCreateView(BaseOrganizationPermissionView, CreateView):
 	template_name = 'v1/organization/editor/permission/creator.html'
 
 	# form_class = OrganizationPermissionForm
@@ -505,22 +525,13 @@ class OrganizationPermissionCreateView(BaseOrganizationUpdateView, BaseSuccessMe
 	def get_form(self, form_class):
 		form = super(OrganizationPermissionCreateView, self).get_form(form_class)
 		
-		# form.fields['identify'].widget.attrs['class'] = 'form-control'
-
+		form.fields['user'].widget.attrs['class'] = 'form-control'
+	
 		return form
 
 	def get_context_data(self, **kwargs):
-		if not is_organization_administrator(self.request.session['user_id']):
-			raise PermissionDenied
-
 		context = super(OrganizationPermissionCreateView, self).get_context_data(**kwargs)
-		
-		context['title'] = u'Thêm quyền hạn người dùng trong tổ chức'
-
-		context['page_title'] = u'Thêm quyền hạn người dùng trong tổ chức'
-
-		context['organization_active'] = 'active'
-		
+	
 		context['button_value'] = u'Thêm'
 
 		return context
@@ -533,40 +544,19 @@ class OrganizationPermissionCreateView(BaseOrganizationUpdateView, BaseSuccessMe
 		return super(OrganizationPermissionCreateView, self).form_valid(form)
 
 
+class OrganizationPermissionUpdateView(BaseOrganizationPermissionView, UpdateView):
 
+	template_name = 'v1/organization/editor/permission/update.html'
 
+	success_message = u'Chỉnh sửa quyền hạn thành công'
 
-class OrganizationPermissionUpdateView(BaseOrganizationUpdateView, BaseSuccessMessageMixin, UpdateView):
-	template_name = 'v1/organization/editor/permission/creator.html'
-
-	# form_class = OrganizationPermissionForm
-	model = get_organization_user_model()
-
-	success_message = u'Thêm quyền hạn thành công'
-
-	fields =['user', 'permission', 'position']
+	fields =['permission', 'position']
 
 	def get_success_url(self):
-		return reverse('organization_permission_list_view_v1',  kwargs={ 'organization_id' : self.get_organization_id() })
-
-	def get_form(self, form_class):
-		form = super(OrganizationPermissionCreateView, self).get_form(form_class)
-		
-		# form.fields['identify'].widget.attrs['class'] = 'form-control'
-
-		return form
+		return reverse('organization_permission_update_view_v1',  kwargs={ 'organization_id' : self.get_organization_id(), 'user_id' : self.kwargs['user_id'] })
 
 	def get_context_data(self, **kwargs):
-		if not is_organization_administrator(self.request.session['user_id']):
-			raise PermissionDenied
-
-		context = super(OrganizationPermissionCreateView, self).get_context_data(**kwargs)
-		
-		context['title'] = u'Chỉnh sửa quyền hạn người dùng trong tổ chức'
-
-		context['page_title'] = u'Chỉnh sửa quyền hạn người dùng trong tổ chức'
-
-		context['organization_active'] = 'active'
+		context = super(OrganizationPermissionUpdateView, self).get_context_data(**kwargs)
 		
 		context['button_value'] = u'Chỉnh sửa'
 
@@ -574,13 +564,46 @@ class OrganizationPermissionUpdateView(BaseOrganizationUpdateView, BaseSuccessMe
 
 	def form_valid(self, form):
 		self.object = form.save(commit=False)
-		self.object.organization = get_organization(self.get_organization_id())
 		set_organization_user(self.get_user_id(), self.object)
 		self.clear_messages()
-		return super(OrganizationPermissionCreateView, self).form_valid(form)
+		return super(OrganizationPermissionUpdateView, self).form_valid(form)
+
+	def get_object(self):
+		return get_organization_user(self.kwargs['user_id'], self.get_organization_id())
 
 
 
+class OrganizationPermissionImportView(BaseOrganizationUpdateView, BaseImportView):
+
+	template_name = 'v1/organization/editor/permission/import.html'
+
+	success_message = u'Nhập thông tin quyền hạn thành công'
+
+	fields =['user', 'permission', 'position']
+
+	def get_success_url(self):
+		return reverse('organization_permission_list_view_v1',  kwargs={ 'organization_id' : self.get_organization_id() })
+
+
+	def get_context_data(self, **kwargs):
+		context = super(OrganizationPermissionImportView, self).get_context_data(**kwargs)
+		
+		return context
+
+	def input_row(self, row):
+		if not self.check_input_row_valid(row):
+			return False
+		
+		user = row['user']
+		permission = row['permission']
+		position = row['position']
+
+		if set_organization_user(self.get_user_id(), self.get_organization_id(), user, permission, position):
+			print 'Import staff ' + user + ' to ' + self.get_organization_id() + ' complete'
+			print '----------'
+			return True
+
+		return False
 
 
 class OrganizationListView(BaseView, ListView):
@@ -618,7 +641,7 @@ class OrganizationListView(BaseView, ListView):
 
 		organization_list = None
 
-		self.can_set = is_super_administrator(self.get_user_id())
+		self.can_set = is_organization_administrator(self.get_user_id())
 
 		if is_super_administrator(self.get_user_id()):
 			organization_list = get_organization_list()
@@ -649,6 +672,7 @@ class OrganizationTreeView(BaseView, TemplateView):
 		org = get_organization_root()
 
 		context['organization_active'] = 'active'
+
 		context['organization_tree_active'] = 'active'
 
 		context['page_title'] = u'Cây tổ chức'

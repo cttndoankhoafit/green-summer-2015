@@ -33,6 +33,9 @@ class BaseOrganizationTypeView(BaseView):
 			raise PermissionDenied
 		context = super(BaseOrganizationTypeView, self).get_context_data(**kwargs)
 
+		context['organization_active'] = 'active'
+		context['organization_type_list_active'] = 'active'
+
 		context['organization_type_id'] = self.get_organization_type_id()
 		
 		return context
@@ -143,7 +146,6 @@ class OrganizationTypeListView(BaseOrganizationTypeView, ListView):
 		context['title'] = u'Danh sách loại tổ chức'
 		context['page_title'] = u'Danh sách loại tổ chức'
 
-		context['organization_active'] = 'active'
 		context['organization_type_list_active'] = 'active'
 
 		context['show_add_button'] = 1

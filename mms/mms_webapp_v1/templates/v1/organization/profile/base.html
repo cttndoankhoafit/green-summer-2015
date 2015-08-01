@@ -10,7 +10,12 @@
 	<ul class="dropdown-menu pull-right" role="menu">
 		<li>
 			<a href="{% url 'organization_update_view_v1' organization_id %}">
-				<i class="fa fa-pencil"></i> Thay đổi thông tin
+				<i class="fa fa-pencil"></i> Cập nhật thông tin
+			</a>
+		</li>
+		<li>
+			<a href="{% url 'organization_permission_list_view_v1' organization_id %}">
+				<i class="fa fa-pencil"></i> Cập nhật quyền hạn
 			</a>
 		</li>
 	</ul>

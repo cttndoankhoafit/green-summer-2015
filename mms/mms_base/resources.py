@@ -812,6 +812,12 @@ def __get_organization_user(user_identify, organization_identify = None, permiss
 	return None
 
 
+
+def get_organization_user(user_identify, organization_identify):
+	return __get_organization_user(user_identify, organization_identify)
+
+
+
 # Lấy danh sách tất cả các thành viên trong tổ chức (bao gồm các tổ chức con)
 # Điều kiện:
 # - Người truy cập phải là người quản lý tổ chức

@@ -61,7 +61,11 @@ urlpatterns = [
 
 	url(r'^organization/organization=(?P<organization_id>\w+)/permission/create/$', login_required(OrganizationPermissionCreateView.as_view()), name='organization_permission_create_view_v1'),
 
+	url(r'^organization/organization=(?P<organization_id>\w+)/permission/import/$', login_required(OrganizationPermissionImportView.as_view()), name='organization_permission_import_view_v1'),
+
 	url(r'^organization/organization=(?P<organization_id>\w+)/permission/user=(?P<user_id>\w+)/$', login_required(OrganizationPermissionUpdateView.as_view()), name='organization_permission_update_view_v1'),
+
+
 
 
 
