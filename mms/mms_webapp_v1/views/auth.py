@@ -50,8 +50,7 @@ class LoginView(FormView):
 		self.request.session['user_id'] = self.request.user.identify
 		self.request.session['super_user'] = int(self.request.user.is_superuser)
 		self.request.session['user_full_name'] = self.request.user.get_full_name()
-		self.request.session['message'] = ''
-
+		
 		return HttpResponseRedirect(self.get_success_url())
 
 	def form_invalid(self, form):

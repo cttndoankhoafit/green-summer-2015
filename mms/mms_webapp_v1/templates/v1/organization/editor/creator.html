@@ -1,0 +1,21 @@
+{% extends 'v1/webapp_base.html' %}
+
+{% load staticfiles %}
+
+{% block page_content %}
+<div class="row">
+	<div class="col-md-12">
+		<form method="post">
+			{% csrf_token %}
+			<div class="row">
+				<div class="form-group col-md-6">
+					<label class="control-label">Mã tổ chức</label>
+					{{ form.identify }}
+					{{ form.identify.errors }}
+				</div>
+			</div>
+			{% include 'v1/organization/editor/editor.html' %}
+		</form>
+	</div>
+</div>	
+{% endblock %}

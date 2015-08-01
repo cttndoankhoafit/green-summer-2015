@@ -1,0 +1,21 @@
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	{% if messages %}
+		{% for message in messages %}
+			<div>
+				{{ message }}
+			</div>
+		{% endfor %}
+	{% endif %}
+	<form method="post" enctype="multipart/form-data">
+		{% csrf_token %}
+		<label class="control-label">Choose CSV file:</label>
+		{{ form.import_file }}
+		{{ form.import_file.errors }}
+		<input type="submit">
+	</form>
+</body>
+</html>

@@ -3,7 +3,36 @@
 {% load staticfiles %}
 
 {% block page_content %}
-<div class="row profile">
+<div class="row">
+	<div class="col-md-12">
+		<!--BEGIN TABS-->
+		<div class="tabbable tabbable-custom tabbable-full-width">
+
+			<ul class="nav nav-tabs">
+				<li class="{% block update_active %}{% endblock %}">
+					<a href="{% url 'organization_type_update_view_v1' organization_type_id %}">
+					Thay đổi thông tin </a>
+				</li>
+			
+				<li class="{% block change_position_active %}{% endblock %}">
+					<a href="{% url 'organization_type_position_list_view_v1' organization_type_id %}">
+					Thay đổi vị trí quản lý </a>
+				</li>
+			</ul>
+			
+			<div class="tab-content">
+				<div class="tab-pane active">
+				{% block tab_content %}
+
+				{% endblock %}
+				</div>
+			</div>
+		</div>
+		<!--END TABS-->
+	</div>
+</div>
+
+<div class="row">
 	<div class="col-md-12">
 		{% block organization_type_page_content %}
 					

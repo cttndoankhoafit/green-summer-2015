@@ -7,12 +7,12 @@
 </div>
 <div class="row">
 	<div class="form-group col-md-6">
-		<label class="control-label">Mức độ quản lý</label>
-		{{ form.management_level }}
-		{{ form.management_level.errors }}
+		<label class="control-label">Loại tổ chức quản lý</label>
+		{{ form.management_organzation_type }}
+		{{ form.management_organzation_type.errors }}
 	</div>
 </div>
 <div class="margin-top-10">
-	<input type="submit" class="btn green" value="Cập nhật">
+	<input type="submit" class="btn green" value="{{ button_value }}">
 	<a class="btn default" href="{% url 'organization_type_list_view_v1' %}">Hủy bỏ</a>
 </div>

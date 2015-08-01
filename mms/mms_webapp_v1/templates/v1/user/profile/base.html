@@ -2,6 +2,12 @@
 
 {% load staticfiles %}
 
+{% block page_styles %}
+{{ block.super }}
+<link href="{% static "v1/assets/admin/pages/css/profile.css" %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+
 {% block breadcrumb_button_group %}
 	{% if request.session.super_user %}
 	<button type="button" class="btn blue dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-delay="1000" data-close-others="true">
@@ -28,7 +34,7 @@
 		<!--BEGIN TABS-->
 		<div class="tabbable tabbable-custom tabbable-full-width">
 			<ul class="nav nav-tabs">
-				<li class="{% block overview_active %}{% endblock %}">
+				<li class="{% block detail_active %}{% endblock %}">
 					<a href="{% url 'user_detail_view_v1' identify %}">
 					Tổng quan </a>
 				</li>

@@ -1,0 +1,27 @@
+<div class="row">
+	<div class="form-group col-md-6">
+		<label class="control-label">Người dùng</label>
+		{{ form.user }}
+		{{ form.user.errors }}
+	</div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6">
+		<label class="control-label">Tổ chức quản lý</label>
+		{{ form.permission }}
+		{{ form.permission.errors }}
+	</div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6">
+		<label class="control-label">Mô tả</label>
+		{{ form.position }}
+		{{ form.position.errors }}
+	</div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6 margin-top-10">
+		<input type="submit" class="btn green" value="{{ button_value }}">
+		<a class="btn default" href="{% url 'organization_permission_list_view_v1' organization_id %}">Hủy bỏ</a>
+	</div>
+</div>

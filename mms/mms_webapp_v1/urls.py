@@ -7,7 +7,7 @@ from mms_webapp_v1.views.organization_temporary.views import *
 from mms_webapp_v1.views.user import *
 from mms_webapp_v1.views.activity import *
 from mms_webapp_v1.views.activity_type import *
-from mms_webapp_v1.views.renluyendoanvien import *
+from mms_webapp_v1.views.yumt import *
 
 from mms_webapp_v1.views.auth import LoginView, LogoutView
 from mms_webapp_v1.views.dashboard import DashboardView
@@ -32,6 +32,8 @@ urlpatterns = [
 
 	url(r'^user/user=(?P<user_id>\w+)/activity/$', login_required(UserActivityView.as_view()), name='user_activity_view_v1'),
 
+	url(r'^user/user=(?P<user_id>\w+)/activity/period=(?P<period_id>\w+)/$', login_required(UserActivityView.as_view()), name='user_activity_period_view_v1'),
+
 	url(r'^user/user=(?P<user_id>\w+)/change_password/$', login_required(UserPasswordChangeView.as_view()), name='user_password_change_view_v1'),
 
 	url(r'^user/list/$', login_required(UserListView.as_view()), name='user_list_view_v1'),
@@ -48,12 +50,20 @@ urlpatterns = [
 	url(r'^organization/create/$', login_required(OrganizationCreateView.as_view()), name='organization_create_view_v1'),
 
 	url(r'^organization/import/$', login_required(OrganizationImportView.as_view()), name='organization_import_view_v1'),
-
-	url(r'^organization/management_import/$', login_required(OrganizationManagementImportView.as_view()), name='organization_management_import_view_v1'),
 	
 	url(r'^organization/organization=(?P<organization_id>\w+)/$', login_required(OrganizationDetailView.as_view()), name='organization_detail_view_v1'),
 
 	url(r'^organization/organization=(?P<organization_id>\w+)/edit/$', login_required(OrganizationUpdateView.as_view()), name='organization_update_view_v1'),
+
+	url(r'^organization/organization=(?P<organization_id>\w+)/permission/$', login_required(OrganizationPermissionListView.as_view()), name='organization_permission_list_view_v1'),
+
+
+
+	url(r'^organization/organization=(?P<organization_id>\w+)/permission/create/$', login_required(OrganizationPermissionCreateView.as_view()), name='organization_permission_create_view_v1'),
+
+	url(r'^organization/organization=(?P<organization_id>\w+)/permission/user=(?P<user_id>\w+)/$', login_required(OrganizationPermissionUpdateView.as_view()), name='organization_permission_update_view_v1'),
+
+
 
 	url(r'^organization/organization=(?P<organization_id>\w+)/member/$', login_required(OrganizationMemberListView.as_view()), name='organization_member_list_view_v1'),
 
@@ -63,7 +73,7 @@ urlpatterns = [
 	# url(r'^organization/organization=(?P<organization_id>\w+)/member/statistics/$', login_required(OrganizationMemberStatisticsView.as_view()), name='organization_member_statistics_view_v1'),
 
 	
-	url(r'^organization/organization=(?P<organization_id>\w+)/activity/list/$', login_required(OrganizationActivityListView.as_view()), name='organization_activity_list_view_v1'),
+	url(r'^organization/organization=(?P<organization_id>\w+)/activity/$', login_required(OrganizationActivityListView.as_view()), name='organization_activity_list_view_v1'),
 
 	url(r'^organization/organization=(?P<organization_id>\w+)/activity/import/$', login_required(OrganizationActivityImportView.as_view()), name='organization_activity_import_view_v1'),
 
@@ -71,6 +81,7 @@ urlpatterns = [
 
 
 	url(r'^organization/organization=(?P<organization_id>\w+)/tree/$', login_required(ChildOrganizationTreeView.as_view()), name='child_organization_tree_view_v1'),	
+
 
 
 
@@ -82,8 +93,10 @@ urlpatterns = [
 
 	url(r'^organization_type/organization_type=(?P<organization_type_id>\w+)/edit/$', login_required(OrganizationTypeUpdateView.as_view()),name='organization_type_update_view_v1'),
 
+	url(r'^organization_type/organization_type=(?P<organization_type_id>\w+)/position/$', login_required(OrganizationTypePositionListView.as_view()),name='organization_type_position_list_view_v1'),
 
-
+	
+	
 	
 
 	# Activity management
@@ -99,6 +112,8 @@ urlpatterns = [
 
 	url(r'^activity/list/$', login_required(ActivityListView.as_view()), name='activity_list_view_v1'),
 
+	url(r'^activity/list/organization=(?P<organization_id>\w+)/$$', login_required(ActivityListView.as_view()), name='activity_organization_list_view_v1'),
+
 	url(r'^activity/activity=(?P<activity_id>\w+)/$', login_required(ActivityDetailView.as_view()), name='activity_detail_view_v1'),
 
 	url(r'^activity/activity=(?P<activity_id>\w+)/member/$', login_required(ActivityMemberListView.as_view()), name='activity_member_list_view_v1'),
@@ -110,22 +125,6 @@ urlpatterns = [
 
 	url(r'^activity/create/$', login_required(ActivityCreateView.as_view()), name='activity_create_view_v1'),
 
-	url(r'^activity/listonweek/$', login_required(ActivityListViewWeek.as_view()), name='activity_listonweek_view_v1'),
-
-	#url(r'^activity/(?P<activity>\d+)/edit/$', login_required(ActivityUpdateView.as_view()), name='user_update_view_v1'), #phan moi
-
-	# url(r'^organization_type/create/', OrganizationTypeCreateView.as_view(), name='organization_type_create_view_v1'),
-
-	
-	# url(r'^activity/(?P<activity_id>\d+)/', login_required(ActivityUpdateView.as_view()), name='activity_update_view_v1'),
-
-	# url(r'^user/(?P<user_id>[0-9]+)/organization/$', UserOrganizationView.as_view(), name='user_organization_view_v1'),
-	# url(r'^user/(?P<user_id>[0-9]+)/member/$', UserMemberListView.as_view(), name='user_member_list_view'),
-	# url(r'^user/(?P<user_id>[0-9]+)/activity/$', UserActivityListView.as_view(), name='user_activity_list_view'),
-	
-	url(r'^renluyendoanvien/dangky/$', login_required(Dang_Ky_RLDV.as_view()), name='renluyendoanvien_dangky_view_v1'),
-	url(r'^renluyendoanvien/tudanhgia/$', login_required(RenLuyenDoanVien_TuDanhGia_ListView.as_view()), name='renluyendoanvien_tudanhgia_view_v1'),
-	url(r'^renluyendoanvien/ketquadanhgia/$', login_required(RenLuyenDoanVien_KetquaDanhGia_ListView.as_view()), name='renluyendoanvien_ketquadanhgia_view_v1'),
-	url(r'^renluyendoanvien/danhgiadoanvien/user=(?P<user_id>\w+)$', login_required(RenLuyenDoanVien_DanhGiaDoanVien_ListView.as_view()), name='renluyendoanvien_danhgiadoanvien_view_v1'),
+	url(r'yumt/register/$', login_required(YUMTRegisterView.as_view()), name='yumt_register_view_v1'),
 
 ]

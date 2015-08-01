@@ -1,0 +1,14 @@
+{% extends 'v1/organization/editor/base.html' %}
+
+{% load staticfiles %}
+
+{% block change_permission_active %}
+active
+{% endblock %}
+
+{% block tab_content %}
+<form role="form" method="post">
+	{% csrf_token %}
+	{% include 'v1/organization/editor/permission/editor.html' %}
+</form>
+{% endblock %}

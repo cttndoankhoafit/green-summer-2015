@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from django.core.exceptions import PermissionDenied
 from django.utils.html import mark_safe
 from django.core.urlresolvers import reverse
 from django.views.generic import ListView, UpdateView, TemplateView, DetailView, CreateView, View
@@ -10,29 +11,33 @@ from mms_backoffice.models import Activity, ActivityUser
 from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
 
-from mms_controller.resources.activity import *
-#from mms_controller.resources_temp import *
-
 from mms_base.resources import *
-from datetime import date
+
+from mms_webapp_v1.views.bases.base_view import *
 
 #from mms_webapp_v1.forms.activity import ActivityForm
 
 
-class BaseActivityView(View):
+class BaseActivityView(BaseView):
+
+	def get_activity_id(self):
+		return self.kwargs['activity_id']
+	
 	def get_context_data(self, **kwargs):
 		context = super(BaseActivityView, self).get_context_data(**kwargs)
 
-		context['activity_id'] = self.kwargs['activity_id']
+		context['activity_id'] = self.get_activity_id()
 
 		return context
 		
 
-class ActivityListView(ListView):
-	template_name = 'v1/list.html'
+class ActivityListView(BaseView, ListView, FormView):
+	template_name = 'v1/activity/explorer.html'
 	paginate_by = '20'
 
-	can_set = True
+	# can_set = True
+
+	organization_id = ''
 
 	def get_context_data(self, **kwargs):
 		context = super(ActivityListView, self).get_context_data(**kwargs)
@@ -44,15 +49,22 @@ class ActivityListView(ListView):
 		context['activity_list_active'] = 'active'
 
 		context['theads'] = [	{'name': u'Tên hoạt động', 'size' : 'auto'},
-								{'name': u'Loại hoạt động', 'size' : '15%'},
-								{'name': u'Thời gian tổ chức', 'size' : '15%'},
-								# {'name': u'Trạng thái', 'size' : 'auto'},
+								{'name': u'Thời gian', 'size' : '15%'},
 								{'name': u'', 'size' : '15%'},
 							]
 		context['add_link'] = '/activity/create/'
 
-		if self.can_set:
-			context['can_set_list'] = 1
+		# if self.can_set:
+		# 	context['show_add_button'] = 1
+		# 	context['show_delete_button'] = 1
+		# 	context['show_import_button'] = 1
+		# 	context['show_checkbox'] = 1
+		# 	context['can_set_list'] = 1
+
+		if 'organization_id' in self.kwargs:
+			self.organization_id = self.kwargs['organization_id']
+
+		context['tree_content'] = mark_safe(self.toHtml(get_organization_tuple_table()))
 
 		return context
 
@@ -65,26 +77,51 @@ class ActivityListView(ListView):
 			return 'purple'
 
 	def get_queryset(self):
-		activity_list = get_activity_list(self.request.session['user_id'])
+		activity_list = None
+
+		if 'organization_id' in self.kwargs:
+			activity_list = get_organization_activity_list(self.kwargs['organization_id'])
+		else:
+			activity_list = get_activity_list()
 
 		objects = []
 		for obj in activity_list:
 			values = []
-			if self.can_set:
-				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.identify))
-			values.append(obj.name)
-			values.append(obj.activity_type)
+			# if self.can_set:
+			# 	values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.identify))
+			values.append(mark_safe(u'<a href="/activity/activity=%s"">%s</a>' % (obj.identify, obj.name)))
 			values.append(obj.start_time)
-			buttons = ''
-			if obj.register_state < 3:
-				buttons += u'<a class="btn default btn-xs green-stripe">Đăng ký</a>'
-			buttons += u'<a href="/activity/activity=%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % obj.identify
-			values.append(mark_safe(buttons))
-
+			if can_register_activity(self.get_user_id(), obj.identify):
+				values.append(mark_safe(u'<input type="submit" class="btn default btn-xs green-stripe" name="register" values="%s" title="%s">' % (obj.identify, u'Đăng ký')))
+			else:
+				values.append('')
 			objects.append(values)
-
 		return objects
 
+	def toHtml(self, table):
+		html = ''
+		if len(table[1]) > 0:
+			html += '<ul>'
+			for obj in table[1]:
+				if obj[0].identify == self.organization_id:
+					html += '<li><a href="/activity/list/organization=%s/" title="%s" class="jstree-clicked">' % (obj[0].identify, obj[0].name)
+				else:
+					html += '<li><a href="/activity/list/organization=%s/" title="%s">' % (obj[0].identify, obj[0].name)
+				html += unicode(obj[0].short_name)
+				html += '</a>'
+				html += self.toHtml(obj)
+				html += '</li>'
+			html += '</ul>'
+		return html
+
+
+	
+	def post(self, request, *args, **kwargs):
+		print request.POST
+		if 'register' in request.POST:
+			todel = request.POST.getlist('register')
+			print todel
+		return self.get(self, *args, **kwargs) #HttpResponseRedirect(reverse('user_list_view_v1'))
 
 class ActivityDetailView(BaseActivityView, DetailView):
 	template_name = 'v1/activity/activity_overview.html'
@@ -92,13 +129,47 @@ class ActivityDetailView(BaseActivityView, DetailView):
 	def get_object(self):
 		return get_activity(self.kwargs['activity_id'])
 
+
 class ActivityMemberListView(BaseActivityView, ListView):
 	template_name = 'v1/activity/activity_member.html'
 	paginate_by = '20'
 
-	def get_queryset(self):
+	can_set = False
 
-		return []
+	def get_context_data(self, **kwargs):
+		if not is_activity_manager(self.get_user_id(), self.get_activity_id()):
+			raise PermissionDenied
+
+		context = super(ActivityMemberListView, self).get_context_data(**kwargs)
+
+		context['theads'] = [	{'name': u'#', 'size' : '10%'},
+								{'name': u'Tên sinh viên', 'size' : 'auto'},
+								{'name': u'Ghi chú', 'size' : '20%'},	]
+
+		if self.can_set:
+			context['show_add_button'] = 1
+			context['show_delete_button'] = 1
+			context['show_import_button'] = 1
+			context['show_checkbox'] = 1
+			context['show_statistics_button'] = 1
+
+		return context
+
+	def get_queryset(self):
+		activity_user_list = get_activity_user_list(self.get_user_id(), self.get_activity_id())
+
+		self.can_set = is_activity_administrator(self.get_user_id(), self.get_activity_id())
+
+		objects = []
+		for obj in activity_user_list:
+			values = []
+			if self.can_set:
+				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.user.identify))
+			values.append(obj.user.identify)
+			values.append(obj.user.get_full_name())	
+			values.append(obj.note)	
+			objects.append(values)
+		return objects
 
 
 class ActivityImportView(BaseImportView):
@@ -194,9 +265,6 @@ class ActivityCreateView(CreateView, BaseActivityFormView):
 
 
 
-
-
-
 class BaseActivityUpdateView(UpdateView, BaseActivityFormView):
 	model = get_activity_model()
 	fields= '__all__'
@@ -213,6 +281,7 @@ class BaseActivityUpdateView(UpdateView, BaseActivityFormView):
 		context['member_full_name'] = self.object.get_full_name()
 
 		return context
+
 
 class ActivityUpdateView(BaseActivityUpdateView):
 	template_name = 'v1/user/user_update.html'
@@ -273,45 +342,3 @@ class ActivityMemberImportView(BaseImportView):
 
 		print '-------------'
 		return 'ok'
-
-
-class ActivityListViewWeek(ActivityListView):
-	def get_context_data(self, **kwargs):
-		context = super(ActivityListViewWeek, self).get_context_data(**kwargs)
-		context['title'] = u'Danh sách hoạt động trong tuần'
-		context['page_title'] = u'Danh sách hoạt động trong tuần'
-		return context
-
-	def get_activity_list(organization):
-		return Activity.objects.filter(organization = organization)	
-
-	def get_query_set(self):
-		organization_list = get_organization_list()
-		activity_list = []
-
-		timenow = datetime.timenow()
-		datetime.timedelta(7)
-
-		for org in organization_list:
-			activitys = get_activity_list(org)
-			daynow = timenow.days
-			for act in acts:
-				endday =  act.end_time.days
-				startday = act.start_time.days 
-				if (endday-daynow >= 0 and endday-daynow <=7) or (startday-daynow <=7 and startday-daynow >=0) or (daynow-startday <=0 and endday-daynow >= 0):	
-					activity_list.append(act)
-
-
-		objects = []
-		for obj in activity_list:
-			values = []
-			values.append(obj.name)
-			values.append(obj.activity_type)
-			values.append(obj.start_time)
-
-
-			objects.append(values)
-		return objects
-
-
-

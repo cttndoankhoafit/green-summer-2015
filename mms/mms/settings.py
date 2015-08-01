@@ -39,8 +39,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mms_backoffice',
-    'mms_controller',
+    'mms_base',
+    'mms_crowler',
     'mms_webapp_v1',
     'import_export',
 )
@@ -107,7 +107,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-AUTH_USER_MODEL = 'mms_backoffice.User'
+AUTH_USER_MODEL = 'mms_base.User'
 
 LOGIN_URL = reverse_lazy('login_v1')
 LOGIN_REDIRECT_URL = reverse_lazy('dashboard_v1')

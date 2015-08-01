@@ -1,6 +1,27 @@
 ﻿# -*- coding: utf-8 -*-
 
+from django.db.models import Q
+from django.utils import timezone
+
 from mms_base.models import *
+
+
+#region Quản lý quá trình (Period)
+
+def __get_period(period_identify):
+	try:
+		return Period.objects.get(identify=period_identify)
+	except Exception, e:
+		print e
+	return None
+
+
+def get_period_list():
+	return Period.objects.all()
+
+
+#endregion
+
 
 #region Quản lý người dùng (User model)
 
@@ -31,7 +52,7 @@ def is_super_administrator(user_identify):
 
 # Kiểm tra một người dùng có quản lý một người dùng khác hay không
 def can_manage_user(manager_identify, user_identify=None):
-	if not is_user_exist(user_identify) or not is_user_exist(accessed_user_identify):
+	if not is_user_exist(manager_identify) or not is_user_exist(user_identify):
 		return False
 	if is_super_administrator(manager_identify):
 		return True
@@ -135,10 +156,10 @@ def set_user(
 		mobile_phone=None,
 		email=None,
 
-		is_youth_union_member=None,
+		is_youth_union_member=False,
 		youth_union_join_date=None,
 
-		is_communist_party_member=None,
+		is_communist_party_member=False,
 		communist_party_join_date=None,
 
 		contact_person_name=None,
@@ -237,11 +258,12 @@ def set_user(
 			user_object = identify
 			user = __get_user(user_object.identify)
 			if user is None and is_super_administrator(user_identify):
-				if user_identify.password is None or len(user_identify.password) == 0:
-					user_identify.set_password(user_identify.identify)
-				else:
-					user_identify.set_password(user_identify.password)
-				user_identify.save()
+				if user_object.password is None:
+					user_object.password = user.identify
+				elif len(user_object.password) == 0:
+					user_object.password = user.identify
+				user_object.set_password(user_object.password)
+				user_object.save()
 				return True
 			elif can_get_user(user_identify, user_object.identify):
 				user_object.save()
@@ -260,6 +282,17 @@ def delete_user(user_identify, accessed_user_identify):
 
 	# Chưa xây dựng
 
+	return False
+
+
+
+# Đặt lại mật khẩu người dùng
+def reset_user_password(user_identify, accessed_user_identify):
+	if can_set_user(user_identify, accessed_user_identify):
+		user = __get_user(accessed_user_identify)
+		user.set_password(user.identify)
+		user.save()
+		return True
 	return False
 
 
@@ -320,9 +353,6 @@ def set_organization_type(
 	if not is_super_administrator(user_identify):
 		return False
 
-	if management_organzation_type_identify is not None and get_organization_type(management_organzation_type_identify) is None:
-		return False
-
 	identify_type = type(obj)
 	try:
 		if identify_type is str or identify_type is unicode:
@@ -365,6 +395,10 @@ def delete_organization_type(user_identify, organization_type_identify):
 	return False
 
 
+def get_organization_type_list():
+	return OrganizationType.objects.all()
+
+
 def get_organization_type_model():
 
 	return OrganizationType
@@ -380,6 +414,17 @@ def __get_organization_type_position(organization_type_position_identify):
 	except Exception, e:
 		print e
 	return None
+
+
+def get_organization_type_position_list(organization_type_identify):
+	organization_type_object = __get_organization_type(organization_type_identify)
+
+	if organization_type_object is None:
+		return None
+
+	return OrganizationTypePosition.objects.filter(organization_type=organization_type_object)
+
+
 #endregion
 
 
@@ -614,27 +659,48 @@ def set_organization(
 	return False
 
 
-# Lấy tất cả các tổ chức mà người dùng tham gia trực tiếp
-def get_paticipate_organizations(user_identify):
+# Lấy các tổ chức quản lý
+def __scan_get_root_organization_identify_list(organization_identify):
+	organization = __get_organization(organization_identify)
+
+	if organization.identify == 'root':
+		return []
+
+	ids = __scan_get_root_organization_identify_list(organization.management_organization.identify)
+
+	objects = []
+	objects.append(organization_identify)
+	objects += ids
+
+	return objects
+
+
+# Lấy tất cả các tổ chức mà người dùng tham gia
+def get_joined_organization_list(user_identify):
 	try: 
+
 		user = __get_user(user_identify)
-		organization_user_list = __get_organization_user(user_identify)
-		objects = []
+		organization_user_list = OrganizationUser.objects.filter(user=user)
+
+		ids = []
 		for obj in organization_user_list:
-			objects.append(obj.organization)
-		return objects
+			ids += __scan_get_root_organization_identify_list(obj.organization.identify)
+			if is_organization_manager(user_identify, obj.organization.identify):
+				ids += __scan_get_child_organization_identify_list(obj.organization.identify)
+
+		return Organization.objects.filter(identify__in=ids)
 	except Exception, e:
 		print e
 	return None
 
 
-# Duyệt lấy tất cả các tổ chức được quản lý (Khai báo cơ bản, không sử dụng)
-def __scan_get_all_manage_organizations(organization_identify):
+# Duyệt lấy tất cả các tổ chức được một tổ chức quản lý (Khai báo cơ bản, không sử dụng)
+def __scan_get_child_organization_identify_list(organization_identify):
 	organization = __get_organization(organization_identify)
 	organization_list = Organization.objects.filter(management_organization=organization)
 	objects = []
 	for obj in organization_list:
-		objects += __scan_get_all_manage_organizations(obj.identify)
+		objects += __scan_get_child_organization_identify_list(obj.identify)
 	objects.append(organization_identify)
 	return objects
 
@@ -645,19 +711,23 @@ def get_all_manage_organizations(user_identify):
 		user = __get_user(user_identify)
 		organization_user_list = OrganizationUser.objects.filter(user=user, permission__lte=1)
 
-		identifies = []
+		ids = []
 		for obj in organization_user_list:
-			identifies += __scan_get_all_manage_organizations(obj.organization.identify)
-		return Organization.objects.filter(identify__in=identifies)
+			ids += __scan_get_child_organization_identify_list(obj.organization.identify)
+		return Organization.objects.all().filter(identify__in=ids)
 	except Exception, e:
 		print e
 	return None
 
 
+def get_child_organizations(organization_identify):
+	return __scan_get_child_organization_identify_list(organization_identify)
+
+
 # Lấy danh sách tất cả các tổ chức
 def get_organization_list():
 
-	return Organization.objects.all()
+	return Organization.objects.filter(~Q(identify='root'))
 
 
 # Lấy một bảng danh sách tổ chức dưới dạng cây (bao gồm các tổ chức con)
@@ -679,6 +749,23 @@ def __get_organization_tuple_table(organization):
 		objects.append(__get_organization_tuple_table(obj))
 
 	return (organization, objects)
+
+
+# Lấy danh sách hoạt động mà tổ chức tổ chức
+def get_organization_activity_list(organization_identify):
+	organization = __get_organization(organization_identify)
+
+	if organization is None:
+		return []
+
+	return Activity.objects.filter(organization=organization)
+
+
+def get_organization_staff(organization_identify):
+	organization = __get_organization(organization_identify)
+	organization_user_list = OrganizationUser.objects.filter(organization=organization, position__isnull=False)
+
+	return organization_user_list
 
 
 def get_organization_model():
@@ -733,14 +820,19 @@ def get_organization_user_list(user_identify, organization_identify):
 		if not is_organization_manager(user_identify, organization_identify):
 			return None
 
-		organization_list = get_all_manage_organizations(organization_identify)
+		print 'a'
+		organization_list = __scan_get_child_organization_identify_list(organization_identify)
+
+		print organization_list
+
 		organization_user_list = OrganizationUser.objects.filter(organization__in=organization_list)
 
 		ids = []
 		for obj in organization_user_list:
 			ids.append(obj.user.identify)
 
-		organization_user_list = __get_organization_user(None, organization_identify)
+
+		organization_user_list = OrganizationUser.objects.filter(organization=__get_organization(organization_identify))
 
 		for obj in organization_user_list:
 			ids.append(obj.user.identify)
@@ -752,6 +844,7 @@ def get_organization_user_list(user_identify, organization_identify):
 	except Exception, e:
 		print e
 	return None	
+
 
 # Thêm/sửa thông tin tham gia tổ chức của các thành viên
 # Điều kiện thực hiện:
@@ -823,6 +916,8 @@ def set_organization_user(
 	return False
 
 
+def get_organization_user_model():
+	return OrganizationUser
 #endregion
 
 
@@ -875,6 +970,14 @@ def set_activity_type(
 	return False
 
 
+def get_activity_type_list():
+	return ActivityType.objects.all()
+
+	
+def get_activity_type_model():
+	return ActivityType
+
+	
 #endregion
 
 
@@ -938,9 +1041,13 @@ def set_activity(
 		activity_type_identify = None,
 		organization_identify = None,
 		
+		period_identify = None,
+
 		start_time = None,
 		end_time = None,
 	
+		position = None,
+
 		register_start_time = None,
 		register_end_time = None,
 	
@@ -949,22 +1056,26 @@ def set_activity(
 		credits = 0,
 		score = 0,
 
-		description = None
+		description = None,
 	):
 	if not is_organization_manager(user_identify):
 		return False
-
+	
 	try:
 		object_type = type(obj)
 		user = __get_user(user_identify)
+
 		if object_type is str or object_type is unicode:
-			activity_type_object = __get_activity_type(activity_type_identify)
-			
+			activity_type_object = __get_activity_type(activity_type_identify)			
 			if activity_type_object is None:
 				return False
 
 			organization_object = __get_organization(organization_identify)
 			if organization_object is None:
+				return False
+
+			period_object = __get_period(period_identify)
+			if period_object is None:
 				return False
 
 			activity_object = __get_activity(obj)
@@ -975,6 +1086,8 @@ def set_activity(
 										activity_type = activity_type_object,
 										organization = organization_object,
 										
+										period = period_object,
+
 										start_time = start_time,
 										end_time = end_time,
 									
@@ -998,7 +1111,9 @@ def set_activity(
 				activity_object.name = name
 				activity_object.activity_type = activity_type_object
 				activity_object.organization = organization_object
-										
+
+				activity_object.period = period_object
+				
 				activity_object.start_time = start_time
 				activity_object.end_time = end_time
 									
@@ -1040,6 +1155,25 @@ def set_activity(
 	return False
 
 
+def can_register_activity(user_identify, activity_identify):
+	activity_user_object = __get_activity_user(user_identify, activity_identify)
+	if activity_user_object is not None:
+		return False
+	activity = __get_activity(activity_identify)
+	register_start_time = activity.register_start_time
+	register_end_time = activity.register_end_time
+	if register_start_time is None or register_end_time is None:
+		return False
+	now = timezone.now()
+	if now >= register_start_time and now <= register_end_time:
+		return True
+	return False
+
+
+def get_activity_list():
+	return Activity.objects.all()
+
+
 # Lấy Activity model	
 def get_activity_model():
 
@@ -1053,38 +1187,49 @@ def get_activity_model():
 
 
 # Lấy đối tượng (hoặc nhiều đối tượng) người tham gia hoạt động (Khai báo cơ bản, không sử dụng)
-def __get_activity_user(user_identify, activity_identify=None, permission=3, state=4):
+def __get_activity_user(user_identify, activity_identify):
 	try:
-		user = __get_user(user)
+		user = __get_user(user_identify)
 		activity = __get_activity(activity_identify)
-		if user is None:
-			if activity is None:
-				return None
-			if permission > 2:
-				if state > 3:
-					return ActivityUser.objects.filter(activity=activity)
-				return ActivityUser.objects.filter(activity=activity, state=state)
-			if state > 3:
-				return ActivityUser.objects.filter(activity=activity, permission=permission)
-			return Activity.objects.filter(activity=activity, permission=permission, state=state)
-
-		if activity is None:
-			if permission > 2:
-				if state > 3:
-					return ActivityUser.objects.filter(user=user)
-				return ActivityUser.objects.filter(user=user, state=state)
-			if state > 3:
-				return ActivityUser.objects.filter(user=user, permission=permission)
-			return ActivityUser.objects.filter(user=user, permission=permission, state=state)
-
-		if permission > 2:
-			if state > 3:
-				return ActivityUser.objects.get(user=user, activity=activity)
-			return ActivityUser.objects.get(user=user, activity=activity, state=state)
-
-		return ActivityUser.objects.get(user=user, activity=activity, permission=permission, state=state)
+		return ActivityUser.objects.get(user=user, activity=activity)
 	except Exception, e:
 		print e
+	return None
+
+
+# Lấy danh sách các hoạt động đã tham gia của một người dùng
+def get_participated_activity_list(user_identify, accessed_user_identify):
+	if not can_get_user(user_identify, accessed_user_identify):
+		return None
+
+	user = __get_user(accessed_user_identify)
+	if user is None:
+		return None
+
+	ids = []
+	activity_user_list = ActivityUser.objects.filter(user=user)
+
+	for obj in activity_user_list:
+		ids.append(obj.activity.identify)
+
+	return Activity.objects.filter(identify__in=ids)
+
+
+# Lấy bảng thống kê các hoạt động đã tham gia của một người dùng trong một khoảng thời gian
+def get_participated_activity_statistics(user_identify, accessed_user_identify, period_identify):
+	if not can_get_user(user_identify, accessed_user_identify):
+		return None
+
+	user = __get_user(accessed_user_identify)
+	if user is None:
+		return None
+
+	# ids = []
+	# activity_user_list = ActivityUser.objects.filter(user=user)
+
+	# for obj in activity_user_list:
+	# 	ids.append(obj.activity.identify)
+
 	return None
 
 
@@ -1094,7 +1239,7 @@ def __get_activity_user(user_identify, activity_identify=None, permission=3, sta
 # - Hoạt động phải tồn tại
 def get_activity_user_list(user_identify, activity_identify):
 	if not is_activity_manager(user_identify, activity_identify):
-		return None
+		return []
 
 	return ActivityUser.objects.filter(activity=__get_activity(activity_identify))
 
@@ -1104,7 +1249,8 @@ def set_activity_user(
 		obj,
 		activity_identify = None,
 		permission = 2,
-		state = 3
+		state = 3,
+		note = None
 	):
 	object_type = type(obj)
 	try:
@@ -1123,7 +1269,8 @@ def set_activity_user(
 											user = user_object,
 											activity = activity_object,
 											permission = permission,
-											state = state
+											state = state,
+											note = note
 										)
 				activity_user_object.save()
 				return True
@@ -1143,6 +1290,12 @@ def set_activity_user(
 # Lấy ActivityUser model
 def get_activity_user_model():
 	return ActivityUser
+
+
+# endregion
+
+
+# region Rèn luyện Đoàn viên
 
 
 # endregion

@@ -6,8 +6,6 @@ from django.core.urlresolvers import reverse
 from django.utils.html import mark_safe
 from django.views.generic import ListView, UpdateView, CreateView, DetailView, FormView, View, TemplateView
 
-from mms_controller.resources_temp import *
-
 from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
 
@@ -15,11 +13,15 @@ from mms_webapp_v1.views.bases.base_view import *
 
 from django.http import HttpResponseRedirect
 
+from mms_base.resources import *
+
+from mms_webapp_v1.forms.period import *
+
+
 # Tin nhắn gửi về
 success_create_user_message = u'Thêm người dùng thành công'
 success_update_user_message = u'Cập nhật thông tin thành công'
 success_reset_password_message = u'Đặt lại mật khẩu thành công'
-
 
 
 # Hàm điều chỉnh truy cập người dùng vào một người dùng khác
@@ -28,7 +30,6 @@ def access_user(user_id, accessed_user_id):
 	if user is None:
 		raise PermissionDenied
 	return user
-
 
 
 # Khung nhìn chung cho việc xem thông tin của một tài khoản
@@ -64,11 +65,13 @@ class UserDetailView(BaseUserView, DetailView):
 		return get_user(self.get_user_id(), self.get_user_account_id())
 
 
-
 # Khung nhìn xem các hoạt động của một người dùng bất kỳ
 # URL: user/user=<user_id>/activity/
-class UserActivityView(BaseUserView, ListView):
+class UserActivityView(BaseUserView, ListView, FormView):
 	template_name = 'v1/user/profile/activity.html'
+	paginate_by = '20'
+
+	form_class = ChoosePeriodForm
 
 	def get_context_data(self, **kwargs):
 		if not can_get_user(self.get_user_id(), self.get_user_account_id()):
@@ -76,24 +79,34 @@ class UserActivityView(BaseUserView, ListView):
 			
 		context = super(UserActivityView, self).get_context_data(**kwargs)
 
+		# context['period_list'] = get_period_list()
+
+		context['theads'] = [	{'name': u'#', 'size' : '10%'},
+								{'name': u'Tên hoạt động', 'size' : 'auto'},
+								{'name': u'Số tín chỉ', 'size' : '10%'},
+								{'name': u'Năm học', 'size' : '10%'},	]
 		return context
+
+	def form_valid(self, form):
+		self.object = form.save(commit=False)
+
+		print self.object
+
+		return HttpResponseRedirect(reverse('user_activity_period_view_v1', kwargs={'user_id' : self.get_user_account_id(), 'period_id' : 'all' }))
 
 	def get_queryset(self):
-		return get_user_activity_list(self.get_user_id(), self.get_user_account_id())
+		activity_user_list =  get_participated_activity_list(self.get_user_id(), self.get_user_account_id())
 
+		objects = []
+		for obj in activity_user_list:
+			values = []
+			values.append(obj.identify)
+			values.append(obj.name)
+			values.append(obj.credits)
+			values.append(obj.period)
+			objects.append(values)
 
-
-class UserActivityStatisticsView(BaseUserView, TemplateView):
-	template_name = 'v1/user/profile/activity/statistics.html'
-
-	def get_context_data(self, **kwargs):
-		if not can_get_user(self.get_user_id(), self.get_user_account_id()):
-			raise PermissionDenied
-			
-		context = super(UserActivityStatisticsView, self).get_context_data(**kwargs)
-
-		return context
-
+		return objects
 
 
 # Khung nhìn chuẩn cho các khung nhìn có dạng mẫu (Form)
@@ -103,19 +116,47 @@ class UserFormView(BaseSuccessMessageMixin, FormView):
 		form.fields['first_name'].widget.attrs['class'] = 'form-control'
 		form.fields['last_name'].widget.attrs['class'] = 'form-control'
 		form.fields['gender'].widget.attrs['class'] = 'form-control'
+		
 		form.fields['date_of_birth'].widget.attrs['class'] = 'form-control'
 		form.fields['date_of_birth'].widget.attrs['readonly'] = '1'
+
 		form.fields['place_of_birth'].widget.attrs['class'] = 'form-control'
+		form.fields['other_place_of_birth'].widget.attrs['class'] = 'form-control'
+		
+		form.fields['identification_card_number'].widget.attrs['class'] = 'form-control'
+
+		form.fields['identification_card_provision_date'].widget.attrs['class'] = 'form-control'
+		form.fields['identification_card_provision_date'].widget.attrs['readonly'] = '1'
+		
+		form.fields['identification_card_provision_place'].widget.attrs['class'] = 'form-control'
+
 		form.fields['folk'].widget.attrs['class'] = 'form-control'
 		form.fields['religion'].widget.attrs['class'] = 'form-control'
+		form.fields['nationality'].widget.attrs['class'] = 'form-control'
+
 		form.fields['address'].widget.attrs['class'] = 'form-control'
 		form.fields['ward'].widget.attrs['class'] = 'form-control'
 		form.fields['district'].widget.attrs['class'] = 'form-control'
 		form.fields['province'].widget.attrs['class'] = 'form-control'
+
 		form.fields['temporary_address'].widget.attrs['class'] = 'form-control'
 		form.fields['home_phone'].widget.attrs['class'] = 'form-control'
 		form.fields['mobile_phone'].widget.attrs['class'] = 'form-control'
 		form.fields['email'].widget.attrs['class'] = 'form-control'
+
+		form.fields['is_youth_union_member'].widget.attrs['class'] = 'form-control'
+		form.fields['youth_union_join_date'].widget.attrs['class'] = 'form-control'
+		form.fields['youth_union_join_date'].widget.attrs['readonly'] = '1'
+
+		form.fields['is_communist_party_member'].widget.attrs['class'] = 'form-control'
+		form.fields['communist_party_join_date'].widget.attrs['class'] = 'form-control'
+		form.fields['communist_party_join_date'].widget.attrs['readonly'] = '1'
+
+		form.fields['contact_person_name'].widget.attrs['class'] = 'form-control'
+		form.fields['contact_person_address'].widget.attrs['class'] = 'form-control'
+		form.fields['contact_person_phone'].widget.attrs['class'] = 'form-control'
+		form.fields['contact_person_email'].widget.attrs['class'] = 'form-control'
+		form.fields['contact_person_note'].widget.attrs['class'] = 'form-control'
 
 		return form
 
@@ -128,21 +169,45 @@ class UserUpdateView(BaseUserView, UpdateView, UserFormView):
 
 	model = get_user_model()
 
-	fields =[	'first_name',
-				'last_name',
-				'gender',
-				'date_of_birth',
-				'place_of_birth',
-				'folk',
-				'religion',
-				'address',
-				'ward',
-				'district',
-				'province',
-				'temporary_address',
-				'home_phone',
-				'mobile_phone',
-				'email' ]
+	fields = [	
+		'first_name',
+		'last_name',
+		'gender',
+		'date_of_birth',
+		'place_of_birth',
+		'other_place_of_birth',
+
+		'identification_card_number',
+		'identification_card_provision_date',
+		'identification_card_provision_place',
+
+		'folk',
+		'religion',
+		'nationality',
+	
+		'address',
+		'ward',
+		'district',
+		'province',
+
+		'temporary_address',
+
+		'home_phone',
+		'mobile_phone',
+		'email',
+
+		'is_youth_union_member',
+		'youth_union_join_date',
+
+		'is_communist_party_member',
+		'communist_party_join_date',
+
+		'contact_person_name',
+		'contact_person_address',
+		'contact_person_phone',
+		'contact_person_email',
+		'contact_person_note'
+	]
 
 	success_message = success_update_user_message
 
@@ -155,16 +220,25 @@ class UserUpdateView(BaseUserView, UpdateView, UserFormView):
 
 		context = super(UserUpdateView, self).get_context_data(**kwargs)
 
+		context['submit_value'] = u'Cập nhật'
+
+		if can_set_user(self.get_user_id(), self.get_user_account_id()):
+			context['cancel_link'] = '/user/list/'
+		else:
+			context['cancel_link'] = '/user/user=%s/' % (self.get_user_id())
+
 		return context
 
-	def form_valid(self,form):
+	def form_valid(self, form):
 		self.object = form.save(commit=False)
 		
-		if set_user(self.get_user_id(), self.object):
-			if self.get_user_id() == self.object.identify:
-				self.request.session['user_full_name'] = self.object.get_full_name()
-			self.clear_messages()
-			return super(UserUpdateView, self).form_valid(form)			
+		set_user(self.get_user_id(), self.object)
+		if self.get_user_id() == self.object.identify:
+			self.request.session['user_full_name'] = self.object.get_full_name()
+			
+		self.clear_messages()
+
+		return super(UserUpdateView, self).form_valid(form)
 
 	def get_object(self):
 		return get_user(self.get_user_id(), self.get_user_account_id())
@@ -222,25 +296,49 @@ class UserPasswordChangeView(BaseUserView, BaseSuccessMessageMixin, FormView):
 class UserCreateView(CreateView, UserFormView):
 	model = get_user_model()
 
-	fields =[	'identify',
-				'password',
-				'first_name',
-				'last_name',
-				'gender',
-				'date_of_birth',
-				'place_of_birth',
-				'folk',
-				'religion',
-				'address',
-				'ward',
-				'district',
-				'province',
-				'temporary_address',
-				'home_phone',
-				'mobile_phone',
-				'email' ]
+	fields = [
+			'identify',
+			'password',
+			'first_name',
+			'last_name',
+			'gender',
+			'date_of_birth',
+			'place_of_birth',
+			'other_place_of_birth',
 
-	template_name = 'v1/user/creator.html'
+			'identification_card_number',
+			'identification_card_provision_date',
+			'identification_card_provision_place',
+
+			'folk',
+			'religion',
+			'nationality',
+		
+			'address',
+			'ward',
+			'district',
+			'province',
+
+			'temporary_address',
+
+			'home_phone',
+			'mobile_phone',
+			'email',
+
+			'is_youth_union_member',
+			'youth_union_join_date',
+
+			'is_communist_party_member',
+			'communist_party_join_date',
+
+			'contact_person_name',
+			'contact_person_address',
+			'contact_person_phone',
+			'contact_person_email',
+			'contact_person_note'
+		]
+
+	template_name = 'v1/user/editor/create.html'
 
 	success_message = success_create_user_message
 
@@ -248,13 +346,16 @@ class UserCreateView(CreateView, UserFormView):
 		return reverse('user_list_view_v1')
 
 	def get_context_data(self, **kwargs):
-		if not is_super_administrator_id(self.request.session['user_id']):
+		if not is_super_administrator(self.request.session['user_id']):
 			raise PermissionDenied
 			
 		context = super(UserCreateView, self).get_context_data(**kwargs)
 
 		context['page_title'] = u'Tạo tài khoản mới'
-
+		context['create_user_active'] = 1
+		context['submit_value'] = u'Thêm tài khoản'
+		context['cancel_link'] = '/user/list/'
+		
 		return context
 
  	def get_form(self, form_class):
@@ -280,7 +381,7 @@ class UserListView(ListView, FormView):
 	can_set = False
 	
 	def get_context_data(self, **kwargs):
-		if not is_super_administrator_id(self.request.session['user_id']):
+		if not is_super_administrator(self.request.session['user_id']):
 			raise PermissionDenied
 
 		context = super(UserListView, self).get_context_data(**kwargs)
@@ -325,11 +426,10 @@ class UserListView(ListView, FormView):
 		return self.get(self, *args, **kwargs) #HttpResponseRedirect(reverse('user_list_view_v1'))
 
 
-
 # Khung nhìn nhập danh sách người dùng bằng tập tin dành cho người quản trị hệ thống
 # URL: user/import/
 class UserImportView(BaseView, BaseImportView):
-	template_name = 'v1/import.html'
+	template_name = 'v1/static_pages/import.html'
 
 	CONST_FIELDS = (	'identify',
 						'first_name',
@@ -352,7 +452,7 @@ class UserImportView(BaseView, BaseImportView):
 		return reverse('user_list_view_v1')
 
 	def get_context_data(self, **kwargs):
-		if not is_super_administrator_id(self.get_user_id()):
+		if not is_super_administrator(self.get_user_id()):
 			raise PermissionDenied
 
 		context = super(UserImportView, self).get_context_data(**kwargs)
@@ -393,8 +493,12 @@ class UserImportView(BaseView, BaseImportView):
 			gender,
 			date_of_birth,
 			place_of_birth,
+			None,
+			None,
+			None,
 			folk,
 			religion,
+			None,
 			address,
 			ward,
 			district,

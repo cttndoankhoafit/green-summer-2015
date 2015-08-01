@@ -1,6 +1,6 @@
-<div class="row profile">
+<div class="row">
 	<div class="col-md-12">
-		<form method="post" enctype="multipart/form-data">
+	<form method="post" enctype="multipart/form-data">
 		{% csrf_token %}
 		<div class="form-group">
 			<label class="control-label">Chọn tập tin (Định dạng CSV):</label>
@@ -8,7 +8,7 @@
 			{{ form.import_file.errors }}
 		</div>
 		<div class="margin-top-10">
-			<input type="submit" class="btn green" data-loading-text="Đang lưu dữ liệu..." value="Nhập danh sách">
+			<input type="submit" class="btn green" value="Nhập danh sách">
 		</div>
 	</form>
 	</div>

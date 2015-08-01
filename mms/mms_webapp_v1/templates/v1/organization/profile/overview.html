@@ -1,0 +1,116 @@
+{% extends 'v1/organization/profile/base.html' %}
+
+{% load staticfiles %}
+
+{% block tab_content %}
+<div class="row">
+	<div class="col-md-6">
+		<div class="portlet box blue-steel">
+			<div class="portlet-title">
+				<div class="caption">
+					Thông tin chung
+				</div>
+			</div>
+			<div class="portlet-body">
+				<div class="form-horizontal form-bordered">
+					<div class="form-body">
+						<div class="form-group">
+							<div class="col-md-4">
+								<label>Loại tổ chức</label>
+							</div>
+							<div class="col-md-8">
+								{{ organization_type }}
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="col-md-4">
+								<label>Tổ chức quản lý</label>
+							</div>
+							<div class="col-md-8">
+								{{ management_organization }}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="portlet box blue-steel">
+			<div class="portlet-title">
+				<div class="caption">
+					Thống kê
+				</div>
+			</div>
+			<div class="portlet-body">
+				<div class="form-horizontal form-bordered">
+					<div class="form-body">
+						<div class="form-group">
+							<div class="col-md-4">
+								<label>Số thành viên</label>
+							</div>
+							<div class="col-md-8">
+								
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="col-md-4">
+								<label>Số tổ chức trực thuộc</label>
+							</div>
+							<div class="col-md-8">
+								
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-6">
+		<div class="portlet box blue-steel">
+			<div class="portlet-title">
+				<div class="caption">
+					Ban quản trị
+				</div>
+			</div>
+			<div class="portlet-body">
+				<div class="form-horizontal form-bordered">
+					<div class="form-body">
+						<div class="tab-content">
+								{% for obj in staff_list %}
+								<div class="form-group">
+									<div class="col-md-4">
+										{{ obj.position }}
+									</div>
+									<div class="col-md-8">
+										<label>{{ obj.name }}</label>
+									</div>
+								</div>
+								{% endfor %}								
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="portlet box blue-steel">
+			<div class="portlet-title">
+				<div class="caption">
+					Mô tả
+				</div>
+			</div>
+			<div class="portlet-body">
+				<div class="form-horizontal form-bordered">
+					<div class="form-body">
+						{{ description }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>	
+{% endblock %}

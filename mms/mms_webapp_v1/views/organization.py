@@ -3,7 +3,6 @@
 from django.core.exceptions import PermissionDenied
 from django.utils.html import mark_safe
 
-from mms_backoffice.models import *
 from django.views.generic import TemplateView, CreateView, ListView, DetailView, UpdateView
 
 from django.http import HttpResponseRedirect, HttpResponse, Http404
@@ -13,11 +12,11 @@ from django.core.urlresolvers import reverse_lazy, reverse
 from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
 
-from mms_controller.resources_temp import *
-
 from mms_webapp_v1.forms.organization import *
 
 from mms_webapp_v1.views.bases.base_view import *
+
+from mms_base.resources import *
 
 
 
@@ -44,17 +43,31 @@ class BaseOrganizationView(BaseView):
 
 
 # Khung nhìn xem thông tin của tổ chức
-class OrganizationDetailView(BaseOrganizationView, DetailView):
-	template_name = 'v1/organization/organization_overview.html'
+class OrganizationDetailView(BaseOrganizationView, TemplateView):
+	template_name = 'v1/organization/profile/overview.html'
 
 	def get_context_data(self, **kwargs):
 		context = super(OrganizationDetailView, self).get_context_data(**kwargs)
 		context['overview_active'] ='active'
 
+		organization_object = get_organization(self.get_organization_id())
+
+		context['organization_type'] = organization_object.organization_type
+		context['management_organization'] = mark_safe(u'<a href="/organization/organization=%s">%s</a>' % (organization_object.management_organization.identify, organization_object.management_organization.name)) 
+		context['description'] = organization_object.description
+
+		context['staff_list'] = self.get_staff()
+
 		return context
 
-	def get_object(self):
-		return get_organization(self.get_organization_id())
+	def get_staff(self):
+		organization_staff_list = get_organization_staff(self.get_organization_id())
+
+		objects = []
+		for obj in organization_staff_list:
+			objects.append({ 'name' : obj.user.get_full_name(), 'position' : obj.position.name })
+
+		return objects
 
 
 
@@ -72,9 +85,11 @@ class BaseOrganizationActivityView(BaseOrganizationView):
 
 		return context
 
+
+
 # Khung nhìn xem danh sách hoạt động của tổ chức
 class OrganizationActivityListView(BaseOrganizationActivityView, ListView):
-	template_name = 'v1/organization/activity/list.html'
+	template_name = 'v1/organization/profile/activity/list.html'
 	paginate_by = '20'
  
 	def get_context_data(self, **kwargs):
@@ -94,15 +109,17 @@ class OrganizationActivityListView(BaseOrganizationActivityView, ListView):
 			context['show_delete_button'] = 1
 			context['show_import_button'] = 1
 			context['show_checkbox'] = 1
+			context['show_statistics_button'] = 1
 
 		return context
 
 	def get_queryset(self):
-		activity_list = get_organization_activity_list(self.get_user_id(), self.get_organization_id())
+		activity_list = get_organization_activity_list(self.get_organization_id())
 
 		objects = []
 
 		can_set = is_organization_manager(self.get_user_id(), self.get_organization_id())
+
 		for obj in activity_list:
 			values = []
 			if can_set:
@@ -117,7 +134,7 @@ class OrganizationActivityListView(BaseOrganizationActivityView, ListView):
 
 # Khung nhìn nhập danh sách hoạt động trong tổ chức
 class OrganizationActivityImportView(BaseOrganizationActivityView, BaseImportView):
-	template_name = 'v1/organization/activity/import.html'
+	template_name = 'v1/organization/profile/activity/import.html'
 
 	CONST_FIELDS = ('identify',	'name',	'type')
 
@@ -155,7 +172,7 @@ class OrganizationActivityImportView(BaseOrganizationActivityView, BaseImportVie
 class OrganizationActivityCreateView(BaseOrganizationActivityView, BaseSuccessMessageMixin, CreateView):
 	model = Activity
 
-	template_name = 'v1/organization/activity/create.html'
+	template_name = 'v1/organization/profile/activity/create.html'
 
 	success_message = u'Thêm hoạt động thành công'
 
@@ -222,8 +239,7 @@ class OrganizationActivityCreateView(BaseOrganizationActivityView, BaseSuccessMe
 
 
 
-
-# Khung nhìn chung quản lý danh sách hoạt động của tổ chức
+# Khung nhìn chung quản lý danh sách thành viên
 class BaseOrganizationMemberView(BaseOrganizationView):
 
 	can_set = 0
@@ -246,7 +262,7 @@ class BaseOrganizationMemberView(BaseOrganizationView):
 
 # Khung nhìn xem danh sách thành viên trong tổ chức
 class OrganizationMemberListView(BaseOrganizationMemberView, ListView):
-	template_name = 'v1/organization/member/list.html'
+	template_name = 'v1/organization/profile/member/list.html'
 	paginate_by = '20'
 
 	def get_context_data(self, **kwargs):
@@ -257,13 +273,15 @@ class OrganizationMemberListView(BaseOrganizationMemberView, ListView):
 
 		if self.can_set:
 			context['show_add_button'] = 1
-			context['show_delete_button'] = 1
+			context['show_import_button'] = 1
 			context['show_checkbox'] = 1
+			context['show_statistics_button'] = 1
+			context['import_link'] = 'import/'
 
 		return context
 
 	def get_queryset(self):
-		user_list = get_all_user_in_user_managed_organization(self.get_user_id(), self.get_organization_id())
+		user_list = get_organization_user_list(self.get_user_id(), self.get_organization_id())
 		objects = []
 		can_set = is_organization_administrator(self.get_user_id(), self.get_organization_id())
 		for obj in user_list:
@@ -272,6 +290,10 @@ class OrganizationMemberListView(BaseOrganizationMemberView, ListView):
 				values.append(mark_safe('<input type="checkbox" class="checkboxes" value="%s" name="list"/>' % obj.identify))
 			values.append(obj.identify)
 			values.append(mark_safe(u'<a href="/user/user=%s">%s</a>' % (obj.identify, obj.get_full_name())))
+
+			# Thêm cột các tổ chức tham gia
+
+
 			objects.append(values)
 		return objects
 
@@ -279,7 +301,7 @@ class OrganizationMemberListView(BaseOrganizationMemberView, ListView):
 
 # Khung nhìn nhập danh sách thành viên vào tổ chức
 class OrganizationMemberImportView(BaseOrganizationMemberView, BaseImportView):
-	template_name = 'v1/organization/member/import.html'
+	template_name = 'v1/organization/profile/member/import.html'
 
 	CONST_FIELDS = ['identify']
 
@@ -299,7 +321,7 @@ class OrganizationMemberImportView(BaseOrganizationMemberView, BaseImportView):
 			return False
 		
 		identify = row['identify']
-		if add_organization_user(self.get_user_id(), self.get_organization_id(), identify):
+		if set_organization_user(self.get_user_id(), self.get_organization_id(), identify):
 			print 'Import member ' + identify + ' to ' + self.get_organization_id() + ' complete'
 			print '----------'
 			return True
@@ -310,13 +332,13 @@ class OrganizationMemberImportView(BaseOrganizationMemberView, BaseImportView):
 
 # Khung nhìn xem các tổ chức trực thuộc
 class ChildOrganizationTreeView(BaseOrganizationView, TemplateView):
-	template_name = 'v1/organization/organization_child_organization.html'
+	template_name = 'v1/organization/profile/child_organization.html'
 
 	def get_context_data(self, **kwargs):
 		context = super(ChildOrganizationTreeView, self).get_context_data(**kwargs)
 		
 		context['organization_tree_active'] = 'active'
-		context['tree_content'] = mark_safe(self.toHtml(get_organization_tuple_table(self.get_user_id(), self.get_organization_id())))
+		context['tree_content'] = mark_safe(self.toHtml(get_organization_tuple_table(self.get_organization_id())))
 
 		if is_organization_administrator(self.get_user_id(), self.get_organization_id()):
 			context['can_set_list'] = 1
@@ -338,40 +360,34 @@ class ChildOrganizationTreeView(BaseOrganizationView, TemplateView):
 
 
 
-		
-
-
-
-
-class OrganizationFormView(BaseSuccessMessageMixin, FormView):
+class OrganizationFormView(BaseSuccessMessageMixin, FormView, BaseView):
 	def get_form(self, form_class):
 		form = super(OrganizationFormView, self).get_form(form_class)
-		form.fields['identify'].widget.attrs['class'] = 'form-control'
 		form.fields['name'].widget.attrs['class'] = 'form-control'
+		form.fields['short_name'].widget.attrs['class'] = 'form-control'
 		form.fields['organization_type'].widget.attrs['class'] = 'form-control'
-		form.fields['manager_organization'].widget.attrs['class'] = 'form-control'
-
+		form.fields['management_organization'].widget.attrs['class'] = 'form-control'
+		form.fields['description'].widget.attrs['class'] = 'form-control'
 		return form
+
+
 
 class OrganizationCreateView(CreateView, OrganizationFormView):
 	model = get_organization_model()
 
-	form_class = OrganizationForm
-
-	template_name = 'v1/organization/organization_editor.html'# template of OrganizationCreateView is the same as UserCreateView
+	template_name = 'v1/organization/editor/creator.html'
 
 	success_message = u'Thêm tổ chức thành công'
 
-	def get_form(self, form_class):
-		kwargs = self.get_form_kwargs()
-
-		params = {}
-		params['user_id'] = self.request.session['user_id']
-
-		return form_class(params, **kwargs)
+	fields =['identify', 'name', 'short_name', 'organization_type', 'management_organization', 'description']
 
 	def get_success_url(self):
 		return reverse('organization_list_view_v1')
+
+	def get_form(self, form_class):
+		form = super(OrganizationCreateView, self).get_form(form_class)
+		form.fields['identify'].widget.attrs['class'] = 'form-control'
+		return form
 
 	def get_context_data(self, **kwargs):
 		if not is_organization_administrator(self.request.session['user_id']):
@@ -385,18 +401,190 @@ class OrganizationCreateView(CreateView, OrganizationFormView):
 
 		context['organization_active'] = 'active'
 		
-		context['button_name'] = u'Thêm tổ chức'
+		context['button_value'] = u'Thêm'
 
 		return context
 
 	def form_valid(self, form):
 		self.object = form.save(commit=False)
-		set_organization(self.request.session['user_id'], self.object)
+		set_organization(self.get_user_id(), self.object)
 		self.clear_messages()
 		return super(OrganizationCreateView, self).form_valid(form)
 
-class OrganizationListView(ListView):
-	template_name = 'v1/list.html'
+
+
+class BaseOrganizationUpdateView(BaseOrganizationView):
+	def get_context_data(self, **kwargs):
+		if not is_organization_administrator(self.get_user_id(), self.get_organization_id()):
+			raise PermissionDenied
+
+		context = super(BaseOrganizationUpdateView, self).get_context_data(**kwargs)
+
+		return context
+
+
+
+class OrganizationUpdateView(BaseOrganizationUpdateView, OrganizationFormView, UpdateView):
+	template_name = 'v1/organization/editor/update.html'
+
+	fields =['name', 'short_name', 'organization_type', 'management_organization', 'description']
+
+	success_message = u'Cập nhật thành công'
+
+	def get_context_data(self, **kwargs):
+		context = super(OrganizationUpdateView, self).get_context_data(**kwargs)
+
+		return context
+
+	def get_success_url(self):
+		return reverse('organization_update_view_v1', kwargs={'organization_id' : self.get_organization_id() })
+
+	def get_context_data(self, **kwargs):
+		context = super(OrganizationUpdateView, self).get_context_data(**kwargs)
+
+		context['button_value'] = u'Cập nhật'
+
+		return context
+
+	def form_valid(self,form):
+		self.object = form.save(commit=False)
+		set_organization(self.get_user_id(), self.object)
+		self.clear_messages()
+		return super(OrganizationUpdateView, self).form_valid(form)
+
+	def get_object(self):
+		return get_organization(self.get_organization_id())
+
+
+
+class OrganizationPermissionListView(BaseOrganizationUpdateView, ListView):
+	template_name = 'v1/organization/editor/permission/list.html'
+
+	def get_context_data(self, **kwargs):
+		context = super(OrganizationPermissionListView, self).get_context_data(**kwargs)
+
+		context['theads'] = [	{'name': u'Họ và tên', 'size' : 'auto'},
+								{'name': u'Chức vụ', 'size' : '15%'},
+								{'name': u'Quyền hạn', 'size' : '15%'},	]
+
+		context['show_add_button'] = 1
+		context['show_import_button'] = 1
+		context['add_link'] = 'create/'
+		context['import_link'] = 'import/'
+
+		return context
+
+	def get_queryset(self):
+		organization_staff_list = get_organization_staff(self.get_organization_id())
+
+		objects = []
+		for obj in organization_staff_list:
+			values = []
+			values.append(obj.user.get_full_name())
+			values.append(obj.position.name)
+			values.append(obj.permission)
+			objects.append(values)
+
+		return objects
+
+
+
+class OrganizationPermissionCreateView(BaseOrganizationUpdateView, BaseSuccessMessageMixin, CreateView):
+	template_name = 'v1/organization/editor/permission/creator.html'
+
+	# form_class = OrganizationPermissionForm
+	model = get_organization_user_model()
+
+	success_message = u'Thêm quyền hạn thành công'
+
+	fields =['user', 'permission', 'position']
+
+	def get_success_url(self):
+		return reverse('organization_permission_list_view_v1',  kwargs={ 'organization_id' : self.get_organization_id() })
+
+	def get_form(self, form_class):
+		form = super(OrganizationPermissionCreateView, self).get_form(form_class)
+		
+		# form.fields['identify'].widget.attrs['class'] = 'form-control'
+
+		return form
+
+	def get_context_data(self, **kwargs):
+		if not is_organization_administrator(self.request.session['user_id']):
+			raise PermissionDenied
+
+		context = super(OrganizationPermissionCreateView, self).get_context_data(**kwargs)
+		
+		context['title'] = u'Thêm quyền hạn người dùng trong tổ chức'
+
+		context['page_title'] = u'Thêm quyền hạn người dùng trong tổ chức'
+
+		context['organization_active'] = 'active'
+		
+		context['button_value'] = u'Thêm'
+
+		return context
+
+	def form_valid(self, form):
+		self.object = form.save(commit=False)
+		self.object.organization = get_organization(self.get_organization_id())
+		set_organization_user(self.get_user_id(), self.object)
+		self.clear_messages()
+		return super(OrganizationPermissionCreateView, self).form_valid(form)
+
+
+
+
+
+class OrganizationPermissionUpdateView(BaseOrganizationUpdateView, BaseSuccessMessageMixin, UpdateView):
+	template_name = 'v1/organization/editor/permission/creator.html'
+
+	# form_class = OrganizationPermissionForm
+	model = get_organization_user_model()
+
+	success_message = u'Thêm quyền hạn thành công'
+
+	fields =['user', 'permission', 'position']
+
+	def get_success_url(self):
+		return reverse('organization_permission_list_view_v1',  kwargs={ 'organization_id' : self.get_organization_id() })
+
+	def get_form(self, form_class):
+		form = super(OrganizationPermissionCreateView, self).get_form(form_class)
+		
+		# form.fields['identify'].widget.attrs['class'] = 'form-control'
+
+		return form
+
+	def get_context_data(self, **kwargs):
+		if not is_organization_administrator(self.request.session['user_id']):
+			raise PermissionDenied
+
+		context = super(OrganizationPermissionCreateView, self).get_context_data(**kwargs)
+		
+		context['title'] = u'Chỉnh sửa quyền hạn người dùng trong tổ chức'
+
+		context['page_title'] = u'Chỉnh sửa quyền hạn người dùng trong tổ chức'
+
+		context['organization_active'] = 'active'
+		
+		context['button_value'] = u'Chỉnh sửa'
+
+		return context
+
+	def form_valid(self, form):
+		self.object = form.save(commit=False)
+		self.object.organization = get_organization(self.get_organization_id())
+		set_organization_user(self.get_user_id(), self.object)
+		self.clear_messages()
+		return super(OrganizationPermissionCreateView, self).form_valid(form)
+
+
+
+
+
+class OrganizationListView(BaseView, ListView):
+	template_name = 'v1/static_pages/list.html'
 	paginate_by = '20'
 
 	can_set = False
@@ -410,12 +598,16 @@ class OrganizationListView(ListView):
 		context['organization_active'] = 'active'
 		context['organization_list_active'] = 'active'
 
-		context['theads'] = [	{'name': u'Tên tổ chức', 'size' : 'auto'},
-								# {'name': u'Trạng thái', 'size' : '20%'},
-								{'name': '', 'size' : '8%'},	]
+		context['theads'] = [	{'name': u'#', 'size' : '10%'},
+								{'name': u'Tên tổ chức', 'size' : 'auto'},
+								{'name': u'Loại tổ chức', 'size' : '15%'},	]
 
-		context['add_link'] = '/organization/create/'
-		context['import_link'] = '/organization/import/'
+
+		if self.can_set:
+			context['show_add_button'] = 1
+			context['show_import_button'] = 1
+			context['add_link'] = '/organization/create/'
+			context['import_link'] = '/organization/import/'
 
 		#  context['can_set_list'] = 1
 
@@ -423,39 +615,35 @@ class OrganizationListView(ListView):
 
 	def get_queryset(self):
 		user_id = self.request.session['user_id']
-		# if not can_user_manage_organization(user_id):
-		# 	raise PermissionDenied
 
 		organization_list = None
 
-		# self.can_set = can_user_administrate_organization(user_id)
+		self.can_set = is_super_administrator(self.get_user_id())
 
-		if is_super_administrator_id(user_id):
-			organization_list = get_organization_list(user_id)
+		if is_super_administrator(self.get_user_id()):
+			organization_list = get_organization_list()
 		else:
-			organization_list = get_paticipate_organizations(user_id)
-		
+			organization_list = get_joined_organization_list(self.get_user_id())
+
 		objects = []
 		if organization_list is not None:
 			for obj in organization_list:
 				values = []
-				if self.can_set:
-					values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.identify))
-				values.append(obj.name)
-				values.append(mark_safe(u'<a href="/organization/organization=%s" class="btn default btn-xs green-stripe">Chi tiết</a>' % (obj.identify)))
+				# if self.can_set:
+				# 	values.append(mark_safe('<input type="checkbox" class="checkboxes" value="1" id="%s"/>' % obj.identify))
+				values.append(obj.identify)
+				values.append(mark_safe(u'<a href="/organization/organization=%s"">%s</a>' % (obj.identify, obj.name)))
+				values.append(obj.organization_type.name)
 				objects.append(values)
 
 		return objects
 
 
 
-class OrganizationTreeView(TemplateView):
-	template_name = 'v1/organization/organization_tree_all.html'
+class OrganizationTreeView(BaseView, TemplateView):
+	template_name = 'v1/organization/organization_tree_list.html'
 
 	def get_context_data(self, **kwargs):
-		if not is_super_administrator_id(self.request.session['user_id']):
-			raise PermissionDenied
-
 		context = super(OrganizationTreeView, self).get_context_data(**kwargs)
 		
 		org = get_organization_root()
@@ -463,8 +651,9 @@ class OrganizationTreeView(TemplateView):
 		context['organization_active'] = 'active'
 		context['organization_tree_active'] = 'active'
 
-		context['tree_content'] = mark_safe(self.toHtml(get_organization_tuple_table(self.request.session['user_id'], get_organization_root()))
-		)
+		context['page_title'] = u'Cây tổ chức'
+
+		context['tree_content'] = mark_safe(self.toHtml(get_organization_tuple_table()))
 
 		context['can_manage_organization'] = 1
 
@@ -485,21 +674,23 @@ class OrganizationTreeView(TemplateView):
 
 
 
-class OrganizationImportView(BaseImportView):
+class OrganizationImportView(BaseView, BaseImportView):
 	template_name = 'v1/import.html'
 
 	CONST_FIELDS = (	'identify',
 						'name',
 						'organization_type',
-						'manager_organization'	)
+						'management_organization'	)
 
 	def get_success_url(self):
-		return reverse('organization_tree_view_v1')
+		return reverse('organization_list_view_v1')
 
 	def get_context_data(self, **kwargs):
-		context = super(OrganizationImportView, self).get_context_data(**kwargs)
-		if not is_organization_administrator(self.request.session['user_id']):
+		if not is_organization_administrator(self.get_user_id()):
 			raise PermissionDenied
+		context = super(OrganizationImportView, self).get_context_data(**kwargs)
+		
+		context['page_title'] = u'Nhập danh sách tổ chức'
 
 		return context
 
@@ -510,159 +701,14 @@ class OrganizationImportView(BaseImportView):
 		identify = row['identify']
 		name = row['name']
 		organization_type = row['organization_type']
-		manager_organization = row['manager_organization']
+		management_organization = row['management_organization']
 
-		if manager_organization is not None and len(manager_organization) == 0:
-			manager_organization = None
+		if management_organization is not None and len(management_organization) == 0:
+			management_organization = None
 
-		if set_organization(self.request.session['user_id'], identify, name, organization_type, manager_organization):
+		if set_organization(self.get_user_id(), identify, name, organization_type, management_organization):
 			print 'Import organization ' + identify + ' successfully'
 			print '----------'
 			return True
 
 		return False
-
-
-class OrganizationManagementImportView(BaseImportView):
-	template_name = 'v1/import.html'
-
-	CONST_FIELDS = (	'manager_organization',
-						'managed_organization'	)
-
-	def get_success_url(self):
-		return reverse('organization_tree_view_v1')
-
-	def get_context_data(self, **kwargs):
-		context = super(OrganizationManagementImportView, self).get_context_data(**kwargs)
-		if not is_organization_administrator(self.request.session['user_id']):
-			raise PermissionDenied
-
-		return context
-
-	def input_row(self, row):
-		try:
-			for field in self.CONST_FIELDS:
-				print row[field]
-		except Exception as e:
-			return e
-		
-		manager_organization = row['manager_organization']
-		managed_organization = row['managed_organization']
-		
-		create_organization_managerment_by_infomation(	self.request.session['user_id'],
-														manager_organization,
-														managed_organization	)
-
-		print '-------------'
-		return 'ok'
-
-
-
-
-
-
-class BaseOrganizationUpdateView(UpdateView, OrganizationFormView):
-	model = get_organization_model
-	fields = '__all__'
-	success_message = u'Cập nhật thành công'
-
-	def get_context_data(self, **kwargs):
-		context = super(BaseOrganizationUpdateView, self).get_context_data(**kwargs)
-
-		context['title'] = u'Thông tin tổ chức'
-		context['page_title'] = u'Thông tin tổ chức'
-		
-		context['organization_active'] = 'active'
-
-		context['member_full_name'] = self.object.get_full_name()
-
-		return context
-
-
-
-class OrganizationUpdateView(BaseOrganizationUpdateView):
-	template_name = 'v1/user/user_update.html'
-	template_name = 'v1/user/user_update.html'
-
-	def get_success_url(self):
-		return reverse('organization_update_view_v1', kwargs={'organization_id' : self.kwargs['organization_id'] })
-
-	def form_valid(self,form):
-		self.object = form.save(commit=False)
-		self.object.creator = self.request.user
-		self.object.status = 0
-
-		organization__id = self.request.session['organization__id']
-		user = self.kwargs['organization__id']
-
-		# if int(user) == user_id:
-		# 	self.request.session['user_full_name'] = self.object.get_full_name()
-		
-		self.object.save()
-
-		self.clear_messages()
-
-		return super(OrganizationUpdateView, self).form_valid(form)
-
-	def get_object(self):
-		try:
-			return set_user(	self.request.session['organization__id'],
-							self.kwargs['organization__id']
-						)
-
-		except:
-			raise Http404('Organization does not exist!')
-
-#########################################
-# class BaseOrganizationUpdateView(UpdateView, OrganizationFormView):
-# 	model = get_organization_model
-# 	fields = '__all__'
-# 	success_message = u'Cập nhật thành công'
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(BaseOrganizationUpdateView, self).get_context_data(**kwargs)
-
-# 		context['title'] = u'Thông tin tổ chức'
-# 		context['page_title'] = u'Thông tin tổ chức'
-		
-# 		context['organization_active'] = 'active'
-
-# 		context['member_full_name'] = self.object.get_full_name()
-
-# 		return context
-# class OrganizationUpdateView(BaseOrganizationUpdateView):
-# 	template_name = 'v1/user/user_update.html'
-# 	template_name = 'v1/user/user_update.html'
-
-# 	def get_success_url(self):
-# 		return reverse('organization_update_view_v1', kwargs={'organization_id' : self.kwargs['organization_id'] })
-
-# 	def form_valid(self,form):
-# 		self.object = form.save(commit=False)
-# 		self.object.creator = self.request.user
-# 		self.object.status = 0
-
-# 		organization__id = self.request.session['organization__id']
-# 		user = self.kwargs['organization__id']
-
-# 		# if int(user) == user_id:
-# 		# 	self.request.session['user_full_name'] = self.object.get_full_name()
-		
-# 		self.object.save()
-
-# 		self.clear_messages()
-
-# 		return super(OrganizationUpdateView, self).form_valid(form)
-
-# 	def get_object(self):
-# 		try:
-# 			return set_user(	self.request.session['organization__id'],
-# 							self.kwargs['organization__id']
-# 						)
-
-# 		except:
-# 			raise Http404(error_organization_not_exist_message)
-
-
-
-

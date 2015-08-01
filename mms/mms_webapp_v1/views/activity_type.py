@@ -7,20 +7,18 @@ from django.utils.html import mark_safe
 from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
 
-from mms_controller.resources.activity_type import *
-
 from django.core.urlresolvers import reverse
 
 from mms_webapp_v1.views.bases.base_view import *
 
-from mms_controller.resources_temp import *
+from mms_base.resources import *
 
 success_add_organization_type_message = u'Thêm loại hoạt động thành công'
 success_update_organization_type_message = u'Cập nhật loại hoạt động thành công'
 
 class BaseActivityTypeView(BaseView):
 	def get_context_data(self, **kwargs):
-		if not is_super_administrator_id(self.get_user_id()):
+		if not is_super_administrator(self.get_user_id()):
 			raise PermissionDenied
 		context = super(BaseActivityTypeView, self).get_context_data(**kwargs)
 		return context

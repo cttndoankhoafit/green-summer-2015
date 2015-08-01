@@ -10,7 +10,7 @@
 	<div class="page-header-inner">
 		<!-- BEGIN LOGO -->
 		<div class="page-logo">
-			<a href="index.html">
+			<a href="/">
 			<img src="{% static "v1/assets/admin/layout/img/logo.png" %}" alt="logo" class="logo-default"/>
 			</a>
 			<div class="menu-toggler sidebar-toggler hide">
@@ -175,13 +175,11 @@
 							<i class="fa fa-pagelines"></i>
 							Tổ chức tham gia</a>
 						</li>
-						{% if request.session.super_user %}
 						<li class="{{ organization_tree_active }}">
 							<a href="{% url 'organization_tree_view_v1' %}">
 							<i class="fa fa-tree"></i>
 							Cây tổ chức</a>
 						</li>
-						{% endif %}
 					</ul>
 				</li>
 
@@ -208,15 +206,15 @@
 					</ul>
 				</li>
 
-				<li class="{{ renluyendoanvien_active }}">
-					<a href="javascript:;">
+				<li class="{{ yumt_active }}">
+					<a>
 					<i class="icon-basket"></i>
 					<span class="title">Rèn luyện Đoàn viên</span>
 					<span class="arrow "></span>
 					</a>
 					<ul class="sub-menu">
-						<li class="{{ renluyendoanvien_dangky_active }}">
-							<a href="{% url 'renluyendoanvien_dangky_view_v1' %}">
+						<li class="{{ yumt_register_active }}" >
+							<a href="{% url 'yumt_register_view_v1' %}">
 							<i class="icon-home"></i>
 							Đăng ký</a>
 						</li>
@@ -230,14 +228,14 @@
 							<i class="icon-tag"></i>
 							Lịch sử đăng ký</a>
 						</li>
-						<li class="{{ renluyendoanvien_tudanhgia_active }}">
-							<a href="{% url 'renluyendoanvien_tudanhgia_view_v1' %}">
+						<li>
+							<a href="ecommerce_products.html">
 							<i class="icon-handbag"></i>
 							Tự đánh giá</a>
 						</li>
-						<li class="{{ renluyendoanvien_ketquadanhgia_active }}">
-							<a href="{% url 'renluyendoanvien_ketquadanhgia_view_v1' %}">
-							<i class="icon-handbag"></i>
+						<li>
+							<a href="ecommerce_products_edit.html">
+							<i class="icon-pencil"></i>
 							Kết quả đánh giá</a>
 						</li>
 					</ul>
@@ -251,7 +249,7 @@
 					</a>
 					<ul class="sub-menu">
 						<li>
-							<a href="ecommerce_index.html">
+							<a href=#>
 							<i class="icon-home"></i>
 							Đăng ký</a>
 						</li>

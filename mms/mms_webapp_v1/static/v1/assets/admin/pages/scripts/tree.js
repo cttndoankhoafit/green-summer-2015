@@ -6,7 +6,7 @@ var Tree = function () {
 			"core" : {
 				"themes" : {
 					"responsive": false
-				}            
+				}
 			},
 			"types" : {
 				"default" : {

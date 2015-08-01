@@ -1,4 +1,0 @@
-id,password,last_login,is_superuser,username,email,is_staff,is_active,member_id
-1,pbkdf2_sha256$20000$TPNcaly5XIf6$YhY5EdZNNnAxeRAYza47ht4rAbOE0sUlkvRjJKij2jE=,7/7/2015 8:52:00,1,sa,sa@itus.vn,1,1,
-2,123,7/8/2015 9:12:44,0,admin1,a1@blabla.com,0,1,
-3,123,7/8/2015 9:14:12,0,admin2,a2@blabla.com,0,1,

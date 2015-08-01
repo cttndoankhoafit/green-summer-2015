@@ -1,0 +1,41 @@
+<div class="row">
+	<div class="form-group col-md-6">
+		<label class="control-label">Tên tổ chức</label>
+		{{ form.name }}
+		{{ form.name.errors }}
+	</div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6">
+		<label class="control-label">Tên viết tắt</label>
+		{{ form.short_name }}
+		{{ form.short_name.errors }}
+	</div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6">
+		<label class="control-label">Loại tổ chức</label>
+		{{ form.organization_type }}
+		{{ form.organization_type.errors }}
+	</div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6">
+		<label class="control-label">Tổ chức quản lý</label>
+		{{ form.management_organization }}
+		{{ form.management_organization.errors }}
+	</div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6">
+		<label class="control-label">Mô tả</label>
+		{{ form.description }}
+		{{ form.description.errors }}
+	</div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6 margin-top-10">
+		<input type="submit" class="btn green" value="{{ button_value }}">
+		<a class="btn default" href="{% url 'organization_list_view_v1' %}">Hủy bỏ</a>
+	</div>
+</div>

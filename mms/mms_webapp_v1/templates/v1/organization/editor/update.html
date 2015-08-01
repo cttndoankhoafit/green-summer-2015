@@ -1,0 +1,13 @@
+{% extends 'v1/organization/editor/base.html' %}
+
+{% block update_active %}
+active
+{% endblock %}
+
+{% block tab_content %}
+<form method="post">
+	{% csrf_token %}
+	{% include 'v1/static_modules/message.html'  %}
+	{% include 'v1/organization/editor/editor.html' %}
+</form>
+{% endblock %}

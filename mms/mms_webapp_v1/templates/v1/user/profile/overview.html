@@ -1,65 +1,253 @@
 {% extends 'v1/user/profile/base.html' %}
 
-{% block overview_active %}
+{% load staticfiles %}
+
+{% block detail_active %}
 active
 {% endblock %}
 
 {% block tab_content %}
-
-<div class="row">
-	<div class="col-md-12">
-		<h3>Thông tin cá nhân</h3>
-		<hr>
-		<div class="row">
-			<div class="fa-item col-md-4 col-sm-4">
-				<i class="fa fa-credit-card"></i> {{ object.identify }}  
-			</div>
-			<div class="fa-item col-md-4 col-sm-4">
-				<i class="fa fa-male"></i>  {{ object.get_gender_display }} 
-			</div>
-		</div>
-		<div class="row">
-			<div class="fa-item col-md-4 col-sm-4">
-				<i class="fa fa-calendar"></i>  {{ object.date_of_birth }}
-			</div>
-			<div class="fa-item col-md-4 col-sm-4">
-				<i class="fa fa-home"></i> {{ object.place_of_birth }}
-			</div>
-		</div>
-		<div class="row">
-			<div class="fa-item col-md-4 col-sm-4">
-				<i class="fa fa-users"></i> {{ object.folk }}
-			</div>
-			<div class="fa-item col-md-4 col-sm-4">
-				<i class="fa fa-ge"></i> {{ object.religion }}
-			</div>
-		</div>
-		<h3>Thông tin liên lạc</h3>
-		<hr>
-		<div class="row">
-			<div class="fa-item col-md-4 col-sm-4">
-				<i class="fa fa-phone"></i> {{ object.home_phone }}
-			</div>
-			<div class="fa-item col-md-4 col-sm-4">
-				<i class="fa fa-mobile-phone"></i> {{ object.mobile_phone }}
-			</div>
-		</div>
-		<div class="row">
-			<div class="fa-item col-md-12 col-sm-4">
-				<i class="fa fa-map-marker"></i> {{ object.get_address }}
-			</div>
-		</div>
-		<div class="row">
-			<div class="fa-item col-md-12 col-sm-4">
-				<i class="fa fa-paper-plane"></i> {{ object.temporary_address }}
-			</div>
-		</div>
-		<div class="row">
-			<div class="fa-item col-md-8 col-sm-4">
-				<i class="fa fa-envelope"></i> {{ object.email }}
+<div class="row profile">
+	<div class="col-md-3">
+		<ul class="list-unstyled profile-nav">
+			<li>
+				<img src="{% static "v1/assets/admin/pages/media/profile/profile-img.png" %}" class="img-responsive" alt="">
+				<a href="#" class="profile-edit">
+				edit </a>
+			</li>
+			<li>
+				<a href="#tab_1">Thông tin chung</a>
+			</li>
+			<li>
+				<a href="#tab_2">Thông tin chi tiết</a>
+			</li>
+			<li>
+				<a href="#tab_3">Thông tin liên lạc với gia đình</a>
+			</li>
+		</ul>
+	</div>
+	<div class="col-md-9">
+		<div class="tab-content">
+			<div class="tab-pane active">
+				<div class="portlet box blue-steel" id="tab_1">
+					<div class="portlet-title">
+						<div class="caption">
+							Thông tin chung
+						</div>
+					</div>
+					<div class="portlet-body">
+						<div class="form-horizontal form-bordered">
+							<div class="form-body">
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Họ và tên</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.get_full_name }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Giới tính</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.get_gender_display }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Ngày sinh</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.date_of_birth }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Nơi sinh</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.place_of_birth }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Nơi sinh khác</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.other_place_of_birth }}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="portlet box blue-steel" id="tab_2">
+					<div class="portlet-title">
+						<div class="caption">
+							Thông tin chi tiết
+						</div>
+					</div>
+					<div class="portlet-body">
+						<div class="form-horizontal form-bordered">
+							<div class="form-body">
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Số chứng minh nhân dân</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.identification_card_number }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Ngày cấp</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.identification_card_provision_date }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Nơi cấp</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.identification_card_provision_place }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+									</div>
+									<div class="col-md-9">
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Quốc tịch</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.nationality }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Dân tộc</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.folk }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Tôn giáo</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.religion }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-12">
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Địa chỉ thường trú</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.get_address }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Địa chỉ tạm trú</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.temporary_address }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Điện thoại</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.home_phone }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Điện thoại di động</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.mobile_phone }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Thư điện tử</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.email }}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="portlet box blue-steel" id="tab_3">
+					<div class="portlet-title">
+						<div class="caption">
+							Thông tin liên lạc với gia đình
+						</div>
+					</div>
+					<div class="portlet-body">
+						<div class="form-horizontal form-bordered">
+							<div class="form-body">
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Họ và tên người liên lạc</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.contact_person_name }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Địa chỉ</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.contact_person_address }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Điện thoại</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.contact_person_phone }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Thư điện tử</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.contact_person_email }}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>Ghi chú</label>
+									</div>
+									<div class="col-md-9">
+										{{ object.contact_person_note }}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
 </div>
-
 {% endblock %}

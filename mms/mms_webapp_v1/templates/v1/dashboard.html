@@ -19,8 +19,119 @@
 </script>
 {% endblock %}
 
-{% block main_content %}
+{% block page_content %}
+<!-- BEGIN DASHBOARD STATS -->
 <div class="row">
-	
+	<div class="col-lg-4 col-md-3 col-sm-6 col-xs-12">
+		<div class="dashboard-stat blue-madison">
+			<div class="visual">
+				<i class="fa fa-comments"></i>
+			</div>
+			<div class="details">
+				<div class="number">
+					 1349
+				</div>
+				<div class="desc">
+					 Hoạt động đã tham gia
+				</div>
+			</div>
+			<a class="more" href="{% url 'user_activity_view_v1' request.session.user_id %}">
+			Chi tiết <i class="m-icon-swapright m-icon-white"></i>
+			</a>
+		</div>
+	</div>
+
+	<div class="col-lg-4 col-md-3 col-sm-6 col-xs-12">
+		<div class="dashboard-stat red-intense">
+			<div class="visual">
+				<i class="fa fa-bar-chart-o"></i>
+			</div>
+			<div class="details">
+				<div class="number">
+					 100
+				</div>
+				<div class="desc">
+					 Tín chỉ đã tích lũy
+				</div>
+			</div>
+			<a class="more" href="{% url 'user_activity_view_v1' request.session.user_id %}">
+			Chi tiết <i class="m-icon-swapright m-icon-white"></i>
+			</a>
+		</div>
+	</div>
+
+	<div class="col-lg-4 col-md-3 col-sm-6 col-xs-12">
+		<div class="dashboard-stat green-haze">
+			<div class="visual">
+				<i class="fa fa-shopping-cart"></i>
+			</div>
+			<div class="details">
+				<div class="number">
+					 549
+				</div>
+				<div class="desc">
+					 ĐRL tích lũy
+				</div>
+			</div>
+			<a class="more" href="{% url 'user_activity_view_v1' request.session.user_id %}">
+			Chi tiết <i class="m-icon-swapright m-icon-white"></i>
+			</a>
+		</div>
+	</div>
+</div>
+<!-- END DASHBOARD STATS -->
+<div class="row">
+	<div class="col-md-6 col-sm-6">
+		<div class="portlet">
+			<div class="portlet-title line">
+				<div class="caption">
+					Hoạt động của Chi Đoàn
+				</div>
+			</div>
+			<div class="porlet-body">
+
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6 col-sm-6">
+		<div class="portlet">
+			<div class="portlet-title line">
+				<div class="caption">
+					Hoạt động của Đoàn khoa
+				</div>
+			</div>
+			<div class="porlet-body">
+
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix">
+</div>
+<div class="row">
+	<div class="col-md-6 col-sm-6">
+		<div class="portlet">
+			<div class="portlet-title line">
+				<div class="caption">
+					Hoạt động của Đoàn trường
+				</div>
+			</div>
+			<div class="porlet-body">
+
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6 col-sm-6">
+		<div class="portlet">
+			<div class="portlet-title line">
+				<div class="caption">
+					Hoạt động của các tổ chức khác
+				</div>
+			</div>
+			<div class="porlet-body">
+
+			</div>
+		</div>
+	</div>
 </div>
 {% endblock %}

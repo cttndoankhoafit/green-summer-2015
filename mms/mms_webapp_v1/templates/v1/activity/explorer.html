@@ -1,0 +1,53 @@
+{% extends 'v1/webapp_base.html' %}
+
+{% load staticfiles %}
+
+{% block page_level_styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/jstree/dist/themes/default/style.min.css" %}"/>
+{% endblock %}
+
+{% block page_level_plugins_scripts %}
+{{ block.super }}
+<script src="{% static "v1/assets/global/plugins/jstree/dist/jstree.min.js" %}"></script>
+{% endblock %}
+
+{% block page_level_scripts %}
+{{ block.super }}
+<script src="{% static "v1/assets/admin/pages/scripts/tree.js" %}"></script>
+{% endblock %}
+
+{% block init_scripts %}
+	Tree.init();
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+	<div class="col-md-3">
+		<div class="portlet box blue-steel">
+			<div class="portlet-title">
+				<div class="caption">
+					Danh sách tổ chức
+				</div>
+			</div>
+			<div class="portlet-body">
+				<div id="tree" class="tree-demo">
+				{{ tree_content }}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-9">
+		<div class="portlet box blue-steel">
+			<div class="portlet-title">
+				<div class="caption">
+					Danh sách hoạt động
+				</div>
+			</div>
+			<div class="portlet-body">
+				{% include 'v1/static_modules/list.html' %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'v1/webapp_base.html' %}
+
+{% load staticfiles %}
+
+{% block page_content %}
+<div class="row">
+	<div class="col-md-12">
+		<!--BEGIN TABS-->
+		<div class="tabbable tabbable-custom tabbable-full-width">
+
+			<ul class="nav nav-tabs">
+				<li class="{% block update_active %}{% endblock %}">
+					<a href="{% url 'organization_update_view_v1' organization_id %}">
+					Thay đổi thông tin </a>
+				</li>
+			
+				<li class="{% block change_permission_active %}{% endblock %}">
+					<a href="{% url 'organization_permission_list_view_v1' organization_id %}">
+					Thay đổi quyền quản trị </a>
+				</li>
+			</ul>			
+			<div class="tab-content">
+				<div class="tab-pane active">
+				{% block tab_content %}
+
+				{% endblock %}
+				</div>
+			</div>
+		</div>
+		<!--END TABS-->
+	</div>
+</div>
+{% endblock %}

@@ -63,10 +63,14 @@ class Ward(models.Model):
 
 # Dữ liệu giai đoạn thời gian
 class Period(models.Model):
-	identify = models.CharField(max_length=50, unique=True, db_index=True)
+	identify = models.CharField(max_length=16, primary_key=True, db_index=True)
+	name = models.CharField(max_length=50, null=True, blank=True, default=None)
 	start_time = models.DateField()
 	end_time = models.DateField()
 	
+	def __unicode__(self):
+		return self.name
+
 
 #region Dữ liệu Người dùng
 
@@ -106,8 +110,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 	last_name = models.CharField(u'Họ', max_length=128, null=True, blank=True, default=None)
 	gender =  models.PositiveSmallIntegerField(u'Giới tính', null=True, choices=CONST_GENDERS, default=0)
 	date_of_birth = models.DateField(u'Ngày sinh', null=True, blank=True, default=None)
-	place_of_birth = models.ForeignKey(Province, null=True, blank=True, default=None, related_name='place_of_birth_related')
-	other_place_of_birth =  models.ForeignKey(Province, null=True, blank=True, default=None, related_name='other_place_of_birth_related')
+	
+	place_of_birth = models.CharField(max_length=50, null=True, blank=True, default=None)
+	other_place_of_birth = models.CharField(max_length=50, null=True, blank=True, default=None)
+	
+	# place_of_birth = models.ForeignKey(Province, null=True, blank=True, default=None, related_name='place_of_birth_related')
+	# other_place_of_birth =  models.ForeignKey(Province, null=True, blank=True, default=None, related_name='other_place_of_birth_related')
 	
 	
 	# Nếu người dùng là một sinh viên, bổ sung thông tin
@@ -118,11 +126,19 @@ class User(AbstractBaseUser, PermissionsMixin):
 	# Thông tin chi tiết
 	# Chứng minh nhân dân
 	identification_card_number = models.CharField(u'Số CMND', max_length=10, null=True, blank=True, default=None)
-	identification_card_provision_place =  models.ForeignKey(Province, null=True, default=None, related_name='identification_card_provision_place')
+	identification_card_provision_date =  models.DateField(null=True, blank=True, default=None)
+	identification_card_provision_place = models.CharField(max_length=50,  null=True, blank=True, default=None)
 
-	folk = models.ForeignKey(Folk, null=True, default=None)
-	religion = models.ForeignKey(Religion, null=True, default=None)
-	nationality = models.ForeignKey(Nation, null=True, default=None)
+	# identification_card_provision_place =  models.ForeignKey(Province, null=True, default=None, related_name='identification_card_provision_place')
+
+
+	folk = models.CharField(max_length=50, null=True, blank=True, default=None)
+	religion = models.CharField(max_length=50, null=True, blank=True, default=None)
+	nationality = models.CharField(max_length=50, null=True, blank=True, default=None)
+
+	# folk = models.ForeignKey(Folk, null=True, default=None)
+	# religion = models.ForeignKey(Religion, null=True, default=None)
+	# nationality = models.ForeignKey(Nation, null=True, default=None)
 
 	# Địa chỉ thường trú
 	address = models.CharField(u'Địa chỉ thường trú', max_length=128, null=True, blank=True, default=None)
@@ -149,11 +165,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 	# Thông tin liên lạc với gia đình
-	contact_person_name = models.CharField(max_length=50, unique=True, db_index=True)
-	contact_person_address = models.CharField(max_length=100, null=True, blank=True, default=None)
+	contact_person_name = models.CharField(max_length=128, null=True, blank=True, default=None)
+	contact_person_address = models.CharField(max_length=128, null=True, blank=True, default=None)
 	contact_person_phone = models.CharField(max_length=32, null=True, blank=True, default=None)
 	contact_person_email = models.EmailField(max_length=128, null = True, blank=True, default=None)
-	contact_person_note = models.CharField(max_length=200, null=True, blank=True, default=None)
+	contact_person_note = models.CharField(max_length=256, null=True, blank=True, default=None)
 
 
 	is_staff = models.BooleanField('staff status', default=False,
@@ -207,9 +223,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 # Loại tổ chức
 class OrganizationType(models.Model):
-	identify =models.CharField(max_length=50, unique=True, db_index=True)
+	identify = models.CharField(max_length=50, primary_key=True, db_index=True)
 	name = models.CharField(u'Loại tổ chức', max_length=128)
-	management_organzation_type_identify = models.ForeignKey('self', null=True, blank=True, default=None)
+	management_organzation_type = models.ForeignKey('self', null=True, blank=True, default=None)
 
 	def __unicode__(self):
 		return self.name
@@ -217,9 +233,9 @@ class OrganizationType(models.Model):
 
 # Các chức vụ có trong một loại tổ chức
 class OrganizationTypePosition(models.Model):
-	identify =models.CharField(max_length=50, unique=True, db_index=True)
+	identify =models.CharField(max_length=50, primary_key=True, db_index=True)
 	organization_type = models.ForeignKey(OrganizationType)
-	position_name = models.CharField(max_length=100, null=True, blank=True, default=None)
+	name = models.CharField(max_length=100, null=True, blank=True, default=None)
 	quantity = models.PositiveIntegerField(default=0)
 
 	def __unicode__(self):
@@ -228,11 +244,13 @@ class OrganizationTypePosition(models.Model):
 
 # Dữ liệu tổ chức
 class Organization(models.Model):
-	identify = models.CharField(max_length=50, unique=True, db_index=True)
+	identify = models.CharField(max_length=50, primary_key=True, db_index=True)
 	name = models.CharField(u'Tên tổ chức', max_length=128)
+	short_name =  models.CharField(max_length=30, null=True, blank=True, default=None)
 	organization_type = models.ForeignKey(OrganizationType, null=True, default=None)
 	management_organization = models.ForeignKey('self', null=True, blank=True, default=None)
-	
+	description = models.TextField(null=True, blank=True, default=None)
+
 	def __unicode__(self):
 		return self.name
 
@@ -259,7 +277,7 @@ class OrganizationUser(models.Model):
 
 # Dữ liệu loại hoạt động
 class ActivityType(models.Model):
-	identify = models.CharField(max_length=50, unique=True, db_index=True)
+	identify = models.CharField(max_length=50, primary_key=True, db_index=True)
 	name = models.CharField(u'Tên loại hoạt động', max_length=128, null=True, blank=True, default=None)
 
 	def __unicode__(self):
@@ -268,16 +286,20 @@ class ActivityType(models.Model):
 
 # Dữ liệu hoạt động
 class Activity(models.Model):
-	identify = models.CharField(max_length=50, unique=True, db_index=True)
+	identify = models.CharField(max_length=50, primary_key=True, db_index=True)
 	name = models.CharField(max_length=128)
 	
 	activity_type = models.ForeignKey(ActivityType)
 	
 	organization = models.ForeignKey(Organization)
 
+	period = models.ForeignKey(Period, null=True, default=None)
+	
 	start_time = models.DateTimeField(null=True, blank=True, default=None)
 	end_time = models.DateTimeField(null=True, blank=True, default=None)
 	
+	position = models.CharField(max_length=128, null=True, blank=True, default=None)
+
 	register_start_time = models.DateTimeField(null=True, blank=True, default=None)
 	register_end_time = models.DateTimeField(null=True, blank=True, default=None)
 	
@@ -286,7 +308,9 @@ class Activity(models.Model):
 	credits = models.DecimalField(max_digits=8, decimal_places=4, default=0)
 	score = models.DecimalField(max_digits=8, decimal_places=4, default=0)
 
-	description = models.CharField(max_length=2048, null=True, blank=True, default=None)
+	description = models.TextField(null=True, blank=True, default=None)
+
+	# Thêm mục điểm rèn luyện
 
 	def __unicode__(self):
 		return self.name
@@ -320,7 +344,6 @@ class ActivityUser(models.Model):
 #region Dữ liệu rèn luyện Đoàn viên
 # Dữ liệu thông tin cơ bản của chương trình
 class YouthUnionMenberTrainingProgram(models.Model):
-	identify = models.CharField(max_length=50, unique=True, db_index=True)
 	name = models.CharField(max_length=128)
 	period = models.ForeignKey(Period)
 

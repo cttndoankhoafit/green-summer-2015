@@ -24,9 +24,9 @@
 							<a href="#">
 							<i class="fa fa-ban"></i> Khóa </a>
 						</li> -->
+						{% if show_import_button %}
 						<li class="divider">
 						</li>
-						{% if show_import_button %}
 						<li>
 							<a href="{{ import_link }}">
 							<i class="icon-login"></i> Nhập danh sách</a>
@@ -36,6 +36,14 @@
 							<a href="{{ export_link }}">
 							<i class="icon-logout"></i> Xuất danh sách</a>
 						</li>
+						{% if show_statistics_button %}
+						<li class="divider">
+						</li>
+						<li>
+							<a href="{{ statistics_link }}">
+							<i class="icon-login"></i> Thống kê</a>
+						</li>
+						{% endif %}
 					</ul>
 				</div>
 			</div>
@@ -70,5 +78,5 @@
 		{% include 'v1/pagination.html' %}
 		</div>
 	</div>
-	<input type="submit">
+<!-- 	<input type="submit"> -->
 </form>
