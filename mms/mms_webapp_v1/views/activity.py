@@ -15,7 +15,7 @@ from mms_base.resources import *
 
 from mms_webapp_v1.views.bases.base_view import *
 
-#from mms_webapp_v1.forms.activity import ActivityForm
+from mms_webapp_v1.forms.activity import RegisterForm
 
 
 class BaseActivityView(BaseView):
@@ -140,10 +140,15 @@ class ActivityListView(BaseView, ListView, FormView):
 
 
 
-class ActivityDetailView(BaseActivityView, DetailView):
+class ActivityDetailView(BaseActivityView, DetailView, FormView):
 	template_name = 'v1/activity/profile/overview.html'
 
+	form_class = RegisterForm
+
 	activity_object = None
+
+	def get_success_url(self):
+		return reverse('activity_detail_view_v1', kwargs={ 'activity_id' : self.get_activity_id() })
 
 	def get_context_data(self, **kwargs):
 		context = super(ActivityDetailView, self).get_context_data(**kwargs)
@@ -175,6 +180,13 @@ class ActivityDetailView(BaseActivityView, DetailView):
 
 		return objects
 
+	def form_valid(self, form):
+		print 'a'
+		set_activity_user(self.get_user_id(), self.get_activity_id())
+
+		return super(ActivityDetailView, self).form_valid(form)
+
+		
 	def get_object(self):
 		return get_activity(self.get_activity_id())
 
@@ -298,33 +310,6 @@ class ActivityUpdateView(BaseActivityUpdateView, ActivityFormView, UpdateView):
 		return get_activity(self.get_activity_id())
 
 
-# Khung nhìn tạo một hoạt động
-# class ActivityCreateView(CreateView, ActivityFormView):
-# 	model = Activity
-
-# #	form_class = ActivityForm
-
-# 	template_name = 'v1/activity/activity_create.html'
-
-# 	success_message = u'Thêm hoạt động thành công'
-
-# 	def get_success_url(self):
-# 		return reverse('activity_list_view_v1')
-
-# 	def get_form(self, form_class):
-# 		kwargs = self.get_form_kwargs()
-
-# 		params = {}
-# 		params['user_id'] = self.request.session['user_id']
-		
-# 		return form_class(params, **kwargs)
-
-
-# 	def form_valid(self, form):
-# 		self.object = form.save(commit=False)
-# 		return super(ActivityCreateView, self).form_valid(form)
-
-
 
 class ActivityMemberImportView(BaseActivityView, BaseImportView):
 	template_name = 'v1/import.html'
@@ -348,6 +333,7 @@ class ActivityMemberImportView(BaseActivityView, BaseImportView):
 			return True
 
 		return False
+
 
 
 class ActivityPermissionListView(BaseActivityUpdateView, ListView):
@@ -379,6 +365,8 @@ class ActivityPermissionListView(BaseActivityUpdateView, ListView):
 			objects.append(values)
 
 		return objects
+
+
 
 class BaseActivityPermissionView(BaseActivityUpdateView, BaseSuccessMessageMixin, FormView):
 

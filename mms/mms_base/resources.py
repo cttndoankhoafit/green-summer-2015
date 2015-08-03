@@ -1196,7 +1196,7 @@ def is_participated_activity(user_identify, activity_identify):
 		return False
 
 	return True
-	
+
 # Lấy danh sách các hoạt động đã tham gia của một người dùng
 def get_participated_activity_list(user_identify, accessed_user_identify):
 	if not can_get_user(user_identify, accessed_user_identify):
