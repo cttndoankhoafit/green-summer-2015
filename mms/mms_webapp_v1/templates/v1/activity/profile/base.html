@@ -1,0 +1,67 @@
+{% extends 'v1/webapp_base.html' %}
+
+{% load staticfiles %}
+
+{% block breadcrumb_button_group %}
+	{% if activity_administrator %}
+	<button type="button" class="btn blue dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-delay="1000" data-close-others="true">
+		<span>Công cụ</span><i class="fa fa-angle-down"></i>
+	</button>
+	<ul class="dropdown-menu pull-right" role="menu">
+		<li>
+			<a href="{% url 'activity_update_view_v1' activity_id %}">
+				<i class="fa fa-pencil"></i> Cập nhật thông tin
+			</a>
+		</li>
+		<li>
+			<a href="{% url 'activity_permission_list_view_v1' activity_id %}">
+				<i class="fa fa-pencil"></i> Cập nhật quyền hạn
+			</a>
+		</li>
+	</ul>
+	{% endif %}
+{% endblock %}
+
+{% block page_breadcrumb %}
+<li>
+	<a href="{% url 'activity_list_view_v1' %}">Hoạt động</a>
+	<i class="fa fa-angle-right"></i>
+</li>
+<li>
+	<a href="{% url 'activity_detail_view_v1' activity_id %}">{{ activity_full_name }}</a>
+	<i class="fa fa-angle-right"></i>
+</li>
+{% endblock %}
+
+
+{% block page_content %}
+<div class="row profile">
+	<div class="col-md-12">
+		<!--BEGIN TABS-->
+		{% if activity_manager %}
+		<div class="tabbable tabbable-custom tabbable-full-width">
+			<ul class="nav nav-tabs">
+				<li class="{% block overview_active %}{% endblock %}">
+					<a href="{% url 'activity_detail_view_v1' activity_id %}">
+					Tổng quan </a>
+				</li>
+				<li class="{% block member_active %}{% endblock %}">
+					<a href="{% url 'activity_member_list_view_v1' activity_id %}">
+					Các thành viên </a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				<div class="tab-pane active">
+		{% endif %}
+					{% block tab_content %}
+					
+					{% endblock %}
+		{% if activity_manager %}
+				</div>
+			</div>
+		</div>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}
+

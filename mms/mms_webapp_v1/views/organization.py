@@ -29,10 +29,13 @@ class BaseOrganizationView(BaseView):
 	def get_context_data(self, **kwargs):
 		context = super(BaseOrganizationView, self).get_context_data(**kwargs)
 
-		context['page_title'] = get_organization_model().objects.get(identify=self.get_organization_id()).name
+		organization_object = get_organization(self.get_organization_id())
+		context['page_title'] = organization_object.name
 		context['organization_id'] = self.get_organization_id()
 
 		context['organization_active'] = 'active'
+
+		context['organization_full_name'] = organization_object.short_name
 
 		if is_organization_administrator(self.get_user_id(), self.get_organization_id()):
 			context['organization_administrator'] = 1
@@ -58,6 +61,9 @@ class OrganizationDetailView(BaseOrganizationView, TemplateView):
 		context['management_organization'] = mark_safe(u'<a href="/organization/organization=%s">%s</a>' % (organization_object.management_organization.identify, organization_object.management_organization.name)) 
 		context['description'] = organization_object.description
 
+		context['members'] = get_organization_user_list_count(self.get_organization_id())
+		context['organizations'] = len(get_child_organizations(self.get_organization_id()))
+
 		context['staff_list'] = self.get_staff()
 
 		return context
@@ -67,7 +73,7 @@ class OrganizationDetailView(BaseOrganizationView, TemplateView):
 
 		objects = []
 		for obj in organization_staff_list:
-			objects.append({ 'name' : obj.user.get_full_name(), 'position' : obj.position.name })
+			objects.append({ 'name' : obj.user.get_full_name(), 'position' : obj.position })
 
 		return objects
 
@@ -162,7 +168,7 @@ class OrganizationActivityImportView(BaseOrganizationActivityView, BaseImportVie
 		activity_name = row['name']
 		activity_type = row['type']
 
-		if set_organization_activity(self.get_user_id(), self.get_organization_id(), activity_identify, activity_name, activity_type):
+		if set_activity(self.get_user_id(), activity_identify, activity_name, activity_type, self.get_organization_id()):
 			print 'Import activity ' + activity_identify + ' to ' + self.get_organization_id() + ' complete'
 			print '----------'
 			return True
@@ -184,7 +190,7 @@ class OrganizationActivityCreateView(BaseOrganizationActivityView, BaseSuccessMe
 				'activity_type',
 				'start_time',
 				'end_time',
-				'position',
+				'location',
 				'register_start_time',
 				'register_end_time',
 				'published',
@@ -217,7 +223,7 @@ class OrganizationActivityCreateView(BaseOrganizationActivityView, BaseSuccessMe
 		form.fields['register_end_time'].widget.attrs['readonly'] = '1'
 
 		form.fields['description'].widget.attrs['class'] = 'form-control'
-		form.fields['position'].widget.attrs['class'] = 'form-control'
+		form.fields['location'].widget.attrs['class'] = 'form-control'
 
 		return form
 
@@ -486,14 +492,15 @@ class OrganizationPermissionListView(BaseOrganizationUpdateView, ListView):
 		for obj in organization_staff_list:
 			values = []
 			values.append(mark_safe('<a href="/organization/organization=%s/permission/user=%s/">%s</a>' % (self.get_organization_id(), obj.user.identify, obj.user.get_full_name())))
-			values.append(obj.position.name)
+			values.append(obj.position)
 			values.append(obj.get_permission_display())
 			objects.append(values)
 
 		return objects
 
 
-class  BaseOrganizationPermissionView(BaseOrganizationUpdateView, BaseSuccessMessageMixin, FormView):
+
+class BaseOrganizationPermissionView(BaseOrganizationUpdateView, BaseSuccessMessageMixin, FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(BaseOrganizationPermissionView, self).get_context_data(**kwargs)
@@ -508,6 +515,7 @@ class  BaseOrganizationPermissionView(BaseOrganizationUpdateView, BaseSuccessMes
 
 		return form
 		
+
 
 class OrganizationPermissionCreateView(BaseOrganizationPermissionView, CreateView):
 	template_name = 'v1/organization/editor/permission/creator.html'
@@ -542,6 +550,7 @@ class OrganizationPermissionCreateView(BaseOrganizationPermissionView, CreateVie
 		set_organization_user(self.get_user_id(), self.object)
 		self.clear_messages()
 		return super(OrganizationPermissionCreateView, self).form_valid(form)
+
 
 
 class OrganizationPermissionUpdateView(BaseOrganizationPermissionView, UpdateView):
@@ -579,7 +588,7 @@ class OrganizationPermissionImportView(BaseOrganizationUpdateView, BaseImportVie
 
 	success_message = u'Nhập thông tin quyền hạn thành công'
 
-	fields =['user', 'permission', 'position']
+	CONST_FIELDS = ['user', 'permission', 'position']
 
 	def get_success_url(self):
 		return reverse('organization_permission_list_view_v1',  kwargs={ 'organization_id' : self.get_organization_id() })
@@ -604,6 +613,7 @@ class OrganizationPermissionImportView(BaseOrganizationUpdateView, BaseImportVie
 			return True
 
 		return False
+
 
 
 class OrganizationListView(BaseView, ListView):

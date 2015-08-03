@@ -1,5 +1,4 @@
-{% extends 'v1/organization_type/position/base.html' %}
-
+{% extends 'v1/activity/editor/permission/base.html' %}
 
 {% load staticfiles %}
 
@@ -23,6 +22,13 @@
 
 {% block init_scripts %}
 		Table.init();
+{% endblock %}
+
+{% block page_breadcrumb %}
+{{ block.super }}
+<li>
+	<a>Danh sách người quản trị</a>
+</li>
 {% endblock %}
 
 {% block tab_content %}

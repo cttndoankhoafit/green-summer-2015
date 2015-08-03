@@ -1,11 +1,11 @@
-{% extends 'v1/organization/editor/permission/base.html' %}
+{% extends 'v1/activity/editor/permission/base.html' %}
 
 {% load staticfiles %}
 
 {% block page_breadcrumb %}
 {{ block.super }}
 <li>
-	<a>Thêm quyền hạn</a>
+	<a>Cập nhật quyền hạn</a>
 </li>
 {% endblock %}
 
@@ -13,13 +13,13 @@
 {% block tab_content %}
 <form role="form" method="post">
 	{% csrf_token %}
+	{% include 'v1/static_modules/message.html'  %}
 	<div class="row">
 		<div class="form-group col-md-6">
 			<label class="control-label">Người dùng</label>
-			{{ form.user }}
-			{{ form.user.errors }}
+			<label class="form-control">{{ object.user.get_full_name }}</label>
 		</div>
 	</div>
-	{% include 'v1/organization/editor/permission/editor.html' %}
+	{% include 'v1/activity/editor/permission/editor.html' %}
 </form>
 {% endblock %}

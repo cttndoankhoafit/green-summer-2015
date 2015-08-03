@@ -4,6 +4,17 @@
 active
 {% endblock %}
 
+{% block page_breadcrumb %}
+{{ block.super }}
+<li>
+	<a href="{% url 'organization_member_list_view_v1' organization_id %}">Các thành viên</a>
+	<i class="fa fa-angle-right"></i>
+</li>
+<li>
+	<a>Nhập Danh sách</a>
+</li>
+{% endblock %}
+
 {% block member_tab_content %}
 {% include 'v1/static_modules/import.html' %}
 {% endblock %}

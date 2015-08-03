@@ -1,9 +1,9 @@
-{% extends 'v1/organization/editor/base.html' %}
+{% extends 'v1/activity/editor/base.html' %}
 
 {% block page_breadcrumb %}
 {{ block.super }}
 <li>
-	<a href="{% url 'organization_permission_list_view_v1' organization_id %}">Cập nhật quyền hạn</a>
+	<a href="{% url 'activity_permission_list_view_v1' activity_id %}">Cập nhật quyền hạn</a>
 	<i class="fa fa-angle-right"></i>
 </li>
 {% endblock %}

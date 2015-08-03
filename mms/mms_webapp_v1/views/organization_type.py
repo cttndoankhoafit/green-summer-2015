@@ -85,27 +85,6 @@ class OrganizationTypeUpdateView(BaseOrganizationTypeFormView, UpdateView):
 
 
 
-class OrganizationTypePositionListView(BaseOrganizationTypeView, ListView):
-	template_name = 'v1/organization_type/position/list.html'
-
-	def get_context_data(self, **kwargs):
-		context = super(OrganizationTypePositionListView, self).get_context_data(**kwargs)
-
-		context['theads'] = [ 	{'name': u'Tên chức vụ', 'size' : 'auto'} ]
-
-		return context
-
-	def get_queryset(self):
-		position_list = get_organization_type_position_list(self.get_organization_type_id())
-
-		objects = []
-		for obj in position_list:
-			values = []
-			values.append(obj.name)
-			objects.append(values)
-		return objects
-
-
 # Khung nhìn tạo một loại tổ chức dành cho người quản trị hệ thống
 # URL: organization_type/create/
 class OrganizationTypeCreateView(BaseOrganizationTypeFormView, CreateView):

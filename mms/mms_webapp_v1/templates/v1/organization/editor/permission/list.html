@@ -24,7 +24,12 @@
 		Table.init();
 {% endblock %}
 
-
+{% block page_breadcrumb %}
+{{ block.super }}
+<li>
+	<a>Danh sách người quản trị</a>
+</li>
+{% endblock %}
 
 {% block tab_content %}
 {% include 'v1/static_modules/list.html' %}

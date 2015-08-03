@@ -97,8 +97,6 @@ urlpatterns = [
 
 	url(r'^organization_type/organization_type=(?P<organization_type_id>\w+)/edit/$', login_required(OrganizationTypeUpdateView.as_view()),name='organization_type_update_view_v1'),
 
-	url(r'^organization_type/organization_type=(?P<organization_type_id>\w+)/position/$', login_required(OrganizationTypePositionListView.as_view()),name='organization_type_position_list_view_v1'),
-
 	
 	
 	
@@ -122,13 +120,24 @@ urlpatterns = [
 
 	url(r'^activity/activity=(?P<activity_id>\w+)/member/$', login_required(ActivityMemberListView.as_view()), name='activity_member_list_view_v1'),
 
+
+	url(r'^activity/activity=(?P<activity_id>\w+)/member/import/$', login_required(ActivityMemberImportView.as_view()), name='activity_member_import_view_v1'),
+
+
 	url(r'^activity/activity=(?P<activity_id>\w+)/edit/$', login_required(ActivityUpdateView.as_view()), name='activity_update_view_v1'),
 
+	url(r'^activity/activity=(?P<activity_id>\w+)/permission/$', login_required(ActivityPermissionListView.as_view()), name='activity_permission_list_view_v1'),
 
-	url(r'^activity/import/$', login_required(ActivityImportView.as_view()), name='activity_import_view_v1'),
 
-	url(r'^activity/create/$', login_required(ActivityCreateView.as_view()), name='activity_create_view_v1'),
+	url(r'^activity/activity=(?P<activity_id>\w+)/permission/create/$', login_required(ActivityPermissionCreateView.as_view()), name='activity_permission_create_view_v1'),
 
+	url(r'^activity/activity=(?P<activity_id>\w+)/permission/user=(?P<user_id>\w+)/$', login_required(ActivityPermissionUpdateView.as_view()), name='activity_permission_update_view_v1'),
+
+	url(r'^activity/activity=(?P<activity_id>\w+)/permission/import/$', login_required(ActivityPermissionImportView.as_view()), name='activity_permission_import_view_v1'),
+
+
+
+	
 	url(r'yumt/register/$', login_required(YUMTRegisterView.as_view()), name='yumt_register_view_v1'),
 
 ]

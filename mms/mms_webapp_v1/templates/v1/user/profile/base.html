@@ -7,6 +7,16 @@
 <link href="{% static "v1/assets/admin/pages/css/profile.css" %}" rel="stylesheet" type="text/css">
 {% endblock %}
 
+{% block page_breadcrumb %}
+<li>
+	<a {% if request.session.super_user %}href="{% url 'user_list_view_v1' %}"{% endif %}>Tài khoản</a>
+	<i class="fa fa-angle-right"></i>
+</li>
+<li>
+	<a href="{% url 'user_detail_view_v1' identify %}">{{ user_full_name }}</a>
+	<i class="fa fa-angle-right"></i>
+</li>
+{% endblock %}
 
 {% block breadcrumb_button_group %}
 	{% if request.session.super_user %}

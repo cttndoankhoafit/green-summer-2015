@@ -6,6 +6,15 @@
 active
 {% endblock %}
 
+
+{% block page_breadcrumb %}
+{{ block.super }}
+<li>
+	<a>Tổng quan</a>
+</li>
+{% endblock %}
+
+
 {% block tab_content %}
 <div class="row profile">
 	<div class="col-md-3">

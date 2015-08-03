@@ -1,19 +1,15 @@
-{% extends 'v1/webapp_base.html' %}
+{% extends 'v1/organization_type/base.html' %}
 
-{% block page_content %}
-<div class="row">
-	<div class="col-md-12">
-		<form method="post">
-			{% csrf_token %}
-			<div class="row">
-				<div class="form-group col-md-6">
-					<label class="control-label">Mã loại tổ chức</label>
-					{{ form.identify }}
-					{{ form.identify.errors }}
-				</div>
-			</div>
-			{% include 'v1/organization_type/editor.html' %}
-		</form>
+{% block organization_type_page_content %}
+<form method="post">
+	{% csrf_token %}
+	<div class="row">
+		<div class="form-group col-md-6">
+			<label class="control-label">Mã loại tổ chức</label>
+			{{ form.identify }}
+			{{ form.identify.errors }}
+		</div>
 	</div>
-</div>
+	{% include 'v1/organization_type/editor.html' %}
+</form>
 {% endblock %}

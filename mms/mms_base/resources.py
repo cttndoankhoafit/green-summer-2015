@@ -255,18 +255,17 @@ def set_user(
 				user.contact_person_note = contact_person_note
 				return True
 		else:
-			user_object = identify
-			user = __get_user(user_object.identify)
+			user = __get_user(obj.identify)
 			if user is None and is_super_administrator(user_identify):
-				if user_object.password is None:
-					user_object.password = user.identify
-				elif len(user_object.password) == 0:
-					user_object.password = user.identify
-				user_object.set_password(user_object.password)
-				user_object.save()
+				if obj.password is None:
+					obj.password = user.identify
+				elif len(obj.password) == 0:
+					obj.password = user.identify
+				obj.set_password(obj.password)	
+				obj.save()
 				return True
-			elif can_get_user(user_identify, user_object.identify):
-				user_object.save()
+			elif can_get_user(user_identify, obj.identify):
+				obj.save()
 				return True
 	except Exception, e:
 		print e
@@ -402,27 +401,6 @@ def get_organization_type_list():
 def get_organization_type_model():
 
 	return OrganizationType
-
-
-#endregion
-
-
-#region Quản lý chức vụ theo loại tổ chức (OrganizationTypePosition model)
-def __get_organization_type_position(organization_type_position_identify):
-	try:
-		return OrganizationTypePosition.objects.get(identify=organization_type_position_identify)
-	except Exception, e:
-		print e
-	return None
-
-
-def get_organization_type_position_list(organization_type_identify):
-	organization_type_object = __get_organization_type(organization_type_identify)
-
-	if organization_type_object is None:
-		return None
-
-	return OrganizationTypePosition.objects.filter(organization_type=organization_type_object)
 
 
 #endregion
@@ -608,9 +586,6 @@ def set_organization(
 
 				organization_object.save()
 
-				organization_user_object = OrganizationUser(organization=organization_object, user=user, permission=0)
-				organization_user_object.save()
-
 				return True
 			elif is_organization_administrator(user_identify, organization_object.identify):
 				
@@ -635,9 +610,6 @@ def set_organization(
 
 				obj.management_organization = management_organization_object
 				obj.save()
-
-				organization_user_object = OrganizationUser(organization=obj, user=user, permission=0)
-				organization_user_object.save()
 
 				return True
 			elif is_organization_administrator(user_identify, obj.identify):
@@ -721,7 +693,8 @@ def get_all_manage_organizations(user_identify):
 
 
 def get_child_organizations(organization_identify):
-	return __scan_get_child_organization_identify_list(organization_identify)
+	ids = __scan_get_child_organization_identify_list(organization_identify)
+	return Organization.objects.filter(identify__in=ids)
 
 
 # Lấy danh sách tất cả các tổ chức
@@ -763,7 +736,7 @@ def get_organization_activity_list(organization_identify):
 
 def get_organization_staff(organization_identify):
 	organization = __get_organization(organization_identify)
-	organization_user_list = OrganizationUser.objects.filter(organization=organization, position__isnull=False)
+	organization_user_list = OrganizationUser.objects.filter(organization=organization, permission__lte=1)
 
 	return organization_user_list
 
@@ -826,10 +799,7 @@ def get_organization_user_list(user_identify, organization_identify):
 		if not is_organization_manager(user_identify, organization_identify):
 			return None
 
-		print 'a'
 		organization_list = __scan_get_child_organization_identify_list(organization_identify)
-
-		print organization_list
 
 		organization_user_list = OrganizationUser.objects.filter(organization__in=organization_list)
 
@@ -852,6 +822,14 @@ def get_organization_user_list(user_identify, organization_identify):
 	return None	
 
 
+
+def get_organization_user_list_count(organization_identify):
+	# Chỉnh sửa lại nội dung hàm
+
+	return len(get_organization_user_list('sa', organization_identify))
+
+
+
 # Thêm/sửa thông tin tham gia tổ chức của các thành viên
 # Điều kiện thực hiện:
 # - Người truy cập phải là quản trị của tổ chức
@@ -865,7 +843,7 @@ def set_organization_user(
 		obj, 
 		member_identify = None,
 		permission = 2,
-		position_identify = None
+		position = None
 	):
 	if not is_organization_administrator(user_identify):
 		return False
@@ -883,11 +861,6 @@ def set_organization_user(
 			if user is None:
 				return False
 
-			position_object = __get_organization_type_position(position_identify)
-
-			if position_object is not None and position_object.organization_type.identify != organization_object.organization_type.identify:
-				return False
-
 			organization_user_object = __get_organization_user(member_identify, obj)
 
 			if organization_user_object is None:
@@ -895,25 +868,18 @@ def set_organization_user(
 												organization = organization_object,
 												user = user,
 												permission = permission,
-												position = position_object
+												position = position
 											)
 				organization_user_object.save()
 				return True
 			else:
 				organization_user_object.permission = permission
-				organization_user_object.user = position_object
+				organization_user_object.user.position = position
 				organization_user_object.save()
 				return True
 		else:
 			if not is_organization_administrator(user_identify, obj.organization.identify):
 				return False
-
-			position_object = obj.position
-			if position_object is not None and position_object.organization_type.identify != obj.organization.organization_type.identify:
-				return False
-
-			# organization_user_object = __get_organization_user(obj.user.identify, obj.organization.identify)
-
 			obj.save()
 			return True
 	except Exception, e:
@@ -1027,7 +993,7 @@ def is_activity_manager(user_identify, activity_identify):
 		return True
 	
 	obj = __get_activity_user(user_identify, activity_identify)
-	if obj is not None and (obj.permission == 0 or obj.state == 0):
+	if obj is not None and obj.permission == 0:
 		return True
 	return False
 
@@ -1066,7 +1032,8 @@ def set_activity(
 	):
 	if not is_organization_manager(user_identify):
 		return False
-	
+
+
 	try:
 		object_type = type(obj)
 		user = __get_user(user_identify)
@@ -1076,13 +1043,12 @@ def set_activity(
 			if activity_type_object is None:
 				return False
 
+
 			organization_object = __get_organization(organization_identify)
 			if organization_object is None:
 				return False
 
 			period_object = __get_period(period_identify)
-			if period_object is None:
-				return False
 
 			activity_object = __get_activity(obj)
 			if activity_object is None:
@@ -1110,7 +1076,7 @@ def set_activity(
 				activity_object.save()
 
 				activity_user_object = ActivityUser(user=user, activity=activity_object, permission=0)
-				activity_object.save()
+				activity_user_object.save()
 
 				return True
 			elif is_activity_administrator(user_identify, obj):
@@ -1139,17 +1105,17 @@ def set_activity(
 			activity_object = __get_activity(obj.identify)
 			if activity_object is None:
 
-				if activity_object.activity_type is None or activity_object.organization is None:
+				if obj.activity_type is None or obj.organization is None:
 					return False
 
 				obj.save()
 
 				activity_user_object = ActivityUser(user=user, activity=obj, permission=0)
-				activity_object.save()
+				activity_user_object.save()
 
 				return True
 			elif is_activity_administrator(user_identify, obj.identify):
-				if activity_object.activity_type is None or activity_object.organization is None:
+				if obj.activity_type is None or obj.organization is None:
 					return False
 
 				obj.save()
@@ -1180,6 +1146,14 @@ def get_activity_list():
 	return Activity.objects.all()
 
 
+def get_activity_staff(activity_identify):
+	activity = __get_activity(activity_identify)
+	activity_user_list = ActivityUser.objects.filter(activity=activity, permission__lte=1)
+
+	return activity_user_list
+
+
+
 # Lấy Activity model	
 def get_activity_model():
 
@@ -1203,6 +1177,26 @@ def __get_activity_user(user_identify, activity_identify):
 	return None
 
 
+
+def get_activity_user(user_identify, activity_identify):
+	return __get_activity_user(user_identify,  activity_identify)
+
+
+
+def is_participated_activity(user_identify, activity_identify):
+	activity_user_object = __get_activity_user(user_identify, activity_identify)
+
+	if activity_user_object is None:
+		return False
+
+	if activity_user_object.permission >= 1:
+		return True
+
+	if not activity_user_object.participated:
+		return False
+
+	return True
+	
 # Lấy danh sách các hoạt động đã tham gia của một người dùng
 def get_participated_activity_list(user_identify, accessed_user_identify):
 	if not can_get_user(user_identify, accessed_user_identify):
@@ -1255,8 +1249,9 @@ def set_activity_user(
 		obj,
 		activity_identify = None,
 		permission = 2,
-		state = 3,
-		note = None
+		position = None,
+		participated = False,
+		note = None,
 	):
 	object_type = type(obj)
 	try:
@@ -1275,14 +1270,17 @@ def set_activity_user(
 											user = user_object,
 											activity = activity_object,
 											permission = permission,
-											state = state,
+											position = position,
+											participated = participated,
 											note = note
 										)
 				activity_user_object.save()
 				return True
 			else:
 				activity_user_object.permission = permission
-				activity_user_object.state = state
+				activity_user_object.position = position
+				activity_user_object.participated = participated
+				activity_user_object.note = note
 				activity_user_object.save()
 				return True
 		else:

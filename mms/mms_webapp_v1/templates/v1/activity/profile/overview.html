@@ -1,6 +1,5 @@
-{% extends 'v1/organization/profile/base.html' %}
+{% extends 'v1/activity/profile/base.html' %}
 
-{% load staticfiles %}
 
 {% block page_breadcrumb %}
 {{ block.super }}
@@ -8,6 +7,10 @@
 	<a>Tổng quan</a>
 </li>
 {% endblock %}
+
+
+
+{% block overview_active %}active{% endblock %}
 
 {% block tab_content %}
 <div class="row">
@@ -23,10 +26,34 @@
 					<div class="form-body">
 						<div class="form-group">
 							<div class="col-md-4">
-								<label>Loại tổ chức</label>
+								<label>Loại hoạt động</label>
 							</div>
 							<div class="col-md-8">
-								{{ organization_type }}
+								{{ object.activity_type }}
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="col-md-4">
+								<label>Thời gian bắt đầu</label>
+							</div>
+							<div class="col-md-8">
+								{{ object.start_time }}
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="col-md-4">
+								<label>Thời gian kết thúc</label>
+							</div>
+							<div class="col-md-8">
+								{{ object.end_time }}
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="col-md-4">
+								<label>Địa điểm</label>
+							</div>
+							<div class="col-md-8">
+								{{ object.location }}
 							</div>
 						</div>
 						<div class="form-group">
@@ -46,29 +73,39 @@
 		<div class="portlet box blue-steel">
 			<div class="portlet-title">
 				<div class="caption">
-					Thống kê
+					Đăng ký
 				</div>
 			</div>
 			<div class="portlet-body">
 				<div class="form-horizontal form-bordered">
-					<div class="form-body">
-						<div class="form-group">
-							<div class="col-md-4">
-								<label>Số thành viên</label>
+					<form method="post">
+						<div class="form-body">
+							<div class="form-group">
+								<div class="col-md-4">
+									<label>Thời gian bắt đầu</label>
+								</div>
+								<div class="col-md-8">
+									{{ object.register_start_time }}
+								</div>
 							</div>
-							<div class="col-md-8">
-								{{ members }}
+							<div class="form-group">
+								<div class="col-md-4">
+									<label>Thời gian kết thúc</label>
+								</div>
+								<div class="col-md-8">
+									{{  object.register_end_time  }}
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="col-md-4">
+									
+								</div>
+								<div class="col-md-8">
+									{{ state }}
+								</div>
 							</div>
 						</div>
-						<div class="form-group">
-							<div class="col-md-4">
-								<label>Số tổ chức trực thuộc</label>
-							</div>
-							<div class="col-md-8">
-								{{ organizations }}
-							</div>
-						</div>
-					</div>
+					</form>
 				</div>
 			</div>
 		</div>
@@ -79,7 +116,7 @@
 		<div class="portlet box blue-steel">
 			<div class="portlet-title">
 				<div class="caption">
-					Ban quản trị
+					Ban tổ chức
 				</div>
 			</div>
 			<div class="portlet-body">
@@ -119,5 +156,4 @@
 			</div>
 		</div>
 	</div>
-</div>	
 {% endblock %}

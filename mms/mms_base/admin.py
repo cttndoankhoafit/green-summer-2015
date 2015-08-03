@@ -9,7 +9,6 @@ from mms_base.models import *
 # Register your models here.
 admin.site.register(User)
 admin.site.register(OrganizationType)
-admin.site.register(OrganizationTypePosition)
 admin.site.register(Organization)
 admin.site.register(OrganizationUser)
 admin.site.register(ActivityType)

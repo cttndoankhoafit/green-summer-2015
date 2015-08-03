@@ -24,6 +24,17 @@
 		DatePicker.init();
 {% endblock %}
 
+{% block page_breadcrumb %}
+<li>
+	<a {% if request.session.super_user %}href="{% url 'user_list_view_v1' %}"{% endif %}>Tài khoản</a>
+	<i class="fa fa-angle-right"></i>
+</li>
+<li>
+	<a>Tạo tài khoản</a>
+</li>
+{% endblock %}
+
+
 {% block page_content %}
 <div class="row">
 	<div class="col-md-12">

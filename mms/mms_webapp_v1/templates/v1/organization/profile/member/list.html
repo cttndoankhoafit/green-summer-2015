@@ -24,6 +24,17 @@
 		Table.init();
 {% endblock %}
 
+{% block page_breadcrumb %}
+{{ block.super }}
+<li>
+	<a href="{% url 'organization_member_list_view_v1' organization_id %}">Các thành viên</a>
+	<i class="fa fa-angle-right"></i>
+</li>
+<li>
+	<a>Danh sách</a>
+</li>
+{% endblock %}
+
 {% block list_active %}
 active
 {% endblock %}

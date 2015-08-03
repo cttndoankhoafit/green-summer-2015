@@ -1,0 +1,15 @@
+{% extends 'v1/activity/profile/base.html' %}
+
+{% block page_breadcrumb %}
+{{ block.super }}
+<li>
+	<a>Danh sách thành viên</a>
+</li>
+{% endblock %}
+
+{% block member_active %}active{% endblock %}
+
+{% block tab_content %}
+{% include 'v1/static_modules/message.html' %}
+{% include 'v1/static_modules/list.html' %}
+{% endblock %}

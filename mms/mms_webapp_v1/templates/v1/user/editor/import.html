@@ -1,0 +1,30 @@
+{% extends 'v1/static_pages/import.html' %}
+
+{% block page_breadcrumb %}
+<li>
+	<a {% if request.session.super_user %}href="{% url 'user_list_view_v1' %}"{% endif %}>Tài khoản</a>
+	<i class="fa fa-angle-right"></i>
+</li>
+<li>
+	<a>Nhập danh sách tài khoản</a>
+</li>
+{% endblock %}
+
+{% block description %}
+<!-- <table class="table table-hover table-bordered" id="table">
+	<thead>
+		<tr>
+			<th>
+				Tên cột
+			</th>
+			<th>
+				Mô tả
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+		</tr>
+	</tbody>
+</table> -->
+{% endblock %}

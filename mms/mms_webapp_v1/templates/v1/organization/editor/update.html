@@ -4,6 +4,13 @@
 active
 {% endblock %}
 
+{% block page_breadcrumb %}
+{{ block.super }}
+<li>
+	<a>Cập nhật thông tin</a>
+</li>
+{% endblock %}
+
 {% block tab_content %}
 <form method="post">
 	{% csrf_token %}

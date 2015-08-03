@@ -42,6 +42,8 @@ class BaseUserView(BaseView):
 		context = super(BaseUserView, self).get_context_data(**kwargs)
 		context['page_title'] = get_user_model().objects.get(identify=self.get_user_account_id()).get_full_name()
 
+		context['user_full_name'] = context['page_title']
+
 		context['identify'] = self.get_user_account_id()
 
 		return context
@@ -403,6 +405,7 @@ class UserListView(ListView, FormView):
 		context['show_import_button'] = 1
 		context['show_checkbox'] = 1
 
+		context['page_breadcrumb'] = mark_safe(u'<li><a>Tài khoản</a></li>')
 		return context
 
 	def get_queryset(self):				
@@ -429,7 +432,7 @@ class UserListView(ListView, FormView):
 # Khung nhìn nhập danh sách người dùng bằng tập tin dành cho người quản trị hệ thống
 # URL: user/import/
 class UserImportView(BaseView, BaseImportView):
-	template_name = 'v1/static_pages/import.html'
+	template_name = 'v1/user/editor/import.html'
 
 	CONST_FIELDS = (	'identify',
 						'first_name',
@@ -470,20 +473,64 @@ class UserImportView(BaseView, BaseImportView):
 		
 		identify = row['identify']
 		first_name = row['first_name']
+		if len(first_name) == 0:
+			first_name = None
+
 		last_name = row['last_name']
+		if len(last_name) == 0:
+			last_name = None
+		
 		gender = row['gender']
+		if len(gender) == 0:
+			gender = 0
+
 		date_of_birth = row['date_of_birth']
+		if len(date_of_birth) == 0:
+			date_of_birth = None
+
 		place_of_birth = row['place_of_birth']
+		if len(place_of_birth) == 0:
+			place_of_birth = None
+
 		folk = row['folk']
+		if len(folk) == 0:
+			folk = None
+
 		religion = row['religion']
+		if len(religion) == 0:
+			religion = None
+
 		address = row['address']
+		if len(address) == 0:
+			address = None
+
 		ward = row['ward']
+		if len(ward) == 0:
+			ward = None
+
 		district = row['district']
+		if len(district) == 0:
+			district = None
+
 		province = row['province']
+		if len(province) == 0:
+			province = None
+
 		temporary_address = row['temporary_address']
+		if len(temporary_address) == 0:
+			temporary_address = None
+
 		home_phone = row['home_phone']
+		if len(home_phone) == 0:
+			home_phone = None
+
 		mobile_phone = row['mobile_phone']
+		if len(mobile_phone) == 0:
+			mobile_phone = None
+
 		email = row['email']
+		if len(email) == 0:
+			email = None
 
 		if set_user(	
 			self.get_user_id(),

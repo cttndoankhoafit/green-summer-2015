@@ -2,6 +2,14 @@
 
 {% load staticfiles %}
 
+{% block page_breadcrumb %}
+{{ block.super }}
+<li>
+	<a>Cập nhật quyền hạn</a>
+</li>
+{% endblock %}
+
+
 {% block tab_content %}
 <form role="form" method="post">
 	{% csrf_token %}

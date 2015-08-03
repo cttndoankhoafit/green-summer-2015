@@ -4,11 +4,11 @@
 
 {% block page_breadcrumb %}
 <li>
-	<a href="{% url 'organization_list_view_v1' %}">Tổ chức</a>
+	<a href="{% url 'activity_list_view_v1' %}">Hoạt động</a>
 	<i class="fa fa-angle-right"></i>
 </li>
 <li>
-	<a href="{% url 'organization_detail_view_v1' organization_id %}">{{ organization_full_name }}</a>
+	<a href="{% url 'activity_detail_view_v1' activity_id %}">{{ activity_full_name }}</a>
 	<i class="fa fa-angle-right"></i>
 </li>
 {% endblock %}
@@ -21,12 +21,12 @@
 
 			<ul class="nav nav-tabs">
 				<li class="{% block update_active %}{% endblock %}">
-					<a href="{% url 'organization_update_view_v1' organization_id %}">
+					<a href="{% url 'activity_update_view_v1' activity_id %}">
 					Cập nhật thông tin </a>
 				</li>
 			
 				<li class="{% block change_permission_active %}{% endblock %}">
-					<a href="{% url 'organization_permission_list_view_v1' organization_id %}">
+					<a href="{% url 'activity_permission_list_view_v1' activity_id %}">
 					Cập nhật quyền hạn </a>
 				</li>
 			</ul>			

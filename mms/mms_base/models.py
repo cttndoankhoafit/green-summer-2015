@@ -231,17 +231,6 @@ class OrganizationType(models.Model):
 		return self.name
 
 
-# Các chức vụ có trong một loại tổ chức
-class OrganizationTypePosition(models.Model):
-	identify =models.CharField(max_length=50, primary_key=True, db_index=True)
-	organization_type = models.ForeignKey(OrganizationType)
-	name = models.CharField(max_length=100, null=True, blank=True, default=None)
-	quantity = models.PositiveIntegerField(default=0)
-
-	def __unicode__(self):
-		return self.organization_type.name + ' - ' + self.name
-
-
 # Dữ liệu tổ chức
 class Organization(models.Model):
 	identify = models.CharField(max_length=50, primary_key=True, db_index=True)
@@ -260,7 +249,7 @@ class OrganizationUser(models.Model):
 	organization = models.ForeignKey(Organization)
 	user = models.ForeignKey(User)
 	permission =  models.PositiveSmallIntegerField(null=True, choices=CONST_PERMISSIONS, default=2)
-	position = models.ForeignKey(OrganizationTypePosition, null=True, blank=True, default=None)
+	position = models.CharField(max_length=64, null=True, blank=True, default=None)
 
 	def __unicode__(self):
 		return self.organization.name + ' - ' + self.user.get_full_name()
@@ -298,7 +287,7 @@ class Activity(models.Model):
 	start_time = models.DateTimeField(null=True, blank=True, default=None)
 	end_time = models.DateTimeField(null=True, blank=True, default=None)
 	
-	position = models.CharField(max_length=128, null=True, blank=True, default=None)
+	location = models.CharField(max_length=128, null=True, blank=True, default=None)
 
 	register_start_time = models.DateTimeField(null=True, blank=True, default=None)
 	register_end_time = models.DateTimeField(null=True, blank=True, default=None)
@@ -318,24 +307,18 @@ class Activity(models.Model):
 
 # Dữ liệu người dùng tham gia
 class ActivityUser(models.Model):
-	CONST_STATES = (
-		(0, u'Người tổ chức'),
-		(1, u'Đã tham gia'),
-		(2, u'Đã đăng ký'),
-		(3, u'Không tham gia'),
-	)
-
 	user = models.ForeignKey(User)
 	activity = models.ForeignKey(Activity)
 	permission =  models.PositiveSmallIntegerField(null=True, choices=CONST_PERMISSIONS, default=2)
-	state = models.PositiveSmallIntegerField(u'Trạng thái', null=True, choices=CONST_STATES, default=3)
-	note = models.CharField(max_length=200, null=True, blank=True, default=None)
+	position = models.CharField(max_length=64, null=True, blank=True, default=None)
+	note = models.TextField(null=True, blank=True, default=None)
+	participated = models.BooleanField(default=False)
 
 	class Meta:
 		unique_together = ('user', 'activity')
 	
 	def __unicode__(self):
-		return self.activity.name + ' - ' + self.user.identify + ' - ' + self.CONST_STATES[self.state][1]
+		return self.activity.name + ' - ' + self.user.identify
 
 
 #endregion
