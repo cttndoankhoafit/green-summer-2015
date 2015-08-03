@@ -2,7 +2,6 @@ from django.conf.urls import include, url
 
 from mms_webapp_v1.views.organization_type import *
 from mms_webapp_v1.views.organization import *
-from mms_webapp_v1.views.organization_temporary.views import *
 
 from mms_webapp_v1.views.user import *
 from mms_webapp_v1.views.activity import *

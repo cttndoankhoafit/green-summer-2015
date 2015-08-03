@@ -4,7 +4,6 @@ from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.contrib.auth import logout
 
-from mms_backoffice.models import *
 
 class DashboardView(TemplateView):
     # model = Provider

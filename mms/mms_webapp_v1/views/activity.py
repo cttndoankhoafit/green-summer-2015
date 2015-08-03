@@ -6,8 +6,6 @@ from django.core.urlresolvers import reverse
 from django.views.generic import ListView, UpdateView, TemplateView, DetailView, CreateView, View, FormView
 from django.http import HttpResponseRedirect, Http404
 
-from mms_backoffice.models import Activity, ActivityUser
-
 from mms_webapp_v1.views.bases.message import *
 from mms_webapp_v1.views.bases.file import *
 
