@@ -137,6 +137,10 @@ urlpatterns = [
 
 
 	
+	
+	url(r'yumt/list/$', login_required(YUMTListView.as_view()), name='yumt_list_view_v1'),
 	url(r'yumt/register/$', login_required(YUMTRegisterView.as_view()), name='yumt_register_view_v1'),
-
+	
+	url(r'yumt/create/$', login_required(YUMTCreateView.as_view()), name='yumt_create_view_v1'),
+	url(r'yumt/period=(?P<period_id>\w+)/update/$', login_required(YUMTUpdateView.as_view()), name='yumt_update_view_v1'),
 ]

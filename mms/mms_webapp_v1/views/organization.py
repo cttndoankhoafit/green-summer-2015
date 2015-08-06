@@ -188,6 +188,8 @@ class OrganizationActivityCreateView(BaseOrganizationActivityView, BaseSuccessMe
 	fields =[	'identify',
 				'name',
 				'activity_type',
+				'training_type',
+				'period',
 				'start_time',
 				'end_time',
 				'location',
@@ -204,6 +206,10 @@ class OrganizationActivityCreateView(BaseOrganizationActivityView, BaseSuccessMe
 		form.fields['identify'].widget.attrs['class'] = 'form-control'
 		form.fields['name'].widget.attrs['class'] = 'form-control'
 		form.fields['activity_type'].widget.attrs['class'] = 'form-control'
+		form.fields['training_type'].widget.attrs['class'] = 'form-control'
+		form.fields['period'].widget.attrs['class'] = 'form-control'
+		
+
 		form.fields['description'].widget.attrs['class'] = 'form-control'
 		form.fields['published'].widget.attrs['class'] = 'form-control'
 		

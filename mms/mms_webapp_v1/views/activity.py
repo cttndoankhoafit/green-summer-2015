@@ -104,6 +104,8 @@ class ActivityListView(BaseView, ListView, FormView):
 				activity_link += u'<span class="label label-sm label-danger ">Đăng ký <i class="fa fa-bell-o"></i></span>'
 			elif is_participated_activity(self.get_user_id(), obj.identify):
 				activity_link += u'<span class="label label-sm label-success">Đã tham gia</span>'
+			elif is_registered_activity(self.get_user_id(), obj.identify):
+				activity_link += u'<span class="label label-sm label-warning">Đã đăng ký</span>'
 
 			values.append(mark_safe(activity_link))
 
@@ -160,13 +162,13 @@ class ActivityDetailView(BaseActivityView, DetailView, FormView):
 		if can_register_activity(self.get_user_id(), self.get_activity_id()):
 			context['state'] = mark_safe(u'<input type="submit" class="btn blue" value="Đăng ký">')
 		else:
-			activity_user_object = get_activity_user(self.get_user_id(), self.get_activity_id())
-			if activity_user_object is None:
-				context['state'] = u'Bạn không thể đăng ký hoạt động này'
-			elif activity_user_object.participated:
+			if is_registered_activity(self.get_user_id(), self.get_activity_id()):
+				context['state'] = u'Bạn đã đăng ký hoạt động này'
+			elif is_participated_activity(self.get_user_id(), self.get_activity_id()):
 				context['state'] = u'Bạn đã tham gia hoạt động này'
 			else:
-				context['state'] = u'Bạn đã đăng ký hoạt động này'
+				context['state'] = u'Bạn không thể đăng ký hoạt động này'
+
 		return context
 
 	def get_staff(self):
@@ -179,8 +181,7 @@ class ActivityDetailView(BaseActivityView, DetailView, FormView):
 		return objects
 
 	def form_valid(self, form):
-		print 'a'
-		set_activity_user(self.get_user_id(), self.get_activity_id())
+		register_activity(self.get_user_id(), self.get_activity_id())
 
 		return super(ActivityDetailView, self).form_valid(form)
 
@@ -240,6 +241,9 @@ class ActivityFormView(BaseSuccessMessageMixin, FormView):
 		# form.fields['identify'].widget.attrs['class'] = 'form-control'
 		form.fields['name'].widget.attrs['class'] = 'form-control'
 		form.fields['activity_type'].widget.attrs['class'] = 'form-control'
+		form.fields['training_type'].widget.attrs['class'] = 'form-control'
+		form.fields['period'].widget.attrs['class'] = 'form-control'
+		
 		form.fields['description'].widget.attrs['class'] = 'form-control'
 		form.fields['published'].widget.attrs['class'] = 'form-control'
 		
@@ -283,6 +287,8 @@ class ActivityUpdateView(BaseActivityUpdateView, ActivityFormView, UpdateView):
 
 	fields =[	'name',
 				'activity_type',
+				'training_type',
+				'period',
 				'start_time',
 				'end_time',
 				'location',
@@ -325,10 +331,11 @@ class ActivityMemberImportView(BaseActivityView, BaseImportView):
 		user = row['user']
 		participated = bool(row['participated'])
 
-		if set_activity_user(user, self.get_activity_id(), 2, None, participated):
-			print 'Import user ' + user + ' to ' + self.get_activity_id() + ' complete'
-			print '----------'
-			return True
+		if participated:
+			if participate_activity(user, self.get_activity_id()):
+				print 'Import user ' + user + ' to ' + self.get_activity_id() + ' complete'
+				print '----------'
+				return True
 
 		return False
 

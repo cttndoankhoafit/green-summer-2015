@@ -2,8 +2,6 @@
 
 {% load staticfiles %}
 
-{% load staticfiles %}
-
 {% block page_level_styles %}
 	{{ block.super }}
 	<link rel="stylesheet" type="text/css" href="{% static "v1/assets/global/plugins/bootstrap-datepicker/css/datepicker3.css" %}"/>
@@ -69,6 +67,26 @@
 								</div>
 							</div>
 
+
+							<div class="form-group">
+								<div class="col-md-3">
+									<label>Loại hoạt động rèn luyện</label>
+								</div>
+								<div class="col-md-9">
+									{{ form.training_type }}
+									{{ form.training_type.errors }}
+								</div>
+							</div>
+
+							<div class="form-group">
+								<div class="col-md-3">
+									<label>Giai đoạn thực hiện</label>
+								</div>
+								<div class="col-md-9">
+									{{ form.period }}
+									{{ form.period.errors }}
+								</div>
+							</div>
 
 							<div class="form-group">
 								<div class="col-md-3">

@@ -15,6 +15,11 @@ CONST_PERMISSIONS = (
 		(2, u'Không có quyền truy cập'),
 	)
 
+CONST_TRAINING_TYPES = (
+		(0, u'Nhận thức'),
+		(1, u'Hành động'),
+		(2, u'Khác'),
+	) 
 
 # Dữ liệu quốc gia
 class Nation(models.Model):
@@ -300,6 +305,7 @@ class Activity(models.Model):
 	description = models.TextField(null=True, blank=True, default=None)
 
 	# Thêm mục điểm rèn luyện
+	training_type =  models.PositiveSmallIntegerField(null=True, choices=CONST_TRAINING_TYPES, default=2)
 
 	def __unicode__(self):
 		return self.name
@@ -309,13 +315,16 @@ class Activity(models.Model):
 class ActivityUser(models.Model):
 	user = models.ForeignKey(User)
 	activity = models.ForeignKey(Activity)
-	permission =  models.PositiveSmallIntegerField(null=True, choices=CONST_PERMISSIONS, default=2)
+	permission = models.PositiveSmallIntegerField(null=True, choices=CONST_PERMISSIONS, default=2)
 	position = models.CharField(max_length=64, null=True, blank=True, default=None)
 	note = models.TextField(null=True, blank=True, default=None)
-	participated = models.BooleanField(default=False)
+	state = models.CharField(max_length=32, null=True, blank=True, default=None)
+	
+	self_evaluation_score = models.DecimalField(max_digits=8, decimal_places=4, default=0)
+	staff_evaluation_score = models.DecimalField(max_digits=8, decimal_places=4, default=0)
 
 	class Meta:
-		unique_together = ('user', 'activity')
+		unique_together = ('user', 'activity', 'state')
 	
 	def __unicode__(self):
 		return self.activity.name + ' - ' + self.user.identify
@@ -328,35 +337,16 @@ class ActivityUser(models.Model):
 # Dữ liệu thông tin cơ bản của chương trình
 class YouthUnionMenberTrainingProgram(models.Model):
 	name = models.CharField(max_length=128)
-	period = models.ForeignKey(Period)
+	period = models.ForeignKey(Period, unique=True)
 
 	register_start_time = models.DateTimeField(null=True, blank=True, default=None)
 	register_end_time = models.DateTimeField(null=True, blank=True, default=None)
 
-	judge_start_time = models.DateTimeField(null=True, blank=True, default=None)
-	judge_end_time = models.DateTimeField(null=True, blank=True, default=None)
+	evaluation_start_time = models.DateTimeField(null=True, blank=True, default=None)
+	evaluation_end_time = models.DateTimeField(null=True, blank=True, default=None)
 
 	def __unicode__(self):
-		return self.name
-
-
-# Dữ liệu các hoạt động có trong chương trình
-class YouthUnionMenberTrainingProgramActivity(models.Model):
-	CONST_TYPES = (
-		(0, u'Nhận thức'),
-		(1, u'Hành động'),
-		(2, u'Khác'),
-	) 
-
-	program = models.ForeignKey(YouthUnionMenberTrainingProgram)
-	activity = models.ForeignKey(Activity)
-	activity_type = models.PositiveSmallIntegerField(null=True, choices=CONST_TYPES, default=2)
-
-	class Meta:
-		unique_together = ('program', 'activity')
-
-	def __unicode__(self):
-		return self.program.name + ' - ' + self.activity.name
+		return self.period.name
 
 
 # Dữ liệu người dùng tham gia chương trình
@@ -369,21 +359,5 @@ class YouthUnionMenberTrainingProgramUser(models.Model):
 
 	def __unicode__(self):
 		return self.user.get_full_name() + ' - ' + self.program.name
-
-
-# Dữ liệu người dùng tham gia các hoạt động có trong chương trình
-class YouthUnionMenberTrainingProgramActivityUser(models.Model):
-	program_user = models.ForeignKey(YouthUnionMenberTrainingProgramUser)
-	program_activity = models.ForeignKey(YouthUnionMenberTrainingProgramActivity)
-
-	self_evaluation = models.PositiveSmallIntegerField(null=True, default=0)
-	manager_evaluation = models.PositiveSmallIntegerField(null=True, default=0)
-
-	class Meta:
-		unique_together = ('program_user', 'program_activity')
-
-	def __unicode__(self):
-		return str(self.program_user) + ' - ' + str(self.program_activity)
-
 
 #endregion

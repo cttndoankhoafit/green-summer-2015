@@ -20,6 +20,9 @@ def get_period_list():
 	return Period.objects.all()
 
 
+def get_newest_period():
+	now = timezone.now()
+	return Period.objects.get(start_time__lte=now, end_time__gte=now)
 #endregion
 
 
@@ -1028,6 +1031,8 @@ def set_activity(
 		credits = 0,
 		score = 0,
 
+		training_type = 2,
+
 		description = None,
 	):
 	if not is_organization_manager(user_identify):
@@ -1071,6 +1076,7 @@ def set_activity(
 										credits = credits,
 										score = score,
 
+										training_type = 2,
 										description = description
 									)
 				activity_object.save()
@@ -1097,6 +1103,7 @@ def set_activity(
 				activity_object.credits = credits
 				activity_object.score = score
 
+				activity_object.training_type = training_type
 				activity_object.description = description
 				activity_object.save()
 
@@ -1146,6 +1153,7 @@ def get_activity_list():
 	return Activity.objects.all()
 
 
+
 def get_activity_staff(activity_identify):
 	activity = __get_activity(activity_identify)
 	activity_user_list = ActivityUser.objects.filter(activity=activity, permission__lte=1)
@@ -1183,19 +1191,54 @@ def get_activity_user(user_identify, activity_identify):
 
 
 
+def is_registered_activity(user_identify, activity_identify):
+	user = __get_user(user_identify)
+	activity = __get_activity(activity_identify)
+	try:
+		activity_user_object = ActivityUser.objects.get(user=user, activity=activity, state='registered')
+		if activity_user_object is not None:
+			return True
+	except Exception, e:
+		print e
+	return False
+	
 def is_participated_activity(user_identify, activity_identify):
-	activity_user_object = __get_activity_user(user_identify, activity_identify)
-
-	if activity_user_object is None:
-		return False
-
-	if activity_user_object.permission >= 1:
+	if is_activity_manager(user_identify, activity_identify):
 		return True
 
-	if not activity_user_object.participated:
-		return False
+	user = __get_user(user_identify)
+	activity = __get_activity(activity_identify)
+	try:
+		activity_user_object = ActivityUser.objects.get(user=user, activity=activity, state='participated')
+		if activity_user_object is not None:
+			return True
+	except Exception, e:
+		print e
+	return False
 
-	return True
+
+def register_activity(user_identify, activity_identify):
+	user = __get_user(user_identify)
+	activity = __get_activity(activity_identify)
+
+	try:
+		activity_user_object = ActivityUser(user=user, activity=activity, state="registered")
+		activity_user_object.save()
+	except Exception, e:
+		return e
+
+
+def participate_activity(user_identify, activity_identify):
+	user = __get_user(user_identify)
+	activity = __get_activity(activity_identify)
+
+	try:
+		activity_user_object = ActivityUser(user=user, activity=activity, state="participated")
+		activity_user_object.save()
+	except Exception, e:
+		return e
+
+
 
 # Lấy danh sách các hoạt động đã tham gia của một người dùng
 def get_participated_activity_list(user_identify, accessed_user_identify):
@@ -1213,6 +1256,7 @@ def get_participated_activity_list(user_identify, accessed_user_identify):
 		ids.append(obj.activity.identify)
 
 	return Activity.objects.filter(identify__in=ids)
+
 
 
 # Lấy bảng thống kê các hoạt động đã tham gia của một người dùng trong một khoảng thời gian
@@ -1244,14 +1288,17 @@ def get_activity_user_list(user_identify, activity_identify):
 	return ActivityUser.objects.filter(activity=__get_activity(activity_identify))
 
 
+
 # Thêm/sửa thành viên tham gia hoạt động
 def set_activity_user(
 		obj,
 		activity_identify = None,
 		permission = 2,
 		position = None,
-		participated = False,
-		note = None,
+		state = '',
+		self_evaluation_score = 0,
+		staff_evaluation_score = 0,
+		note = None
 	):
 	object_type = type(obj)
 	try:
@@ -1271,7 +1318,9 @@ def set_activity_user(
 											activity = activity_object,
 											permission = permission,
 											position = position,
-											participated = participated,
+											state = state,
+											self_evaluation_score = self_evaluation_score,
+											staff_evaluation_score = staff_evaluation_score,
 											note = note
 										)
 				activity_user_object.save()
@@ -1279,8 +1328,11 @@ def set_activity_user(
 			else:
 				activity_user_object.permission = permission
 				activity_user_object.position = position
-				activity_user_object.participated = participated
+				activity_user_object.state = state
+				activity_user_object.self_evaluation_score = self_evaluation_score
+				activity_user_object.staff_evaluation_score = staff_evaluation_score
 				activity_user_object.note = note
+				a
 				activity_user_object.save()
 				return True
 		else:
@@ -1291,6 +1343,7 @@ def set_activity_user(
 	return False
 
 
+
 # Lấy ActivityUser model
 def get_activity_user_model():
 	return ActivityUser
@@ -1299,7 +1352,111 @@ def get_activity_user_model():
 # endregion
 
 
-# region Rèn luyện Đoàn viên
+# region Rèn luyện Đoàn viên (YouthUnionMenberTrainingProgram model)
+def __get_yumt(period_identify):
+	try:
+		return YouthUnionMenberTrainingProgram.objects.get(period=__get_period(period_identify))
+	except Exception, e:
+		print e
+
+	return None
+
+
+def get_yumt(period_identify):
+	return __get_yumt(period_identify)
+
+
+
+def get_yumt_list():
+	return YouthUnionMenberTrainingProgram.objects.all()
+
+
+
+def set_yumt(
+		user_identify,
+		obj,
+		register_start_time = None,
+		register_end_time = None,
+		evaluation_start_time = None,
+		evaluation_end_time = None
+	):
+	if not is_super_administrator(user_identify):
+		return False
+
+	try:
+		object_type = type(obj)
+
+		if obj is str or obj is unicode:
+			period = __get_period(obj)
+
+			yumt_object = __get_yumt(obj)
+			if yumt_object is None:
+				yumt_object = YouthUnionMenberTrainingProgram(
+														period=period,
+														register_start_time=register_start_time,
+														register_end_time=register_end_time,
+														evaluation_start_time=evaluation_start_time,
+														evaluation_end_time=evaluation_end_time
+													)
+				yumt_object.save()
+				return True
+			else:
+				yumt_object.register_start_time = register_start_time
+				yumt_object.register_end_time = register_end_time
+				yumt_object.evaluation_start_time = evaluation_start_time
+				yumt_object.evaluation_end_time = evaluation_end_time
+				yumt_object.save()
+				return True
+		else:
+			obj.save()
+			return True
+
+	except Exception, e:
+		print e
+
+	return False
+
+
+
+def get_yumt_activity_list(period_identify):
+	return Activity.objects.filter(period=__get_period(period_identify), training_type__lte=1)
+
+
+def is_registered_yumt_activity(user_identify, activity_identify):
+	user = __get_user(user_identify)
+	activity = __get_activity(activity_identify)
+	try:
+		if ActivityUser.objects.get(user=user, activity=activity, state='yumt') is not None:
+			return True
+	except Exception, e:
+		print e
+	return False
+
+
+def register_yumt_activity(user_identify, activity_identify):
+	user = __get_user(user_identify)
+	activity = __get_activity(activity_identify)
+	activity_user_object = None
+	try:
+		activity_user_object = ActivityUser.objects.get(user=user, activity=activity, state='yumt')
+	except:
+		activity_user_object = None
+
+	if activity_user_object is None:
+		activity_user_object = ActivityUser(user=user, activity=activity, state='yumt')
+		activity_user_object.save()
+
+def unregister_yumt_activity(user_identify, activity_identify):
+	user = __get_user(user_identify)
+	activity = __get_activity(activity_identify)
+	activity_user_object = ActivityUser.objects.get(user=user, activity=activity, state='yumt')
+	if activity_user_object is not None:
+		activity_user_object.delete()
+
+
+def get_yumt_model():
+
+	return YouthUnionMenberTrainingProgram
 
 
 # endregion

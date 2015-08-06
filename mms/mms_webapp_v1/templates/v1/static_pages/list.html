@@ -28,7 +28,90 @@
 
 <div class="row">
 	<div class="col-md-12">
-		{% include 'v1/static_modules/list.html' %}
+		{% include 'v1/static_modules/message.html' %}
+		<form method="post">
+			{% csrf_token %}
+			<div class="portlet">
+				<div class="portlet-title">
+					<div class="actions">
+						{% if show_add_button %}
+						<a href="{{ add_link }}" class="btn btn-default btn-sm">
+							<i class="fa fa-plus"></i> Thêm
+						</a>
+						{% endif %}
+						<div class="btn-group">
+							<a class="btn btn-default btn-sm" data-toggle="dropdown">
+							<i class="fa fa-cogs"></i> Công cụ <i class="fa fa-angle-down"></i>
+							</a>
+							<ul class="dropdown-menu pull-right">
+								{% if show_delete_button %}
+								<li>
+									<a href="#">
+									<i class="fa fa-trash-o"></i> Xóa </a>
+								</li>
+								{% endif %}
+								<!-- <li>
+									<a href="#">
+									<i class="fa fa-ban"></i> Khóa </a>
+								</li> -->
+								{% if show_import_button %}
+								<li class="divider">
+								</li>
+								<li>
+									<a href="{{ import_link }}">
+									<i class="icon-login"></i> Nhập danh sách</a>
+								</li>
+								{% endif %}
+								<li>
+									<a href="{{ export_link }}">
+									<i class="icon-logout"></i> Xuất danh sách</a>
+								</li>
+								{% if show_statistics_button %}
+								<li class="divider">
+								</li>
+								<li>
+									<a href="{{ statistics_link }}">
+									<i class="icon-login"></i> Thống kê</a>
+								</li>
+								{% endif %}
+								{% block actions %}
+								{% endblock %}
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="portlet-body">
+					<table class="table table-hover table-bordered" id="table">
+						<thead>
+							<tr>
+								{% if show_checkbox %}
+								<th class="table-checkbox" width="2%">
+									<input type="checkbox" class="group-checkable" data-set="#table .checkboxes"/>
+								</th>
+								{% endif %}
+								{% for thead in theads %}
+								<th width="{{ thead.size }}">
+									{{ thead.name }}
+								</th>
+								{% endfor %}
+							</tr>
+						</thead>
+						<tbody>
+							{% for object in object_list  %}
+							<tr class="odd gradeX">
+								{% for value in object %}
+								<td>{{ value }}</td>
+								{% endfor %}
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+
+				{% include 'v1/pagination.html' %}
+				</div>
+			</div>
+		<!-- 	<input type="submit"> -->
+		</form>
 	</div>
 </div>
 {% endblock %}

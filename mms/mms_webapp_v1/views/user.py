@@ -92,8 +92,6 @@ class UserActivityView(BaseUserView, ListView, FormView):
 	def form_valid(self, form):
 		self.object = form.save(commit=False)
 
-		print self.object
-
 		return HttpResponseRedirect(reverse('user_activity_period_view_v1', kwargs={'user_id' : self.get_user_account_id(), 'period_id' : 'all' }))
 
 	def get_queryset(self):
